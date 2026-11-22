@@ -4,7 +4,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select
 
 from app.api.deps import DB, ProjectDep, UserDep, check_write
 from app.api.v1._helpers import download, paged, serialize
@@ -166,11 +166,12 @@ def mappings(db: DB, project: ProjectDep, q: str | None = None, risk: str | None
 
 @router.get("/cannibalisation")
 def cannibalisation(db: DB, project: ProjectDep):
-    rows = db.execute(text(
-        "SELECT lower(primary_keyword) kw, COUNT(*) c, GROUP_CONCAT(url) urls FROM keyword_mappings "
-        "WHERE project_id=:p GROUP BY lower(primary_keyword) HAVING c>1 ORDER BY c DESC LIMIT 5000"
-    ), {"p": project.id}).all()
-    return {"items": [{"primary_keyword": r[0], "url_count": r[1], "urls": (r[2] or "").split(",")} for r in rows]}
+    rows = keyword_service.cannibalisation_conflicts(db, project.id)
+    return {"items": [{
+        "primary_keyword": item["primary_keyword"],
+        "url_count": len(item["urls"]),
+        "urls": item["urls"],
+    } for item in rows]}
 
 
 @router.post("/bulk-workflow", status_code=202)

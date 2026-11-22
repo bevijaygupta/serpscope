@@ -6,7 +6,7 @@ import re
 from collections import Counter, defaultdict
 from typing import Any, Iterable
 
-from sqlalchemy import select, text
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.timeutil import iso, utcnow
@@ -205,6 +205,23 @@ def cluster_keywords(db: Session, project_id: int, method: str = "normalized", c
     }
 
 
+def cannibalisation_conflicts(db: Session, project_id: int) -> list[dict[str, Any]]:
+    """Group URL mappings by primary keyword without dialect-specific SQL."""
+    rows = db.execute(
+        select(KeywordMapping.primary_keyword, KeywordMapping.url).where(
+            KeywordMapping.project_id == project_id
+        )
+    ).all()
+    grouped: dict[str, dict[str, Any]] = {}
+    for primary, url in rows:
+        key = (primary or "").lower()
+        entry = grouped.setdefault(key, {"primary_keyword": primary or "", "urls": []})
+        entry["urls"].append(url or "")
+    conflicts = [entry for entry in grouped.values() if len(entry["urls"]) > 1]
+    conflicts.sort(key=lambda item: len(item["urls"]), reverse=True)
+    return conflicts[:5000]
+
+
 def map_clusters_to_urls(db: Session, project_id: int, config: dict | None = None) -> dict[str, Any]:
     """Assign one primary cluster/keyword per URL using transparent scoring."""
     cfg = {"max_urls": 100000, "brand_terms": []}
@@ -280,15 +297,14 @@ def map_clusters_to_urls(db: Session, project_id: int, config: dict | None = Non
         mapped += 1
     db.commit()
 
-    # Cannibalisation report: duplicate primaries and overlapping clusters on identical page types
-    conflicts = db.execute(text(
-        "SELECT primary_keyword, COUNT(*) c, GROUP_CONCAT(url) urls FROM keyword_mappings "
-        "WHERE project_id=:p GROUP BY lower(primary_keyword) HAVING c > 1 ORDER BY c DESC LIMIT 5000"
-    ), {"p": project_id}).all()
+    # Cannibalisation report: duplicate primaries. Aggregated in Python so the
+    # same code works on SQLite and PostgreSQL (GROUP_CONCAT is SQLite-only).
+    conflicts = cannibalisation_conflicts(db, project_id)
     rows = [{
-        "primary_keyword": r[0], "url_count": r[1], "urls": (r[2] or "").split(","),
-        "risk": "high", "recommendation": "Consolidate pages or differentiate intent and primary keyword",
-    } for r in conflicts]
+        "primary_keyword": item["primary_keyword"], "url_count": len(item["urls"]),
+        "urls": item["urls"], "risk": "high",
+        "recommendation": "Consolidate pages or differentiate intent and primary keyword",
+    } for item in conflicts]
     return {
         "mapped_urls": mapped, "unmapped_urls": len(unmapped_urls),
         "unmapped_sample": unmapped_urls[:20], "cannibalisation_conflicts": len(rows),

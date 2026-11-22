@@ -105,6 +105,7 @@ Notes:
 - Free Render web services sleep after inactivity, so the first request may take about a minute. Free Postgres expires after 30 days; upgrade the database before relying on a long-lived demo.
 - Uploads and exports use `/tmp/serpscope/...` because the free web service has no persistent disk. Generated files are not retained across restarts.
 - If Vercel assigns a different project name, update `CORS_ORIGINS` on Render and the rewrite destination in `vercel.json`.
+- PostgreSQL compatibility: keyword cannibalisation grouping is done in Python instead of SQLite's `GROUP_CONCAT`, and report queries order by column position to avoid Postgres `GROUP BY` ambiguity. The backend test suite passes in both local SQLite and hosted PostgreSQL configurations.
 
 ## 4. Intended container topology
 

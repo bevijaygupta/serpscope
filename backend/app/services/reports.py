@@ -63,12 +63,12 @@ def generate_weekly_report(
     top_pages = db.execute(text(
         "SELECT dimension, SUM(clicks) clicks, SUM(impressions) impressions, SUM(sessions) sessions, "
         "SUM(revenue) revenue FROM analytics_records WHERE project_id=:p AND dimension_type='page' "
-        "AND period_start>=:s AND period_start<=:e GROUP BY dimension ORDER BY clicks DESC LIMIT 10"
+        "AND period_start>=:s AND period_start<=:e GROUP BY dimension ORDER BY 2 DESC LIMIT 10"
     ), {"p": project_id, "s": start, "e": end}).all()
     top_queries = db.execute(text(
         "SELECT dimension, SUM(clicks), SUM(impressions) FROM analytics_records "
         "WHERE project_id=:p AND dimension_type='query' AND period_start>=:s AND period_start<=:e "
-        "GROUP BY dimension ORDER BY clicks DESC LIMIT 10"
+        "GROUP BY dimension ORDER BY 2 DESC LIMIT 10"
     ), {"p": project_id, "s": start, "e": end}).all()
     open_issues = db.execute(text(
         "SELECT priority, COUNT(*) FROM issues WHERE project_id=:p AND status NOT IN ('Closed','Resolved') "
