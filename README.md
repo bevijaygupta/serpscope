@@ -4,7 +4,7 @@
 
 SERPScope is a full-stack FastAPI + React application for crawling, diagnosing, mapping, forecasting and reporting on large websites. It ships with a deterministic synthetic dataset and 12 interview-ready scenarios so every workflow can be demonstrated end to end **without claiming real client results, live vendor data, or guaranteed AI-search outcomes**.
 
-> **Live demo:** https://serpscope.vercel.app · **Source:** https://github.com/bevijaygupta/serpscope · [Deployment guide](docs/DEPLOYMENT.md#3-hosted-portfolio-demo-vercel--render)
+> **Live demo:** https://serpscope-serpscope.vercel.app · **Source:** https://github.com/bevijaygupta/serpscope · [Deployment guide](docs/DEPLOYMENT.md#3-hosted-portfolio-demo-vercel--render)
 
 > **Read this first:** all numbers in the demo are invented for rule testing. They are labelled `synthetic` / `simulated` at record level, in the UI and in exports. Nothing here is a real GSC/GA4 connection or a real crawl of a client site. See [Honesty, provenance and limitations](#honesty-provenance-and-limitations).
 

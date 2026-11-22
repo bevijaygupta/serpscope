@@ -71,7 +71,8 @@ app.mount("/api/v1/exports/files", StaticFiles(directory=str(settings.export_pat
 
 @app.get("/api/health", tags=["meta"])
 def health():
-    return {"status": "ok", "environment": settings.environment, "database": settings.database_url.split(":///")[0]}
+    # Report only the dialect, never credentials or the connection string.
+    return {"status": "ok", "environment": settings.environment, "database": settings.database_url.split("://", 1)[0]}
 
 
 @app.exception_handler(Exception)

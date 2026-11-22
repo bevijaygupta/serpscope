@@ -92,9 +92,12 @@ Deploy sequence from the GitHub repository:
 1. Create a **Blueprint** in Render pointing at the repository. It provisions `serpscope-db` and `serpscope-api`.
 2. Render generates `SECRET_KEY` automatically and injects the database connection string.
 3. After the first successful API deploy, `initialDeployHook` runs `python scripts/seed_demo.py --size 1000 --keyword-count 1000`, so the public demo has the same deterministic synthetic dataset used in screenshots and interview scenarios.
-4. Import the repository into Vercel. It uses `vercel.json`, so no manual build settings are required. The expected public URL is `https://serpscope.vercel.app`.
-5. Confirm `https://serpscope.vercel.app/api/health` returns `{"status":"ok",...}`. That proves the Vercel rewrite and Render API are connected.
+4. Import the repository into Vercel. It uses `vercel.json`, so no manual build settings are required. The deployed production URL is `https://serpscope-serpscope.vercel.app` (the per-deployment URL is `https://serpscope-3zidgh2ls-serpscope.vercel.app`).
+5. Confirm `https://serpscope-serpscope.vercel.app/api/health` returns `{"status":"ok","environment":"production","database":"postgresql"}`. That proves the Vercel rewrite and Render API are connected and that no database credentials are exposed.
 6. Log in with `demo@serpscope.local` / `demo1234`.
+7. The Vercel project must allow public access to its production domain. In this deployment, Vercel Authentication (`ssoProtection`) was disabled on project `prj_096DxSK5ekfzYa4vHxEZ1YGbxwbb`; otherwise visitors see a `Protected by Vercel Authentication` page.
+
+**Live deployment (verified 2026-11-22):** UI and same-origin API on `https://serpscope-serpscope.vercel.app`, API/database on Render (`https://serpscope-api.onrender.com`), source on `https://github.com/bevijaygupta/serpscope`. The Render Blueprint ID is `exs-dc1iqeks728c73cic3l0`; future pushes to `main` sync automatically.
 
 Notes:
 

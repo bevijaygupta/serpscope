@@ -24,10 +24,11 @@ This is an honest status report. It distinguishes what is implemented, what is o
 | Tests | Completed | 37 backend tests pass, including a 100,000-URL scale acceptance test; frontend typecheck and production build pass. No frontend unit-test runner exists. |
 | Documentation | Completed | 16 required documents plus this report; all stale claims about Alembic, imports, WebSocket auth and robots behaviour were corrected. |
 | Screenshots | Completed | 24 PNG captures covering all 23 modules plus a demo-scenario modal. |
+| Hosted demo | Completed | Public GitHub repo, Vercel UI with same-origin API rewrite, Render FastAPI + inline worker + Postgres, seeded synthetic data and public `/api/health`. |
 | Containers | Partial | Dockerfiles, nginx config, Compose file and CI workflow exist, but the Docker CLI is unavailable in this environment, so the Compose stack has not been built. |
-| Production hardening | Pending / partial | RBAC, token handling, SSRF enforcement, observability, distributed queuing and real integrations need work before public deployment. |
+| Production hardening | Pending / partial | RBAC, token handling, SSRF enforcement, observability, distributed queuing and real integrations still need work before this can be treated as a production multi-tenant service. |
 
-**Verdict:** the requested portfolio deliverable is present and runnable from source. It is honest about synthetic data and unimplemented integrations. It is not production-hardened and must not be marketed as having live vendor coverage.
+**Verdict:** the requested portfolio deliverable is present, runnable from source, and hosted as a public demo at `https://serpscope-serpscope.vercel.app`. It is honest about synthetic data and unimplemented integrations. It is not production-hardened and must not be marketed as having live vendor coverage.
 
 ---
 
@@ -335,8 +336,8 @@ Suggested talking points are expanded in `docs/INTERVIEW_DEMONSTRATIONS.md` and 
 
 | Classification | Count / scope |
 | --- | --- |
-| Completed | Application shell, 23 module screens, API, database, Alembic baseline, jobs, crawler safety, analysis services, imports/exports, demo generator, 12 scenarios, docs, tests, screenshots |
+| Completed | Application shell, 23 module screens, API, database, Alembic baseline, jobs, crawler safety, analysis services, imports/exports, demo generator, 12 scenarios, docs, tests, screenshots, GitHub publication, Vercel UI and Render API/database hosting |
 | Partial | Containers (not built), live integrations, JS rendering, crawler option coverage, DNS-aware SSRF, some issue detectors, global-role RBAC, token hardening, queue topology, pagination consistency, observability, frontend tests, incremental migrations, AI-search/forecasting depth |
-| Pending | Production hardening, real vendor adapters, per-project RBAC, distributed queue, egress enforcement, full Alembic evolution/backup runbook, git commit |
+| Pending | Production hardening, real vendor adapters, per-project RBAC, distributed queue, egress enforcement, full Alembic evolution/backup runbook, long-lived free-tier database (expires after 30 days) |
 
-The deliverable is ready for a source-run demonstration and interview use with the limitations stated above. It is not ready for public production deployment without the pending hardening work.
+The deliverable is ready for source-run demonstrations, interviews and the hosted synthetic-data demo at `https://serpscope-serpscope.vercel.app`, with the limitations stated above. It is not ready to be marketed as a production multi-tenant SaaS without the pending hardening work.
