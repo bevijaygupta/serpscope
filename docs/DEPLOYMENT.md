@@ -84,7 +84,7 @@ The checked-in infrastructure files are:
 
 | File | Purpose |
 | --- | --- |
-| `vercel.json` | Builds `frontend/` with Vite, publishes `frontend/dist`, and rewrites `/api/:path*` to `https://serpscope-api.onrender.com/api/:path*`. |
+| `vercel.json` | Builds `frontend/` with Vite, publishes `frontend/dist`, rewrites `/api/:path*` to `https://serpscope-api.onrender.com/api/:path*`, and falls back to `index.html` so SPA deep links work. |
 | `render.yaml` | Render Blueprint declaring `serpscope-db` (Postgres), `serpscope-api` (FastAPI + inline job worker) and the production environment variables. |
 
 Deploy sequence from the GitHub repository:
