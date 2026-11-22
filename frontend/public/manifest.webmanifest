@@ -1,0 +1,19 @@
+{
+  "name": "SERPScope — Evidence-first SEO operations",
+  "short_name": "SERPScope",
+  "description": "Source-tracked public SEO audits, editable PPT decks and six-month roadmaps.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#080b12",
+  "theme_color": "#080b12",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

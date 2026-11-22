@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { Activity, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
+import { Activity, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
 import { errorMessage, hasToken, login } from '../lib/api';
 import { useApp } from '../state/AppContext';
 
@@ -33,6 +33,7 @@ export function Login() {
     <div className="grid min-h-screen bg-canvas lg:grid-cols-2">
       <div className="flex items-center justify-center px-6 py-12">
         <form onSubmit={submit} className="w-full max-w-md animate-fade-in">
+          <Link to="/" className="mb-6 inline-flex items-center gap-1 text-xs text-muted transition hover:text-ink"><ArrowLeft className="h-3.5 w-3.5" /> Back to home</Link>
           <div className="mb-8 flex items-center gap-3">
             <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-sky-400 to-violet-600 text-white shadow-glow"><Activity className="h-6 w-6" /></div>
             <div>
@@ -42,7 +43,7 @@ export function Login() {
           </div>
           <div className="panel p-6">
             <h1 className="text-xl font-bold text-white">Sign in to your workspace</h1>
-            <p className="mt-1.5 text-sm text-muted">Use the demo account to explore a deterministic synthetic dataset.</p>
+            <p className="mt-1.5 text-sm text-muted">Use the demo account to explore synthetic workflows and run source-tracked public audits on real domains.</p>
             <div className="mt-6 space-y-4">
               <div>
                 <label className="label" htmlFor="email">Email</label>
@@ -67,7 +68,7 @@ export function Login() {
         <div className="relative max-w-lg px-12">
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] uppercase tracking-widest text-slate-300">Evidence-first SEO operations</div>
           <h2 className="text-4xl font-bold leading-tight tracking-tight text-white">Every metric has a source. Every recommendation has a reason.</h2>
-          <p className="mt-5 text-sm leading-7 text-slate-400">Crawl, diagnose, map, forecast and report across 23 enterprise SEO modules — with live jobs, transparent scoring and reviewable AI suggestions.</p>
+          <p className="mt-5 text-sm leading-7 text-slate-400">Crawl real public pages, diagnose issues, map intent and export a PPT plus six-month roadmap. Works without Search Console or Analytics access — vendor data is an upgrade, never a prerequisite.</p>
           <div className="mt-8 grid grid-cols-3 gap-3">
             {[['23', 'Modules'], ['100k+', 'URL scale'], ['12', 'Interview scenarios']].map(([value, label]) => (
               <div key={label} className="rounded-xl border border-white/10 bg-white/5 p-4">

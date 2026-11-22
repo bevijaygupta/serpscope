@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from app.api.v1 import (
     ai,
     analytics,
+    audits,
     auth,
     clients,
     competitor,
@@ -60,9 +61,10 @@ ROUTERS = [
     auth, meta, projects, clients, imports, jobs, inventory, crawler, technical,
     orphans, keywords, content, links, competitor, international, local,
     ecommerce, migration, ai, analytics, workflows, integrations, demo,
+    audits, audits.public_router,
 ]
 for router in ROUTERS:
-    app.include_router(router.router, prefix="/api/v1")
+    app.include_router(router.router if hasattr(router, "router") else router, prefix="/api/v1")
 
 settings.export_path.mkdir(parents=True, exist_ok=True)
 settings.upload_path.mkdir(parents=True, exist_ok=True)
@@ -86,7 +88,8 @@ def _inline_worker() -> None:  # pragma: no cover - background loop
 
     from app.services.jobs import claim_next, run_job
     from app.services import (  # noqa: F401 - register handlers in API process
-        analysis_jobs, crawl_jobs, demo_jobs, import_jobs, keyword_jobs, workflow_jobs,
+        analysis_jobs, crawl_jobs, demo_jobs, import_jobs, keyword_jobs, public_audit_jobs,
+        workflow_jobs,
     )
 
     while True:

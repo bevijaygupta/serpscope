@@ -149,8 +149,12 @@ Values are carried through with their source name and `confidence`; the platform
 `parse_sitemap()` uses `xml.etree.ElementTree` and handles namespaced `<urlset>` documents:
 
 - `<urlset>`: extracts `loc`, `lastmod`, `changefreq`, `priority`. `<loc>` values go into `UrlRecord` with `in_sitemap=true`; full entries are also stored in `SitemapEntry`.
-- `<sitemapindex>`: extracts child `<loc>` values and adds them as URLs with source `sitemap_index`. It **does not fetch** the referenced sitemap files.
+- `<sitemapindex>`: extracts child `<loc>` values and adds them as URLs with source `sitemap_index`. The **file importer** does not fetch the referenced sitemap files.
 - Sitemap import is file-based: point the upload at an exported sitemap, or use the demo dataset (which plants `synthetic-sitemap.xml` entries and deliberately omits URLs where `i % 7 == 3`).
+
+**Live public-audit discovery is separate from file import.** `CrawlEngine._discover_sitemaps()` fetches `/robots.txt`, robots-declared `Sitemap:` URLs plus `/sitemap.xml` and `/sitemap_index.xml`, expands one index level into child sitemaps, stores every fetched document as a raw `CrawlObservation`, and records `Crawl.summary.sitemap` (`declared_sitemaps`, `sitemap_files`, `sitemap_urls`, `errors`). Same-host `<loc>` entries are upserted as `data_kind=public_sitemap`, `source=sitemap`, `in_sitemap=true` with provenance `sitemap-discovery`, so orphan analysis can distinguish sitemap-only URLs from discovered links. The robots document and explicit allow/disallow rules for 12 known AI/search agents are stored under `Crawl.summary.robots`; they are evidence of declared policy, **not** a guarantee of answer-engine inclusion.
+
+Public-audit outputs never call GSC, GA4, rank tracking or LLM APIs. The audit response includes a `source_registry` (`robots.txt`, `sitemap files` and `crawl observations` = verified; `rule engine` = derived; `Search Console / GA4` = `not_supplied`) and `missing_data` statements for every private source that could upgrade the analysis later.
 
 ---
 

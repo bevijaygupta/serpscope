@@ -1,14 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Activity, BarChart3, CheckCircle2, Clock3, Database, FileStack, FolderPlus,
-  Play, RefreshCw, Rocket, Search, ShieldAlert, Sparkles, TriangleAlert,
+  Activity, BarChart3, CheckCircle2, Clock3, Database, Download, FileStack,
+  FolderPlus, Globe2, Play, Presentation, RefreshCw, Rocket, Search,
+  ShieldAlert, Sparkles, TriangleAlert,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ActionModal } from '../components/ActionModal';
 import { DataTable, type Row } from '../components/DataTable';
 import { Badge, Drawer, ErrorState, KeyValue, PageHeader, ProvenanceNote, Section, Spinner } from '../components/ui';
-import { errorMessage, get, post, unwrapList, type Job } from '../lib/api';
+import { downloadFile, errorMessage, get, post, unwrapList, waitForJob, type Job } from '../lib/api';
 import { compactJson, humanKey, num, titleCase } from '../lib/format';
 import type { ModuleAction, ModuleConfig } from '../lib/modules';
 import { useApp } from '../state/AppContext';
@@ -31,6 +32,157 @@ function useRemote<T>(path: string | null, deps: unknown[] = []) {
   }, [path, ...deps]);
   useEffect(() => load(), [load]);
   return { data, error, loading, reload: load };
+}
+
+type PublicAuditData = {
+  meta: { project_name: string; domain: string; generated_at: string; crawl_id: number | null };
+  coverage: {
+    discovered_urls: number; fetched_urls: number; failed_urls: number;
+    sitemap_entries: number; robots_respected: boolean; javascript_rendering: boolean;
+  };
+  findings: {
+    id: string; title: string; severity: string; category: string;
+    affected_count: number; observation: string; recommended_action: string;
+    source: string[]; limitation: string;
+  }[];
+  roadmap: { month: number; theme: string; objective: string; owner: string }[];
+  missing_data: string[];
+};
+
+async function runPublicAuditJob(projectId: number, startUrl: string, onUpdate?: (job: Job) => void) {
+  const queued = await post<{ job_id: number }>(`/audits/projects/${projectId}/public-audit/start`, {
+    start_url: startUrl,
+    name: `Public audit · ${startUrl}`,
+  });
+  const job = await waitForJob(queued.job_id, onUpdate, 900_000);
+  if (job.status !== 'succeeded') throw new Error(job.error || job.message || `Audit job ${job.status}`);
+  return job;
+}
+
+function PublicAuditPanel() {
+  const { projectId, project, dataVersion, bumpData, notify } = useApp();
+  const [running, setRunning] = useState(false);
+  const [job, setJob] = useState<Job | null>(null);
+  const [actionError, setActionError] = useState('');
+  const audit = useRemote<PublicAuditData>(projectId ? `/audits/projects/${projectId}/public-audit` : null, [projectId, dataVersion]);
+
+  const start = async () => {
+    if (!projectId || !project?.domain) return;
+    setRunning(true);
+    setActionError('');
+    setJob(null);
+    try {
+      await runPublicAuditJob(projectId, project.domain, setJob);
+      audit.reload();
+      bumpData();
+      notify('Public audit completed. Audit, PPT and exports are ready.', 'success');
+    } catch (e) {
+      setActionError(errorMessage(e));
+      notify(errorMessage(e), 'error');
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const exportAudit = async (format: string, section: string, fallback: string) => {
+    if (!projectId) return;
+    try {
+      await downloadFile(`/audits/projects/${projectId}/public-audit/export`, { format, section }, fallback);
+    } catch (e) { notify(errorMessage(e), 'error'); }
+  };
+
+  const exports = [
+    { label: 'PPTX', format: 'pptx', section: 'all', file: 'serpscope-audit.pptx' },
+    { label: 'PDF', format: 'pdf', section: 'all', file: 'serpscope-audit.pdf' },
+    { label: 'CSV', format: 'csv', section: 'all', file: 'serpscope-audit.csv' },
+    { label: 'XLSX', format: 'xlsx', section: 'all', file: 'serpscope-audit.xlsx' },
+    { label: 'JSON', format: 'json', section: 'all', file: 'serpscope-audit.json' },
+    { label: 'Roadmap CSV', format: 'csv', section: 'roadmap', file: 'serpscope-6-month-roadmap.csv' },
+  ];
+
+  if (!projectId) return <Section title="Public audit"><div className="py-10 text-center text-xs text-muted">Select a project to run a public audit.</div></Section>;
+
+  return (
+    <Section
+      title="Source-tracked public audit"
+      description="One click crawls the selected domain, rebuilds issues and the internal-link graph, then creates a six-month roadmap and presentation pack. No Search Console or Analytics access is required."
+      actions={<button className="btn btn-primary text-xs" disabled={running} onClick={() => void start()}>
+        {running ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Globe2 className="h-3.5 w-3.5" />}
+        {running ? 'Running…' : 'Run public audit'}
+      </button>}
+    >
+      <div className="mb-4"><ProvenanceNote>Public evidence only: robots.txt, sitemaps, observed HTTP responses and explained rules. Vendor metrics are listed as missing, never invented.</ProvenanceNote></div>
+      {actionError ? <div className="mb-3 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-xs text-danger">{actionError}</div> : null}
+      {running && job ? (
+        <div className="mb-4 rounded-lg border border-accent/30 bg-accent/5 p-3">
+          <div className="flex items-center justify-between text-xs text-ink"><span>{job.message || job.status}</span><span className="mono">{job.progress}/{job.total || 100}</span></div>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5"><div className="h-full bg-accent transition-all" style={{ width: `${job.total ? (job.progress / job.total) * 100 : 20}%` }} /></div>
+        </div>
+      ) : null}
+      {audit.loading ? <Spinner /> : audit.error ? <ErrorState message={audit.error} retry={audit.reload} /> : audit.data ? (
+        <>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+            {[
+              ['Domain', audit.data.meta.domain],
+              ['Fetched URLs', num(audit.data.coverage.fetched_urls)],
+              ['Sitemap URLs', num(audit.data.coverage.sitemap_entries)],
+              ['Findings', num(audit.data.findings.length)],
+              ['Roadmap', `${audit.data.roadmap.length} months`],
+            ].map(([label, value]) => (
+              <div key={label} className="panel-flat p-3">
+                <div className="text-[10px] font-semibold uppercase tracking-wider text-muted">{label}</div>
+                <div className="mt-1 truncate text-sm font-semibold text-ink" title={String(value)}>{value}</div>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <div>
+              <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted"><ShieldAlert className="h-3.5 w-3.5 text-accent" /> Priority findings</h3>
+              <div className="space-y-2">
+                {audit.data.findings.slice(0, 5).map((finding) => (
+                  <div key={finding.id} className="rounded-lg border border-edge bg-canvas/50 p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="text-xs font-semibold text-ink">{finding.title}</div>
+                      <Badge>{finding.severity}</Badge>
+                    </div>
+                    <div className="mt-1 text-[11px] leading-5 text-muted">{finding.observation}</div>
+                    <div className="mt-1.5 text-[10px] text-muted">Source: {finding.source.join(', ')} · {finding.affected_count} affected</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div>
+              <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted"><Presentation className="h-3.5 w-3.5 text-accent" /> Six-month roadmap</h3>
+              <div className="space-y-2">
+                {audit.data.roadmap.map((month) => (
+                  <div key={month.month} className="rounded-lg border border-edge bg-canvas/50 p-3">
+                    <div className="text-xs font-semibold text-ink">M{month.month} · {month.theme}</div>
+                    <div className="mt-1 text-[11px] leading-5 text-muted">{month.objective}</div>
+                    <div className="mt-1 text-[10px] text-muted">Owner: {month.owner}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-3 rounded-lg border border-warning/20 bg-warning/5 p-3">
+                <div className="text-[11px] font-semibold text-warning">Missing data stated explicitly</div>
+                <ul className="mt-1 space-y-1 text-[10px] leading-4 text-muted">
+                  {audit.data.missing_data.slice(0, 3).map((item) => <li key={item}>• {item}</li>)}
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-edge pt-4">
+            <span className="mr-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-muted"><Download className="h-3.5 w-3.5" /> Downloads</span>
+            {exports.map((item) => (
+              <button key={item.label} className="btn text-[11px]" onClick={() => void exportAudit(item.format, item.section, item.file)}>{item.label}</button>
+            ))}
+          </div>
+          <div className="mt-2 text-[10px] text-muted">Generated {audit.data.meta.generated_at.slice(0, 16).replace('T', ' ')} UTC · robots respected: {String(audit.data.coverage.robots_respected)} · JS rendering: {String(audit.data.coverage.javascript_rendering)}</div>
+        </>
+      ) : <div className="py-10 text-center text-xs text-muted">No audit available yet. Run one to create source-tracked findings and exports.</div>}
+    </Section>
+  );
 }
 
 /* ---------------------------------- Overview --------------------------------- */
@@ -160,6 +312,10 @@ function OverviewPage() {
           </div>
 
           <div className="mt-5">
+            <PublicAuditPanel />
+          </div>
+
+          <div className="mt-5">
             <Section title="Priority issue groups" description="Ranked by transparent weighted scores.">
               {issues.loading ? <Spinner /> : issues.error ? <ErrorState message={issues.error} /> : (
                 <DataTable
@@ -259,12 +415,14 @@ function ProjectsPage() {
 /* ---------------------------------- Crawler ----------------------------------- */
 
 function CrawlerPage() {
-  const { projectId, dataVersion } = useApp();
+  const { projectId, project, dataVersion, bumpData, notify } = useApp();
   const [tab, setTab] = useState('runs');
   const [action, setAction] = useState<ModuleAction | null>(null);
   const [selected, setSelected] = useState<Row | null>(null);
   const [observations, setObservations] = useState<Row[]>([]);
   const [loadingObs, setLoadingObs] = useState(false);
+  const [auditRunning, setAuditRunning] = useState(false);
+  const [auditStatus, setAuditStatus] = useState('');
   const runs = useRemote<{ items: Row[] }>(projectId ? `/crawler/runs?project_id=${projectId}` : null, [projectId, dataVersion]);
   const defaults = useRemote<unknown>('/crawler/config-defaults', []);
 
@@ -279,12 +437,35 @@ function CrawlerPage() {
     finally { setLoadingObs(false); }
   };
 
+  const runAudit = async () => {
+    if (!projectId || !project?.domain) return;
+    setAuditRunning(true);
+    setAuditStatus('Queuing public audit…');
+    try {
+      const job = await runPublicAuditJob(projectId, project.domain, (update) => setAuditStatus(update.message || update.status));
+      setAuditStatus(`Completed ${job.progress}/${job.total || 100}`);
+      bumpData();
+      runs.reload();
+      notify('Public audit completed. Open Overview for the audit panel and exports.', 'success');
+    } catch (e) {
+      setAuditStatus(errorMessage(e));
+      notify(errorMessage(e), 'error');
+    } finally { setAuditRunning(false); }
+  };
+
   return (
     <div className="animate-fade-in">
       <PageHeader eyebrow="Discovery" title="Crawler" description="Robots-aware, concurrency-limited crawling. Raw HTTP observations are stored separately from interpreted fields and can be exported." actions={
-        <button className="btn btn-primary" onClick={() => setAction({ label: 'Start crawl', method: 'post', path: `/crawler/start?project_id=${projectId}`, defaultBody: { config: { start_url: 'https://demo.example.com/', max_urls: 500, max_depth: 4, concurrency: 2, crawl_delay: 0.5, respect_robots: true, follow_external: false, allow_private: false } }, hint: 'Only crawl domains you are authorised to test.' })}><Play className="h-3.5 w-3.5" /> Start crawl</button>
+        <>
+          <button className="btn" onClick={() => setAction({ label: 'Start crawl', method: 'post', path: `/crawler/start?project_id=${projectId}`, defaultBody: { config: { start_url: project?.domain || 'https://demo.example.com/', max_urls: 500, max_depth: 4, concurrency: 2, crawl_delay: 0.5, respect_robots: true, follow_external: false, allow_private: false } }, hint: `Only crawl domains you are authorised to test. Selected: ${project?.domain || 'none'}.` })}><Play className="h-3.5 w-3.5" /> Start crawl</button>
+          <button className="btn btn-primary" disabled={auditRunning || !project?.domain} onClick={() => void runAudit()}>
+            {auditRunning ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Globe2 className="h-3.5 w-3.5" />}
+            {auditRunning ? 'Auditing…' : 'Run public audit'}
+          </button>
+        </>
       } />
       <div className="mb-5"><ProvenanceNote>Crawler respects robots.txt and crawl delay, blocks private/loopback targets, supports cancellation, and records every raw observation.</ProvenanceNote></div>
+      {auditStatus ? <div className="mb-4 rounded-lg border border-accent/30 bg-accent/5 px-3 py-2 text-xs text-ink">{auditStatus}</div> : null}
       <div className="mb-4 flex gap-2">
         {['runs', 'defaults'].map((key) => <button key={key} className={`btn text-xs ${tab === key ? 'btn-primary' : ''}`} onClick={() => setTab(key)}>{key === 'runs' ? 'Crawl runs' : 'Safety defaults'}</button>)}
       </div>

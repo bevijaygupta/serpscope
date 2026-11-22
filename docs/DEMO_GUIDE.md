@@ -4,9 +4,12 @@ The Demo Centre is the entry point for every walkthrough in this portfolio proje
 
 > **All data in these scenarios is synthetic.** URLs live under `demo.example.com`; clicks, sessions, conversions, revenue, keyword volumes, locations, products and AI observations are invented by `backend/app/services/demo.py` for rule testing. They are labelled `synthetic` / `simulated` in the database, UI and exports. No scenario represents a real client, a real crawl or a live vendor response.
 
+The separate **Run public audit** flow below is real public crawl evidence, not one of the 12 scenarios. It is labelled by source and states six missing-data statements. Keep the two clearly apart when presenting.
+
 - [Generate the dataset](#generate-the-dataset)
 - [Planted issue inventory](#planted-issue-inventory)
 - [The 12 scenarios](#the-12-scenarios)
+- [Real public audit (not a demo scenario)](#real-public-audit-not-a-demo-scenario)
 - [Before you present: action-modal caveats](#before-you-present-action-modal-caveats)
 - [Limits to state out loud](#limits-to-state-out-loud)
 
@@ -207,6 +210,21 @@ These are the exact `SCENARIOS` entries seeded by `backend/app/services/scenario
 
 ---
 
+## Real public audit (not a demo scenario)
+
+Use this after the synthetic walkthroughs to show the same platform working on public evidence:
+
+1. Select the **Techmagnate** project (`https://www.techmagnate.com/`) or create a project with a public domain you are authorised to audit.
+2. Open **Overview → Source-tracked public audit** (or **Crawler → Run public audit**) and click **Run public audit**. The job defaults to 250 URLs, depth 3, concurrency 2, 1-second delay and robots respected.
+3. Poll the job to `succeeded`, then show the audit's `coverage`, `findings`, `sources`, `roadmap` and `missing_data` sections.
+4. Export the **PPTX** (16 editable slides in the verified run), plus PDF/CSV/XLSX/JSON. The public case study is available at `/api/v1/public/case-studies/{id}` once the project has `settings.public_audit=true`.
+
+**Verified local result (60-URL sample, not exhaustive):** 303 URLs discovered, 60 fetched, 0 failed, 60 sitemap entries from 9 sitemap documents, 59 articles + 1 homepage, all HTTP 200. Findings: AEO readiness 140, slow responses 52, missing schema 60, crawl scope 60, AI-crawler policy 12 and sitemap evidence 60. Six explicit missing-data statements cover GSC, GA4, rank data, JS-rendered DOM, private pages and AI-answer sampling. 12 named AI/search agents are explicitly allowed in robots.txt — declared policy only, not an inclusion guarantee.
+
+**Hosted caveat:** backend changes require Render **Manual Deploy → Deploy latest commit**; until then the hosted landing case study shows as unavailable. See [DEPLOYMENT.md](DEPLOYMENT.md#31-publishing-the-real-public-audit-on-the-hosted-demo).
+
+---
+
 ## Before you present: action-modal defaults
 
 The generic **ActionModal** sends the `defaultBody` declared in `frontend/src/lib/modules.ts`. The previously reported mismatches were corrected:
@@ -224,11 +242,12 @@ Only edit the JSON when you deliberately want different inputs; the API field na
 
 ## Limits to state out loud
 
-- The dataset is deterministic and synthetic; the same size always produces the same "findings".
-- No live GSC, GA4, GBP, Merchant Center, Semrush, Ahrefs or LLM API is contacted.
-- No real crawl results are included in the demo data; the crawler module can only fetch domains you are authorised to test.
+- The 12-scenario dataset is deterministic and synthetic; the same size always produces the same "findings".
+- No live GSC, GA4, GBP, Merchant Center, Semrush, Ahrefs or LLM API is contacted, including in the real public audit.
+- The demo data contains no crawl results; the real public-audit flow fetches only public pages you are authorised to audit, under robots and delay rules.
+- The verified real audit fetched a narrow 60-URL sample; do not present it as a complete audit of the domain.
 - Forecasts are arithmetic scenarios on user-supplied inputs, not predictions.
-- AI-search outcomes are never guaranteed; observations are manual or synthetic.
-- Exports carry `data_kind` so a screenshot cannot be quietly presented as real performance.
+- AI-search outcomes are never guaranteed; readiness is rule-derived and observations are manual, synthetic or absent.
+- Exports carry `data_kind` and source columns so a screenshot cannot be quietly presented as real performance.
 
 For question-by-question talking points, see [INTERVIEW_DEMONSTRATIONS.md](INTERVIEW_DEMONSTRATIONS.md).

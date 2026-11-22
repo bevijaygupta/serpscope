@@ -1,8 +1,13 @@
 from __future__ import annotations
 
+import io
 import json
+import zipfile
 
-from app.services.exports import export_csv, export_json, export_pdf_report, export_xlsx, make_export
+from app.services.exports import (
+    export_csv, export_json, export_pdf_report, export_pptx_report,
+    export_xlsx, make_export,
+)
 
 
 ROWS = [
@@ -36,6 +41,19 @@ def test_xlsx_and_pdf_exports_produce_readable_files():
     pdf, mime, _ = export_pdf_report("SEO Report", [{"heading": "Summary", "lines": ["<b>escaped</b> & safe"]}], "r.pdf")
     assert pdf.startswith(b"%PDF")
     assert mime == "application/pdf"
+
+
+def test_pptx_export_creates_an_editable_deck():
+    content, mime, filename = export_pptx_report("Demo Audit", [
+        {"title": "Evidence", "bullets": ["robots.txt", "sitemap.xml"], "note": "source: crawl"},
+        {"title": "Roadmap", "bullets": ["Month 1 baseline"], "note": "owner: SEO lead"},
+    ])
+    assert filename == "audit.pptx"
+    assert "presentation" in mime
+    assert content[:2] == b"PK"
+    with zipfile.ZipFile(io.BytesIO(content)) as archive:
+        slides = [name for name in archive.namelist() if name.startswith("ppt/slides/slide")]
+        assert len(slides) == 3
 
 
 def test_make_export_dispatches_formats():

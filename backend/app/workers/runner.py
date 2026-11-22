@@ -10,7 +10,10 @@ import time
 from app.core.config import settings
 from app.db.session import init_db
 from app.services import jobs  # noqa: F401  registers handlers via imports below
-from app.services import crawl_jobs, analysis_jobs, demo_jobs, import_jobs, keyword_jobs, workflow_jobs  # noqa: F401
+from app.services import (  # noqa: F401
+    crawl_jobs, analysis_jobs, demo_jobs, import_jobs, keyword_jobs, public_audit_jobs,
+    workflow_jobs,
+)
 from app.services.jobs import claim_next, run_job
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")

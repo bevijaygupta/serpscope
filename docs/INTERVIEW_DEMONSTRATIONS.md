@@ -177,6 +177,22 @@ Twelve questions → twelve live demos. Each entry gives the UI path, the API ca
 
 ---
 
+## Real public audit (separate from the 12 synthetic scenarios)
+
+**Live demo**
+- UI: **Overview** → *Source-tracked public audit* → **Run public audit**, or **Crawler** → **Run public audit**; poll the job, then open *Crawl runs / Observations* and the generated report.
+- API: `POST /api/v1/audits/projects/{id}/public-audit/start`, `GET .../public-audit`, `GET .../export?format=pptx`, `GET /api/v1/public/case-studies/{id}` (public when the project sets `settings.public_audit=true`).
+
+**Say:** *"The demo data is synthetic, so I also built a one-click audit that uses only public evidence. It fetches robots.txt, sitemaps and pages with a conservative delay, stores raw observations, and produces a source-tracked finding list, a six-month roadmap and an editable deck. Every rule finding says where it came from and what it cannot prove."*
+
+**Real evidence to show:** on `https://www.techmagnate.com/` a narrow 60-URL sample discovered 303 URLs, fetched 60 with zero failures, stored 60 sitemap entries from 9 documents, and found 12 named AI/search agents explicitly allowed in robots.txt. Findings were AEO readiness gaps 140, slow responses 52, missing schema 60, crawl scope 60, AI-crawler policy 12 and sitemap evidence 60. The 60-URL sample is **not** exhaustive; the in-app default is 250 URLs.
+
+**Tradeoff:** public-only evidence is reproducible and needs no vendor credentials, but it cannot measure traffic, rankings, indexation or AI answers. The roadmap explains what can be done now and how GSC/GA4/rank data would upgrade prioritisation later.
+
+**Not proven:** real GSC/GA4 metrics, JS-rendered content, private pages, answer-engine visibility or traffic outcomes. Explicit AI-agent allowances in robots.txt are declared policy, not an inclusion guarantee.
+
+---
+
 ## Closing line for any interview
 
-> "What you saw is a reference implementation with honest labels. The engineering — provenance, bounded queries, explainable scoring, queued jobs and review gates — is real. The data is synthetic and the live integrations are deliberately out of scope."
+> "What you saw is a reference implementation with honest labels. The engineering — provenance, bounded queries, explainable scoring, queued jobs, source-tracked public audits and review gates — is real. The 12 walkthrough scenarios use synthetic data and the live vendor integrations are deliberately out of scope; the real audit uses public evidence only and states exactly what is missing."

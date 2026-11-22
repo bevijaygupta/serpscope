@@ -11,7 +11,7 @@ Base URL for the REST API: **`http://127.0.0.1:8000/api/v1`**
 
 FastAPI serves the interactive docs by default; no custom authentication is applied to `/docs` or `/openapi.json`. The frontend talks to the API through a Vite proxy: browser requests to `/api/*` on `http://localhost:5173` are forwarded to `http://127.0.0.1:8000`.
 
-The route table below was derived from introspecting `app.main.app` (all 23 routers registered with the `/api/v1` prefix), not from memory.
+The route table below was derived from introspecting `app.main.app` (all feature routers registered with the `/api/v1` prefix, including the two audit routers), not from memory. The current schema exposes 119 paths / 134 operations; the five added paths are the public-audit endpoints.
 
 ---
 
@@ -41,7 +41,7 @@ Flow details:
 6. `POST /auth/register` creates a local-development account with global role `viewer`. It is not an invitation/SSO flow.
 7. Token lifetime defaults to 1,440 minutes (`ACCESS_TOKEN_EXPIRE_MINUTES`). There is no refresh-token endpoint; log in again after expiry.
 
-**Public endpoints:** `POST /auth/login`, `POST /auth/register`, all `/meta/*` endpoints, `GET /api/health`, the docs/OpenAPI routes and the static export mount. Everything else expects a bearer token. The progress WebSocket `/api/v1/jobs/ws/{job_id}` also requires authentication via a `Bearer` header or a `token` query parameter, and applies the same project-scope check as REST job endpoints (close codes `4401`/`4403`/`4404` for unauthenticated, forbidden and missing jobs).
+**Public endpoints:** `POST /auth/login`, `POST /auth/register`, all `/meta/*` endpoints, `GET /api/health`, the docs/OpenAPI routes, the static export mount and `GET /public/case-studies/{project_id}` (only when the project has `settings.public_audit=true`). Everything else expects a bearer token. The progress WebSocket `/api/v1/jobs/ws/{job_id}` also requires authentication via a `Bearer` header or a `token` query parameter, and applies the same project-scope check as REST job endpoints (close codes `4401`/`4403`/`4404` for unauthenticated, forbidden and missing jobs).
 
 ---
 
@@ -80,7 +80,7 @@ Some endpoints intentionally return only `{ "items": [...] }` (e.g. `/projects`,
 | Provenance | Records include `data_kind` and often `source` / `sources` / `observed_at`. Values follow `/meta/data-kinds`. |
 | Errors | HTTP errors use FastAPI's `{ "detail": "..." }`; the global handler returns `{ "detail": "Internal server error", "error": "<first 300 chars>" }` with status 500. |
 | Writes | `POST` usually returns `201` and an id or `{ "success": true }`; job-triggering `POST`s return `202` with `{ "job_id": ..., "status": "queued" }`. |
-| Exports | `GET .../export?format=csv\|json\|xlsx` (reports also support `pdf`) returns a `FileResponse` with an attachment header. Column selection uses `columns=a,b,c` where supported. Cells are escaped against spreadsheet formula injection. |
+| Exports | `GET .../export?format=csv\|json\|xlsx` (reports support `pdf`; public audits also support `pptx`) returns a `FileResponse` with an attachment header. Column selection uses `columns=a,b,c` where supported. Cells are escaped against spreadsheet formula injection. |
 | Booleans in filters | `indexable` and `in_sitemap` on `/inventory/urls` are `0`/`1` integers constrained to `[0,1]`. `orphan` is a real boolean. |
 | Job progress | `GET /jobs/{id}`; `POST /jobs/{id}/cancel`; WebSocket `/jobs/ws/{id}` polls the database once per second. |
 | Async semantics | `202` means the work is queued, **not complete**. Track the returned `job_id`. `POST /analytics/reports/generate-now` is the deliberate synchronous exception for small demo datasets. |
@@ -339,6 +339,32 @@ Clustering methods advertised by the API: `exact, normalized, token, semantic, i
 | GET | `/api/v1/demo/scenarios/{key}` | Bearer | One scenario. |
 | POST | `/api/v1/demo/generate` | Bearer (write) | Queue synthetic dataset generation (202); `size` capped at 200,000. |
 | POST | `/api/v1/demo/reset` | Bearer (write) | Queue deletion of demo projects/data; optional `regenerate`. |
+
+### Public audits (`audits.py`)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/v1/audits/projects/{project_id}/public-audit/start` | Bearer (write) | Queue a `public_audit` job (202). The body is optional; `{ "start_url": "...", "name": "...", "config": {...} }` overrides the project domain and defaults. |
+| GET | `/api/v1/audits/projects/{project_id}/public-audit` | Bearer + project | Assemble the current source-tracked audit from stored evidence: `meta`, `coverage`, `robots`, `counts`, `findings`, `roadmap`, `source_registry`, `missing_data`, `sections`. Also works before the first audit. |
+| GET | `/api/v1/audits/projects/{project_id}/public-audit/export` | Bearer + project | `format=pptx\|pdf\|csv\|xlsx\|json`; `section=all\|findings\|roadmap`. PPTX is a real editable PowerPoint deck built with `python-pptx`. |
+| GET | `/api/v1/audits/projects/{project_id}/public-audit/reports` | Bearer + project | Up to 50 persisted `public_audit` report records. |
+| GET | `/api/v1/public/case-studies/{project_id}` | Public | Read-only published audit. Returns 404 unless the project's `settings.public_audit` is `true`. |
+
+The queued job defaults to `max_urls=250`, `max_depth=3`, `concurrency=2`, `crawl_delay=1.0`, `timeout=12`, `respect_robots=true`, `sitemap_discovery=true`, `follow_external=false`, `allow_private=false` and `mode=live`. It runs crawl → orphan/link graph → issue/content/AEO rules → report persistence. No Search Console, GA4, ranking or AI-visibility API is called; those gaps are listed in `missing_data`.
+
+```bash
+TOKEN=$(curl -s -X POST http://127.0.0.1:8000/api/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"demo@serpscope.local","password":"demo1234"}' | python -c 'import sys,json;print(json.load(sys.stdin)["access_token"])')
+
+curl -X POST http://127.0.0.1:8000/api/v1/audits/projects/2/public-audit/start \
+  -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' -d '{}'
+
+curl http://127.0.0.1:8000/api/v1/jobs/1 -H "Authorization: Bearer $TOKEN"
+curl http://127.0.0.1:8000/api/v1/audits/projects/2/public-audit -H "Authorization: Bearer $TOKEN"
+curl -o audit.pptx 'http://127.0.0.1:8000/api/v1/audits/projects/2/public-audit/export?format=pptx' \
+  -H "Authorization: Bearer $TOKEN"
+```
 
 ### Static exports
 

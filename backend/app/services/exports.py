@@ -84,6 +84,56 @@ def export_pdf_report(title: str, sections: list[dict], filename: str = "report.
     return stream.getvalue(), "application/pdf", filename
 
 
+def export_pptx_report(title: str, slides: list[dict], filename: str = "audit.pptx") -> tuple[bytes, str, str]:
+    """Generate an editable PowerPoint deck from structured audit sections.
+
+    `slides` = [{"title": str, "bullets": [str], "note": str}]. Text-only slides
+    keep the deck small and ensure every claim remains traceable to the audit.
+    """
+    from pptx import Presentation
+    from pptx.util import Inches, Pt
+
+    prs = Presentation()
+    prs.slide_width = Inches(13.333)
+    prs.slide_height = Inches(7.5)
+    title_layout = prs.slide_layouts[0]
+    body_layout = prs.slide_layouts[1]
+
+    cover = prs.slides.add_slide(title_layout)
+    cover.shapes.title.text = title
+    if len(cover.placeholders) > 1:
+        cover.placeholders[1].text = "SERPScope · source-tracked public-evidence audit"
+
+    for item in slides[:60]:
+        slide = prs.slides.add_slide(body_layout)
+        slide.shapes.title.text = str(item.get("title", "Slide"))[:120]
+        body = slide.placeholders[1].text_frame
+        body.clear()
+        bullets = item.get("bullets") or []
+        for index, line in enumerate(bullets[:10]):
+            paragraph = body.paragraphs[0] if index == 0 else body.add_paragraph()
+            paragraph.text = str(line)[:500]
+            paragraph.level = 0
+            for run in paragraph.runs:
+                run.font.size = Pt(15)
+        note = str(item.get("note") or "").strip()
+        if note:
+            box = slide.shapes.add_textbox(Inches(0.7), Inches(6.55), Inches(11.9), Inches(0.55))
+            frame = box.text_frame
+            frame.word_wrap = True
+            frame.text = note[:500]
+            for paragraph in frame.paragraphs:
+                for run in paragraph.runs:
+                    run.font.size = Pt(9)
+    stream = io.BytesIO()
+    prs.save(stream)
+    return (
+        stream.getvalue(),
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        filename,
+    )
+
+
 def make_export(fmt: str, rows: Iterable[Any], columns: list[str], base: str, pdf_sections: list[dict] | None = None):
     fmt = (fmt or "csv").lower()
     if fmt == "json":

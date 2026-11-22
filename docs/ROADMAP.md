@@ -28,12 +28,13 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 | Content briefs and content gap analysis | Implemented | Brief generation, brief CRUD, competitor gap data, and topic suggestions are present. |
 | Internal linking and orphan detection | Implemented | Synthetic link graph, page-level link suggestions, and orphan target detection are present. |
 | Live crawler and simulation | Implemented | Robots checks before each request and redirect hop, fail-closed robots errors, per-host delay, SSRF validation, cancellation, raw observations, URL inventory, issue generation and progress are present. `mode` changes `data_kind` only; no JS renderer is active. |
+| Public-evidence audit | Implemented | One-click `public_audit` job crawls robots.txt, sitemaps and public pages, then assembles source-tracked findings, a six-month roadmap, an explicit missing-data list and PPTX/PDF/CSV/XLSX/JSON exports. The read-only case-study endpoint is gated by `settings.public_audit=true`. Verified locally against `https://www.techmagnate.com/` with a 60-URL sample; hosted verification awaits the Render deploy. |
 | Workflows and scheduled jobs | Implemented | Workflow definitions and runs, schedule CRUD, job listing, job details, cancellation, and retry are present. |
-| Reports | Implemented | Report generation, retrieval, data-gap notes and CSV/JSON/XLSX/PDF exports are present. |
+| Reports | Implemented | Report generation, retrieval, data-gap notes and CSV/JSON/XLSX/PDF exports are present; public audits add editable PPTX decks. |
 | Import jobs | Implemented | CSV/TSV/TXT, XML sitemaps, JSON and XLSX uploads are parsed into URL/keyword inventory with source tracking and bounded batches. |
 | Database migrations | Implemented | Alembic baseline revision `0001_initial_schema.py` plus `create_all()` bootstrap for fresh databases. |
 | Frontend application | Implemented | React/Vite SPA with 23 module pages, API client, auth state, project state, Demo Centre and in-app documentation index. |
-| Test suite | Implemented | Backend pytest suite passes with `36 passed, 1 deselected` using `-m "not slow"` and `37 passed` for the full suite; the 100,000-URL scale test is included. |
+| Test suite | Implemented | Backend pytest suite passes with `39 passed, 1 deselected` using `-m "not slow"` and `40 passed` for the full suite; the 100,000-URL scale test is included. |
 
 ### Partial
 
@@ -41,7 +42,8 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 |---|---|---|---|
 | Container deployment | Partial | All Compose assets are present, but the stack has not been built in this environment; local source setup is the verified path. | Medium |
 | Integration providers | Partial | Provider registry, encrypted credential records and connection declarations exist, but no live vendor API calls are implemented. | Medium |
-| Crawler depth | Partial | `canonical_handling` and `schedule` config keys are stored but unused; JS rendering/Playwright is not implemented; target validation is string-based, without DNS/egress enforcement. | High |
+| Crawler depth | Partial | `canonical_handling` and `schedule` config keys are stored but unused; JS rendering/Playwright is not implemented; target validation is string-based, without DNS/egress enforcement; sitemap indexes expand only one level. | High |
+| Public-audit coverage | Partial | Real verification used a deliberately narrow 60-URL sample (in-app default 250). Robots rules for named AI agents are evidence of declared policy only; no GSC/GA4, rank or AI-answer visibility data is used. Hosted case study is unavailable until the Render backend deploy runs. | Medium |
 | Issue rule coverage | Partial | Some declared rules (`excessive_depth`, `broken_external_link`) have no detector. | Medium |
 | Production RBAC | Partial | Writes are gated by global role; per-project write roles and a role-management UI are not implemented. | Medium |
 | Pagination consistency | Partial | Responses use `items,total,page,page_size,has_more`, while most requests use `offset`/`limit`. | Low |
@@ -53,10 +55,11 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 
 **Priority: High**
 
-1. Build and verify the provided Compose stack, or continue documenting local source setup as the only supported path.
-2. Harden crawler target validation with DNS resolution, private-range checks on resolved addresses and network egress controls.
-3. Implement real JS rendering (for example Playwright) or remove the misleading `javascript_rendering` option.
-4. Align request pagination parameters with response pagination fields, or document a deliberate compatibility layer.
+1. Trigger **Manual Deploy → Deploy latest commit** in Render, then verify the hosted public-audit endpoints, exports and case study against project 2; Vercel deploys `main` automatically.
+2. Build and verify the provided Compose stack, or continue documenting local source setup as the only supported path.
+3. Harden crawler target validation with DNS resolution, private-range checks on resolved addresses and network egress controls.
+4. Implement real JS rendering (for example Playwright) or remove the misleading `javascript_rendering` option.
+5. Align request pagination parameters with response pagination fields, or document a deliberate compatibility layer.
 
 ### Phase 2 — Import and integration honesty
 

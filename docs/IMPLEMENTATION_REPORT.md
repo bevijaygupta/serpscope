@@ -12,19 +12,20 @@ This is an honest status report. It distinguishes what is implemented, what is o
 
 | Area | Status | Summary |
 | --- | --- | --- |
-| Backend API | Completed | FastAPI application with 114 OpenAPI paths / 129 documented operations, Pydantic validation, SQLAlchemy 2 models, SQLite default and PostgreSQL-ready `DATABASE_URL`. |
+| Backend API | Completed | FastAPI application with 119 OpenAPI paths / 134 documented operations, Pydantic validation, SQLAlchemy 2 models, SQLite default and PostgreSQL-ready `DATABASE_URL`. |
 | Frontend SPA | Completed | React 18 + TypeScript + Vite + Tailwind, 23 registered modules, sidebar navigation, custom Overview / Projects / Crawler / Demo / Settings screens, generic data-driven module screens, action modals and exports. |
 | Database | Completed | Full model set, indexes, JSON provenance fields, Alembic baseline migration and `create_all()` bootstrap for fresh databases. |
 | Jobs | Completed | `jobs` table queue, atomic claim, inline API worker, standalone worker, REST status/cancel/retry and authenticated database-polling WebSocket progress. |
 | Data honesty | Completed | 7-label provenance vocabulary, nullable vendor metrics, source columns in exports, explainable scores, reviewable suggestions and labelled synthetic demo data. |
 | Crawler | Mostly completed | Conservative HTTP crawler with pre-request robots checks, fail-closed robots errors, crawl delay, SSRF string validation and cooperative cancellation. JS rendering and DNS/egress enforcement are absent. |
 | Analysis services | Completed | Issue engine, orphan reconciliation, internal-link graph, keyword clustering/mapping/cannibalisation, content scoring/briefs, domain analyses, reporting, forecasting and workflows. |
-| Import / export | Completed | CSV/TSV/TXT, XML sitemap, JSON and XLSX imports; CSV/JSON/XLSX/text-PDF exports with spreadsheet-injection escaping. |
+| Import / export | Completed | CSV/TSV/TXT, XML sitemap, JSON and XLSX imports; CSV/JSON/XLSX/text-PDF and editable PPTX exports with spreadsheet-injection escaping. |
 | Demo content | Completed | Deterministic 1,000-URL dataset, planted issues, 12 curated interview scenarios and seeded integration provider declarations. |
-| Tests | Completed | 37 backend tests pass, including a 100,000-URL scale acceptance test; frontend typecheck and production build pass. No frontend unit-test runner exists. |
+| Tests | Completed | 39 backend tests pass in the fast suite, including public-audit route/export and SQLite crawl-progress regressions; the full suite also covers a 100,000-URL scale test. Frontend typecheck and production build pass. No frontend unit-test runner exists. |
 | Documentation | Completed | 16 required documents plus this report; all stale claims about Alembic, imports, WebSocket auth and robots behaviour were corrected. |
 | Screenshots | Completed | 24 PNG captures covering all 23 modules plus a demo-scenario modal. |
-| Hosted demo | Completed | Public GitHub repo, Vercel UI with same-origin API rewrite, Render FastAPI + inline worker + Postgres, seeded synthetic data and public `/api/health`. |
+| Hosted demo | Completed | Public GitHub repo, Vercel UI with same-origin API rewrite, Render FastAPI + inline worker + Postgres, seeded synthetic data and public `/api/health`. Backend changes require **Manual Deploy → Deploy latest commit** on Render; Vercel deploys `main` automatically. |
+| Public audit | Completed | One-click robots-aware crawl on a real domain, source-tracked findings, six-month roadmap, editable PPTX/PDF/CSV/XLSX/JSON exports and a read-only public case-study endpoint. Verified locally against `https://www.techmagnate.com/`; hosted verification is pending the Render deploy. |
 | Containers | Partial | Dockerfiles, nginx config, Compose file and CI workflow exist, but the Docker CLI is unavailable in this environment, so the Compose stack has not been built. |
 | Production hardening | Pending / partial | RBAC, token handling, SSRF enforcement, observability, distributed queuing and real integrations still need work before this can be treated as a production multi-tenant service. |
 
@@ -40,10 +41,10 @@ Run from `backend/`:
 
 ```bash
 .venv/Scripts/python -m pytest -q -m "not slow" --disable-warnings
-# 36 passed, 1 deselected in 13.66s
+# 39 passed, 1 deselected in 14.34s
 
 .venv/Scripts/python -m pytest -q --disable-warnings
-# 37 passed in 89.54s (includes the 100,000-URL scale test)
+# 40 passed in 39.85s (includes the 100,000-URL scale test)
 
 .venv/Scripts/python -m alembic upgrade head
 # Context impl SQLiteImpl; no pending revisions
@@ -53,7 +54,7 @@ Run from `frontend/`:
 
 ```bash
 npm run typecheck   # clean
-npm run build       # Vite production build succeeded, 2065 modules transformed
+npm run build       # Vite production build succeeded, 2066 modules transformed
 ```
 
 Demo database generation:
@@ -74,7 +75,7 @@ Authenticated with `demo@serpscope.local / demo1234`:
 | Check | Result |
 | --- | --- |
 | `GET /api/health` | `{"status":"ok","environment":"development","database":"sqlite"}` |
-| OpenAPI | 114 paths / 129 operations |
+| OpenAPI | 119 paths / 134 operations |
 | `GET /api/v1/demo/scenarios` | 12 scenarios with keys `1000_keyword_mapping`, `100k_orphans`, `high_revenue_404`, `enterprise_audit`, `singapore_cybersecurity`, `enterprise_reporting`, `migration`, `local_500`, `ecommerce`, `ai_search`, `multi_client`, `automation` |
 | `GET /api/v1/meta/data-kinds` | 7 labels: `live_crawl`, `imported`, `simulated`, `synthetic`, `derived`, `estimated`, `model_suggestion` |
 | `GET /api/v1/inventory/urls?project_id=1&limit=50` | `total=1000`, 50 items, `has_more=true`, sample `data_kind=synthetic` |
@@ -119,6 +120,25 @@ CSV header evidence includes `id,url,normalized_url,data_kind,sources,crawled,ht
 
 Screenshots were captured from the running Vite dev server against the populated demo database, after data-loading states cleared.
 
+### 2.4 Real public-audit verification (separate from synthetic demo data)
+
+A full one-click audit was run against a live public domain in an isolated SQLite database (`backend/data/techmagnate_audit.db`, excluded from the repository) so that the reported findings come from observed evidence rather than the demo generator.
+
+| Check | Result |
+| --- | --- |
+| Target | `https://www.techmagnate.com/` (the hosted project 2 domain), narrow sample `max_urls=60`, `max_depth=2`, `timeout=10` |
+| Job / crawl / report | `public_audit` job succeeded; `crawl_id=1`, `report_id=1`, generated `2026-11-22T19:18:59Z` |
+| Crawl coverage | 303 URLs discovered, 60 fetched, 0 failed, 0 robots-excluded; all fetched URLs HTTP 200; 59 articles + 1 homepage; 60 indexable; average content score 82.0 |
+| Sitemap evidence | 60 sitemap URL entries from 9 documents: 1 index (8 child entries), posts 90, pages 24, service types 110, case studies 75, STR types 21, web stories 38, categories 8, authors 1 |
+| Robots evidence | `robots.txt` HTTP 200; 12 named AI/search agents explicitly allowed; documented as declared policy, not an inclusion guarantee |
+| Findings | 6 groups: AEO readiness 140 (structured data 61, author/organisation info 61, question coverage 16, answer extraction 1, entity clarity 1), slow responses 52, missing schema 60, crawl scope 60, AI-crawler policy 12, sitemap evidence 60 |
+| Roadmap / gaps | 6 months; 6 explicit missing-data statements; source registry marks robots.txt, sitemaps and crawl observations as verified and GSC/GA4 as `not_supplied` |
+| Exports | PPTX 47,485 bytes / 16 editable slides; PDF, CSV, XLSX, JSON and roadmap CSV all `200` with correct MIME types and attachment headers; public case study `200` |
+
+Bugs found by this real run and fixed before verification: a missing audits-router registration (all authenticated audit endpoints returned 404), a `KeyError` for sitemap counts in the roadmap builder, a SQLite write lock between sitemap seeding and job progress, an audit view that crashed before the first crawl, and a required request body on the start endpoint. Regression tests now cover route registration, PPTX generation and the SQLite progress path.
+
+The 60-URL sample is deliberately narrow and must not be presented as an exhaustive audit of the domain. No JS-rendered DOM, private page, GSC/GA4/rank provider or AI-answer visibility data was used. Hosted verification remains pending: backend changes need **Manual Deploy → Deploy latest commit** in Render.
+
 ---
 
 ## 3. Completed
@@ -157,6 +177,9 @@ Screenshots were captured from the running Vite dev server against the populated
 | Per-host crawl delay with lock and 30-second sleep cap | `CrawlEngine._throttle()` |
 | SSRF string validation, private/credential rejection, `allow_private` opt-in | `backend/app/core/url_utils.py::validate_target_url` |
 | Cooperative cancellation between batches | `CrawlEngine.run()`, `POST /api/v1/jobs/{id}/cancel` |
+| robots.txt + sitemap index expansion with sitemap-only URL provenance | `CrawlEngine._discover_sitemaps()`, `Crawl.summary.sitemap`, `UrlRecord.in_sitemap` |
+| AEO evidence extraction (question headings, answer paragraph, FAQ/Organization schema) | `backend/app/services/crawler.py::extract_page` |
+| One-click public audit, roadmap and source registry | `backend/app/services/public_audit.py`, `public_audit_jobs.py` |
 | CSV/TSV/TXT, XML sitemap, JSON and XLSX parsing | `backend/app/services/imports.py::parse_table`, `parse_sitemap` |
 | Bounded batches, source merging and Core-batched inserts | `upsert_urls()`, `/imports/url-list` cap of 10,000 rows; 100k URL import now completes inside the 90-second acceptance budget |
 
@@ -169,13 +192,15 @@ Screenshots were captured from the running Vite dev server against the populated
 | Reports with data-gap sections | `backend/app/services/reporting.py`, Analytics / Reporting |
 | Editable forecast scenarios and sensitivity output | `backend/app/services/forecasting.py` |
 | Workflow definition, run history and step library | `backend/app/services/workflows.py`, `workflow_jobs.py` |
-| CSV/JSON/XLSX/text-PDF exports with injection escaping | `backend/app/services/exports.py`, `safe_csv_value()` |
+| CSV/JSON/XLSX/text-PDF and editable PPTX exports with injection escaping | `backend/app/services/exports.py`, `safe_csv_value()` |
+| Source-tracked public case study with missing-data statement | `backend/app/api/v1/audits.py`, `GET /api/v1/public/case-studies/{project_id}` |
+| Public SEO landing page, robots.txt, sitemap.xml, llms.txt and social preview | `frontend/src/pages/Landing.tsx`, `frontend/public/`, `frontend/index.html` |
 
 ### 3.5 Tests, docs and assets
 
 | Item | Evidence |
 | --- | --- |
-| 37 passing backend tests, including 100k scale and crawler safety | `backend/tests/` |
+| 39 passing fast backend tests / 40 including the 100k scale test; crawler safety, route registration and PPTX regressions | `backend/tests/` |
 | Frontend typecheck and production build | `npm run typecheck`, `npm run build` |
 | CI workflow runs backend tests and frontend checks | `.github/workflows/ci.yml` |
 | Docker and nginx assets | `backend/Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf`, `docker-compose.yml` |
@@ -225,7 +250,8 @@ These are usable but intentionally incomplete. They must be described honestly i
 | Crawler JS rendering | `javascript_rendering` is stored and changes the record note when no HTML is extracted; no Playwright/browser renderer is active. | High |
 | Crawler option coverage | `canonical_handling` and `schedule` are stored but unused by the engine. `mode` only changes `data_kind` between `live_crawl` and `simulated`; it does not change fetch mechanics. | Medium |
 | SSRF enforcement | `validate_target_url()` is string-based. It rejects literal private IPs and local names but does not resolve DNS or enforce network egress, so DNS rebinding/internal DNS is not blocked. | High |
-| Sitemap discovery | Only `/sitemap.xml` is fetched; a sitemap index is not expanded into child sitemaps. The discovery GET itself is not robots-gated. | Medium |
+| Sitemap discovery | `/robots.txt`, `/sitemap.xml` and `/sitemap_index.xml` are fetched and indexes expand one level; deeper nesting, more than 25 candidate/child documents and robots rules for named AI agents on sitemap URLs are not handled. | Low |
+| Public audit coverage | The verified real-domain audit used a narrow 60-URL sample; the in-app default is 250 URLs. No JS-rendered DOM, private pages or vendor metrics are included, and AI visibility is readiness evidence only. | Medium |
 | Issue rule coverage | Some declared rules (`excessive_depth`, `broken_external_link`) have no detector. | Medium |
 | RBAC | Writes are gated by global role only. Membership roles grant read access through `get_project`, not write access; `project_members` is stored but not consulted. No role-management UI. | Medium |
 | Token security | `decode_access_token()` does not explicitly validate the `alg` header. Tokens are stateless and cannot be revoked before `exp`. `SECRET_KEY` is shared by token signing and Fernet credential encryption. | High |
@@ -267,11 +293,11 @@ These are usable but intentionally incomplete. They must be described honestly i
 9. Add structured request logging, correlation IDs, job metrics and health dependencies.
 10. Add frontend unit/component tests and end-to-end coverage for the 12 scenarios.
 11. Add real provider adapters with capability flags and read-only validation calls.
-12. Expand sitemap index handling and incremental recrawl scheduling.
+12. Add incremental recrawl scheduling and deeper sitemap-index expansion beyond the current one level.
 13. Add redirect deployment as a gated, reviewable workflow rather than an automatic action.
 14. Exercise incremental Alembic revisions against production-like data and add a backup/restore runbook.
 15. Remove or guard the automatic demo-account bootstrap and open self-registration before any public deployment.
-16. Create a git repository and commit the deliverable; the current files are uncommitted on disk.
+16. Trigger **Manual Deploy → Deploy latest commit** in Render so the public-audit endpoints are live, then verify the hosted audit, exports and case study against project 2. Vercel deploys `main` automatically.
 
 ---
 
@@ -282,7 +308,9 @@ These are usable but intentionally incomplete. They must be described honestly i
 - `simulated`: crawl-engine label selected by config `mode`; same fetch mechanics as `live_crawl`.
 - `imported`: user-supplied CSV/XML/JSON/XLSX data with provider/source name retained.
 - `synthetic`: deterministic invented demo metrics used only for rule testing.
-- `derived`: rule-based conclusion computed from observations while retaining evidence.
+- `public_sitemap`: URL discovered from a robots-declared or conventionally located public sitemap document, stamped `in_sitemap=true`.
+- `derived`: rule-based conclusion computed from observations while retaining evidence; public-audit findings carry `source`, `confidence` and `limitation` fields.
+- `not_supplied`: private-source placeholder in the public-audit registry (GSC / GA4); no such data is claimed or invented.
 - `estimated`: scenario calculation from editable assumptions, not a prediction.
 - `model_suggestion`: model-generated suggestion requiring human review; no LLM call is implemented in this build.
 
@@ -299,6 +327,8 @@ All recommendations are reviewable proposals. No redirect, brief, mapping or wor
 - “Priority scores expose weights, components and a natural-language explanation.”
 - “Jobs are database-backed with REST state, cancellation and authenticated progress polling.”
 - “The crawler checks robots before requests, fails closed on robots errors, throttles by host and validates target strings before network access.”
+- “The real public audit is source-tracked: robots.txt, sitemaps and HTTP observations are verified evidence; rule findings are labelled derived; GSC/GA4 are explicitly `not_supplied`.”
+- “The six-month roadmap works without vendor access and describes how private data would upgrade prioritisation later.”
 - “Integrations are declarations with encrypted credential records; I did not fake vendor calls.”
 
 **Claims to avoid**
@@ -306,6 +336,7 @@ All recommendations are reviewable proposals. No redirect, brief, mapping or wor
 - “We have live GSC/GA4/Semrush/Ahrefs/GBP data.”
 - “We measured AI-search visibility or improved citations.”
 - “The 1,000-URL demo dataset is a real client crawl.”
+- “The 60-URL Techmagnate sample is a complete audit of the whole domain.”
 - “The crawler renders JavaScript like Googlebot.”
 - “The queue is production-grade Redis/Celery.”
 - “RBAC and SSRF are production-hardened.”
@@ -336,8 +367,8 @@ Suggested talking points are expanded in `docs/INTERVIEW_DEMONSTRATIONS.md` and 
 
 | Classification | Count / scope |
 | --- | --- |
-| Completed | Application shell, 23 module screens, API, database, Alembic baseline, jobs, crawler safety, analysis services, imports/exports, demo generator, 12 scenarios, docs, tests, screenshots, GitHub publication, Vercel UI and Render API/database hosting |
-| Partial | Containers (not built), live integrations, JS rendering, crawler option coverage, DNS-aware SSRF, some issue detectors, global-role RBAC, token hardening, queue topology, pagination consistency, observability, frontend tests, incremental migrations, AI-search/forecasting depth |
-| Pending | Production hardening, real vendor adapters, per-project RBAC, distributed queue, egress enforcement, full Alembic evolution/backup runbook, long-lived free-tier database (expires after 30 days) |
+| Completed | Application shell, 23 module screens, API, database, Alembic baseline, jobs, crawler safety, sitemap/robots evidence, source-tracked public audit with PPTX/PDF/CSV/XLSX/JSON exports and case study, analysis services, demo generator, 12 scenarios, docs, tests, screenshots, GitHub publication, Vercel UI and Render API/database hosting |
+| Partial | Containers (not built), live integrations, JS rendering, one-level sitemap-index expansion, crawler option coverage, DNS-aware SSRF, some issue detectors, global-role RBAC, token hardening, queue topology, pagination consistency, observability, frontend tests, incremental migrations, AI-search/forecasting depth |
+| Pending | Render **Manual Deploy → Deploy latest commit** for the audit endpoints plus hosted audit/export/case-study verification; production hardening, real vendor adapters, per-project RBAC, distributed queue, egress enforcement, full Alembic evolution/backup runbook, long-lived free-tier database (expires after 30 days) |
 
-The deliverable is ready for source-run demonstrations, interviews and the hosted synthetic-data demo at `https://serpscope-serpscope.vercel.app`, with the limitations stated above. It is not ready to be marketed as a production multi-tenant SaaS without the pending hardening work.
+The deliverable is ready for source-run demonstrations, interviews, the hosted synthetic-data demo at `https://serpscope-serpscope.vercel.app`, and a real public-evidence audit with a stated sample size and missing-data list. It is not ready to be marketed as a production multi-tenant SaaS without the pending hardening work, and hosted audit verification is blocked until the Render backend deploy is triggered.

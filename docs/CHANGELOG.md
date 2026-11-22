@@ -8,6 +8,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Added
 
+- One-click **public-evidence audit** for real domains: `POST /api/v1/audits/projects/{project_id}/public-audit/start`, `GET .../public-audit`, `.../export`, `.../reports` and the read-only `GET /api/v1/public/case-studies/{project_id}`. Findings carry sources, confidence and limitations, plus a six-month roadmap and six explicit missing-data statements.
+- Editable PPTX export via `python-pptx`, alongside CSV/JSON/XLSX/PDF for public audits.
+- Source-tracked robots.txt and sitemap-index evidence: 12 named AI/search agent rules, sitemap documents, `in_sitemap` provenance and AEO page evidence (question headings, answer paragraph, FAQ/Organization schema).
+- Public SEO landing page and static assets (`robots.txt`, `sitemap.xml`, `llms.txt`, `manifest.webmanifest`, `favicon.svg`, `og-preview.svg`), plus Overview and Crawler entry points for the public audit.
+- Regression tests for audit route registration, PPTX generation and the SQLite crawl-progress path.
+
+### Changed
+
+- Real end-to-end audit of `https://www.techmagnate.com/` recorded in the documentation: 303 discovered URLs, 60 fetched from a deliberately narrow sample, 0 failures, 60 sitemap entries from 9 documents, 6 finding groups and a 6-month roadmap. Demo metrics remain labelled synthetic; public-audit data is labelled as observed or derived public evidence.
+- Test counts updated to 39 fast / 40 full; documented sitemap limitations and hosted deploy steps now reflect the current code.
+
+### Fixed
+
+- Registered the audits router so authenticated audit and export endpoints no longer return 404.
+- Roadmap builder no longer raises `KeyError` for sitemap counts.
+- Sitemap evidence is committed before progress callbacks, preventing SQLite write locks during the one-click job.
+- Audit view no longer fails before the first crawl, and the start endpoint accepts an optional body.
+
+### Added (documentation set)
+
 - Required project documentation set: `README.md`, `docs/INSTALLATION.md`, `docs/API_DOCUMENTATION.md`, `docs/INTEGRATIONS.md`, `docs/DEMO_GUIDE.md`, `docs/INTERVIEW_DEMONSTRATIONS.md`, `docs/ROADMAP.md` and `docs/CHANGELOG.md`.
 - A roadmap that separates implemented, partial and planned work with explicit priorities.
 - Hosted deployment assets: `vercel.json` for the React UI and `render.yaml` for the FastAPI API, inline worker and Postgres, with one-time synthetic demo seeding.

@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+from app.db.session import SessionLocal
+from app.models.inventory import Crawl
+from app.models.projects import Job
 from app.services.crawler import CrawlConfig, CrawlEngine
+from app.services.jobs import progress
 
 
 class FakeResponse:
@@ -32,6 +36,40 @@ class FakeClient:
                             {"content-type": "text/html"})
 
 
+class SitemapFakeClient:
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def get(self, url: str, **kwargs):
+        if url.endswith("/robots.txt"):
+            return FakeResponse(
+                200,
+                "User-agent: *\nAllow: /\nSitemap: https://demo.example.com/sitemap_index.xml\n",
+            )
+        if url.endswith("/sitemap_index.xml"):
+            return FakeResponse(200, (
+                '<?xml version="1.0"?>'
+                '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+                '<sitemap><loc>https://demo.example.com/post-sitemap.xml</loc></sitemap>'
+                '</sitemapindex>'
+            ), {"content-type": "application/xml"})
+        if url.endswith("/post-sitemap.xml"):
+            return FakeResponse(200, (
+                '<?xml version="1.0"?>'
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+                '<url><loc>https://demo.example.com/from-sitemap/</loc></url>'
+                '</urlset>'
+            ), {"content-type": "application/xml"})
+        return FakeResponse(200, "<html><head><title>From sitemap</title></head><body>Hello</body></html>",
+                            {"content-type": "text/html"})
+
+
 def test_robots_disallow_is_checked_before_page_request(monkeypatch, db):
     FakeClient.calls = []
     monkeypatch.setattr("app.services.crawler.httpx.Client", FakeClient)
@@ -45,6 +83,35 @@ def test_robots_disallow_is_checked_before_page_request(monkeypatch, db):
     assert stats["excluded"] == 1
     assert stats["crawled"] == 0
     assert FakeClient.calls == ["https://demo.example.com/robots.txt"]
+
+
+def test_sitemap_discovery_releases_write_lock_before_progress(monkeypatch, db, demo_project):
+    """Progress is written through another session; SQLite allows one writer."""
+    monkeypatch.setattr("app.services.crawler.httpx.Client", SitemapFakeClient)
+    job = Job(name="Progress test", job_type="test", status="running")
+    db.add(job)
+    db.flush()
+    crawl = Crawl(project_id=demo_project["project_id"], job_id=job.id, name="Sitemap progress test")
+    db.add(crawl)
+    db.commit()
+    config = CrawlConfig.from_dict({
+        "start_url": "https://demo.example.com/",
+        "max_urls": 1, "max_depth": 0, "concurrency": 1, "crawl_delay": 0,
+        "respect_robots": True, "sitemap_discovery": True,
+    })
+    engine = CrawlEngine(
+        db, demo_project["project_id"], crawl.id, job.id, config,
+        on_progress=lambda value, total, message: progress(job.id, value, total, message),
+    )
+    stats = engine.run()
+    assert stats["crawled"] == 1
+    assert stats["sitemap"]["sitemap_urls"] >= 1
+    fresh = SessionLocal()
+    try:
+        stored = fresh.get(Job, job.id)
+        assert stored.progress >= 1
+    finally:
+        fresh.close()
 
 
 def test_cancellation_stops_before_any_request(monkeypatch, db):

@@ -93,10 +93,20 @@ Robots behaviour:
 ```text
 seeds = [(start_url, 0)] + [(s, 0) for s in seed_urls]
 if sitemap_discovery and start_url:
-    GET /sitemap.xml
-    if kind == "sitemap":
-        seeds += [(entry.loc, 1) for entry in entries[:max_urls]]
+    GET /robots.txt (raw observation; explicit AI-agent rules extracted)
+    candidates = declared Sitemap: URLs + /sitemap.xml + /sitemap_index.xml
+    for candidate in candidates[:25]:
+        GET candidate (robots-checked for the crawler's user agent)
+        if kind == "sitemap_index":
+            GET each child sitemap[:25] (also robots-checked)
+        collect <urlset><loc> entries
+    store sitemap documents as raw observations
+    upsert same-host URLs with source="sitemap", data_kind="public_sitemap",
+           in_sitemap=true, provenance source="sitemap-discovery"
+    seeds += [(entry.loc, 1) for entry in entries[:max_urls]]
 ```
+
+The engine expands **sitemap indexes recursively one level** (index → child sitemap → URL). It stores each fetched sitemap document in `CrawlObservation`, records `declared_sitemaps`, `sitemap_files`, `sitemap_urls` and `errors` in `Crawl.summary.sitemap`, and copies the robots document plus extracted agent rules into `Crawl.summary.robots`. Sitemap writes are committed before progress callbacks so SQLite does not lock when the job row is updated through a separate session.
 
 Seed de-duplication uses `_canonical_for_crawl(url)` as the `seen` key. Discovered links are appended at `depth + 1` only when:
 
@@ -135,6 +145,7 @@ Seed de-duplication uses `_canonical_for_crawl(url)` as the `seen` key. Discover
 | `image_count`, `images_missing_alt` | All `<img>` elements; missing-alt means blank/whitespace `alt`. |
 | `body_excerpt` | First 12000 characters of visible text; stored in `CrawlObservation.body_excerpt` and as `CrawlObservation.extracted` without that key. |
 | `links` | All `<a href>` values resolved against the final URL, with anchor text truncated to 300 characters. `javascript:`, `mailto:`, `tel:` and `data:` hrefs are skipped. |
+| AEO fields | `faq_schema` and `organization_schema` booleans, question-shaped `<h2>` text (`h2_questions`), the first paragraph with at least 12 words (`first_paragraph`, capped at 600 characters), plus `og` / `twitter` metadata. These are raw observations for rules, not visibility measurements. |
 
 ## 6. Raw evidence and interpreted records
 
@@ -220,21 +231,33 @@ Cancellation:
 
 - No JavaScript rendering, screenshot capture, browser execution, or resource loading beyond the initial HTML document.
 - `follow_internal=False` stops internal `LinkEdge` storage but internal links are still enqueued by `run()`.
-- The sitemap-discovery GET to `/sitemap.xml` is not gated by robots parsing; discovered sitemap URLs are validated and robots-checked when crawled.
+- Sitemap discovery requests are robots-checked for the crawler's declared user agent; the crawler does not infer that a named AI agent's policy applies to `SERPScopeAuditBot`.
 - `validate_target_url()` is string-based: IP literals and known local names are rejected, but DNS results are not inspected and no egress firewall is applied.
 - `canonical_handling` and `schedule` are stored but not acted upon by the engine.
-- Sitemap discovery fetches only `/sitemap.xml`; a sitemap index is not expanded into child sitemaps.
+- Sitemap indexes are expanded one level (index → child sitemap → URL); deeper nesting is not followed, and at most 25 candidate and 25 child documents are fetched.
 - The `UrlRecord` hash is based on the requested URL, so redirects can create separate records for old and final URLs.
 - Imported/synthetic records can be updated by a crawl without changing their `data_kind`.
 - Private-network targets are rejected unless `allow_private=True`; there is no authentication system in the crawler beyond static `auth_headers`.
 - `max_urls`, `max_depth`, pattern filters and duplicate counters bound work; they do not guarantee completeness.
+- Sitemap writes are committed before progress callbacks because the job row is updated through a separate session; on SQLite a long open write transaction would otherwise block progress.
+
+## 12. Public audit job
+
+`POST /api/v1/audits/projects/{project_id}/public-audit/start` queues a `public_audit` job that runs this crawler with conservative defaults (`max_urls=250`, `max_depth=3`, `concurrency=2`, `crawl_delay=1.0`, `timeout=12`, `respect_robots=true`, `sitemap_discovery=true`, `follow_external=false`, `allow_private=false`, `mode=live`), then refreshes the link/orphan, issue, content and AEO analyses and stores a report.
+
+The audit response is assembled from stored evidence rather than recomputed from network calls. Every finding carries a `source` list, a `confidence` label and a `limitation`; the response also includes `coverage`, `robots` evidence, a `source_registry`, explicit `missing_data` statements, a six-month `roadmap` and presentation-ready `sections`. `GET /api/v1/audits/projects/{project_id}/public-audit/export?format=pptx|pdf|csv|xlsx|json` produces the evidence pack; the PPTX is an editable deck built with `python-pptx`.
+
+A real end-to-end verification against **https://www.techmagnate.com/** used a deliberately narrow 60-URL, depth-2 sample (generated `2026-11-22T19:18:59Z`): 303 URLs discovered, 60 fetched, 0 failed, 60 sitemap entries from 9 sitemap documents, and no private or vendor data. Finding groups were AEO readiness gaps 140 (structured data 61, author/organisation info 61, question coverage 16, answer extraction 1, entity clarity 1), slow responses 52, missing structured data 60, 12 named AI/search agents explicitly allowed in robots.txt, and 60 sitemap entries. The robots rules are evidence of declared policy only, not an inclusion guarantee. This is a sample, not an exhaustive audit of the domain.
+
+The roadmap describes work possible from public evidence and how GSC/GA4/rank data would **upgrade** prioritisation later. It never claims measured traffic, rankings or visibility in answer engines. The audit explicitly lists six missing-data statements: no GSC queries/impressions/clicks/positions, no GA4 sessions/conversions/revenue, no rank provider, no JavaScript-rendered DOM, no private pages, and no AI-answer visibility sampling.
 
 ## What this does not prove
 
-A completed crawl does **not** prove that all site URLs were discovered, that Googlebot or another search engine rendered or indexed the pages, that JavaScript-only content is absent, that internal links are exhaustive, that a `200` response means a useful page, or that generated/imported business metrics reflect real traffic or revenue. It proves only what this conservative HTTP client observed under the configured limits, with the stated labels for live, simulated, imported and synthetic data.
+A completed crawl does **not** prove that all site URLs were discovered, that Googlebot or another search engine rendered or indexed the pages, that JavaScript-only content is absent, that internal links are exhaustive, that a `200` response means a useful page, that named AI agents will visit or cite the site, or that generated/imported business metrics reflect real traffic or revenue. It proves only what this conservative HTTP client observed under the configured limits, with the stated labels for live, simulated, imported, synthetic and derived evidence.
 
 ## Related documents
 
 - [ORPHAN_DETECTION_METHODOLOGY.md](ORPHAN_DETECTION_METHODOLOGY.md) — how observed links and URLs become orphan classifications.
 - [KEYWORD_MAPPING_METHODOLOGY.md](KEYWORD_MAPPING_METHODOLOGY.md) — how imported or synthetic keyword lists are clustered and mapped to the shared URL inventory.
 - [PRIORITY_SCORING_METHODOLOGY.md](PRIORITY_SCORING_METHODOLOGY.md) — the transparent formulas used to score issues and orphans.
+- [DEPLOYMENT.md](DEPLOYMENT.md#3-hosted-portfolio-demo-vercel--render) — how to publish the public case study on the hosted demo.

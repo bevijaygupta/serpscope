@@ -1,0 +1,38 @@
+# SERPScope
+
+> Evidence-first SEO operations platform. SERPScope turns robots.txt, sitemap files, observed HTTP responses and explained rules into a source-tracked site audit, an editable PowerPoint deck and a six-month roadmap. It works without Search Console or Analytics access.
+
+## Public audit
+
+- Conservative, robots-aware crawler with crawl-delay checks and private-network rejection.
+- Raw crawl observations are stored separately from interpreted SEO fields.
+- Sitemap indexes are expanded recursively; sitemap URLs are stamped with provenance.
+- Findings carry a source, confidence label and explicit limitation.
+- Deliverables: PPTX, PDF, CSV, XLSX, JSON, six-month roadmap and evidence registry.
+- Missing private data is listed rather than invented: no GSC, GA4, ranking, revenue or AI-visibility outcomes are claimed without a declared source.
+
+## Positioning
+
+- SEO: technical, content, architecture and internal-link diagnostics.
+- AEO: answer-readiness rules based on question headings, answer blocks, entity clarity and structured data.
+- GEO: generative-engine readiness evidence, never guaranteed citations.
+- ASO: answer-search optimisation checks described as readiness, not outcomes.
+
+## Key pages
+
+- Home: https://serpscope-serpscope.vercel.app/
+- Login / demo: https://serpscope-serpscope.vercel.app/login
+- Source: https://github.com/bevijaygupta/serpscope
+
+## Documentation
+
+- README: https://github.com/bevijaygupta/serpscope/blob/main/README.md
+- API: https://github.com/bevijaygupta/serpscope/blob/main/docs/API_DOCUMENTATION.md
+- Crawler method: https://github.com/bevijaygupta/serpscope/blob/main/docs/CRAWLER_METHODOLOGY.md
+- Roadmap: https://github.com/bevijaygupta/serpscope/blob/main/docs/ROADMAP.md
+
+## Demo credentials
+
+- demo@serpscope.local / demo1234
+- The 1,000-URL demo project is deterministic synthetic data and is labelled as such.
+- The Techmagnate project uses a live public crawl and source-tracked observations.

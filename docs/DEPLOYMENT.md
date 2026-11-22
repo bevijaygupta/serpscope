@@ -97,7 +97,29 @@ Deploy sequence from the GitHub repository:
 6. Log in with `demo@serpscope.local` / `demo1234`.
 7. The Vercel project must allow public access to its production domain. In this deployment, Vercel Authentication (`ssoProtection`) was disabled on project `prj_096DxSK5ekfzYa4vHxEZ1YGbxwbb`; otherwise visitors see a `Protected by Vercel Authentication` page.
 
-**Live deployment (verified 2026-11-22/23):** UI and same-origin API on `https://serpscope-serpscope.vercel.app`, API/database on Render (`https://serpscope-api.onrender.com`), source on `https://github.com/bevijaygupta/serpscope`. The Render Blueprint ID is `exs-dc1iqeks728c73cic3l0`. Vercel auto-deploys from `main`; Render is connected through a public repository URL, so code changes need **Manual Deploy → Deploy latest commit** on the `serpscope-api` service (and Blueprint sync only when `render.yaml` changes).
+**Live deployment (verified 2026-11-22/23):** UI and same-origin API on `https://serpscope-serpscope.vercel.app`, API/database on Render (`https://serpscope-api.onrender.com`), source on `https://github.com/bevijaygupta/serpscope`. The Render Blueprint ID is `exs-dc1iqeks728c73cic3l0`, API service ID `srv-dc1iqt2vcj2c73en3v8g`. Vercel auto-deploys from `main`; Render is connected through a public repository URL, so code changes need **Manual Deploy → Deploy latest commit** on the `serpscope-api` service (and Blueprint sync only when `render.yaml` changes). Do not use `https://serpscope.vercel.app`.
+
+### 3.1 Publishing the real public audit on the hosted demo
+
+The audit code was verified locally against a live domain, but the new endpoints are **not live until Render is manually deployed**. After pushing `main` and confirming the Vercel deployment:
+
+1. In Render, open `serpscope-api` → **Manual Deploy → Deploy latest commit**; wait for the health check to pass.
+2. Log in with `demo@serpscope.local` / `demo1234` and obtain a bearer token:
+   ```bash
+   curl -s -X POST https://serpscope-api.onrender.com/api/v1/auth/login \
+     -H 'Content-Type: application/json' \
+     -d '{"email":"demo@serpscope.local","password":"demo1234"}'
+   ```
+3. Publish project 2 (`https://www.techmagnate.com/`) as a case study:
+   ```bash
+   curl -X PATCH https://serpscope-api.onrender.com/api/v1/projects/2 \
+     -H "Authorization: Bearer $TOKEN" -H 'Content-Type: application/json' \
+     -d '{"settings":{"public_audit":true}}'
+   ```
+4. Queue the audit, poll `GET /api/v1/jobs/{job_id}` until `succeeded`, then check `GET /api/v1/audits/projects/2/public-audit`, all five export formats and `GET /api/v1/public/case-studies/2`.
+5. Confirm the landing page at `https://serpscope-serpscope.vercel.app`, `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/manifest.webmanifest`, `/favicon.svg`, `/og-preview.svg`, `/login` and `/overview`.
+
+Expected local figures (the hosted run may differ): 303 discovered URLs, 60 fetched with the narrow verification sample (hosted default is 250), 0 failures, 60 sitemap entries from 9 documents, six finding groups and a six-month roadmap. Do not present the sample as exhaustive. Until the deploy and publish steps are done, the landing case study correctly shows as unavailable.
 
 Notes:
 

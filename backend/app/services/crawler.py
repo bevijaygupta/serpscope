@@ -30,7 +30,39 @@ from app.core.url_utils import (
     url_hash,
     validate_target_url,
 )
-from app.models.inventory import CrawlObservation, LinkEdge, UrlRecord
+from app.models.inventory import CrawlObservation, LinkEdge, SitemapEntry, UrlRecord
+
+AI_CRAWLER_AGENTS = (
+    "GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-SearchBot",
+    "Claude-User", "PerplexityBot", "Perplexity-User", "Google-Extended",
+    "Googlebot-Extended", "CCBot", "Meta-ExternalAgent",
+)
+
+
+def parse_robots_rules(text: str) -> dict[str, dict]:
+    """Extract explicit allow/disallow rules for known AI/search agents.
+
+    This is evidence extraction only: it does not predict inclusion in an answer
+    engine or imply that an operator's policy is enforced by those engines.
+    """
+    rules: dict[str, dict] = {}
+    current: list[str] = []
+    for raw in (text or "").splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line:
+            continue
+        key, _, value = line.partition(":")
+        key = key.strip().lower()
+        value = value.strip()
+        if key == "user-agent":
+            current = [value]
+        elif key in {"allow", "disallow"} and current:
+            for agent in current:
+                entry = rules.setdefault(agent, {"allow": [], "disallow": []})
+                if value:
+                    entry[key].append(value)
+    return {agent: rules.get(agent, {"allow": [], "disallow": []}) for agent in AI_CRAWLER_AGENTS if agent in rules}
+
 
 DEFAULT_CONFIG = {
     "start_url": "",
@@ -40,7 +72,7 @@ DEFAULT_CONFIG = {
     "concurrency": 4,
     "timeout": 10,
     "retries": 1,
-    "user_agent": "SEOAutomationLab/1.0 (+respects robots.txt)",
+    "user_agent": "SERPScopeAuditBot/1.0 (+respects robots.txt)",
     "crawl_delay": 1.0,
     "javascript_rendering": False,
     "follow_internal": True,
@@ -114,6 +146,8 @@ class RobotsCache:
         self.cache: dict[str, RobotFileParser | None] = {}
         self.delay: dict[str, float] = {}
         self.errors: dict[str, str] = {}
+        self.documents: dict[str, str] = {}
+        self.sitemaps: dict[str, list[str]] = {}
         self._lock = threading.Lock()
 
     def parser(self, url: str) -> RobotFileParser | None:
@@ -128,9 +162,16 @@ class RobotsCache:
             try:
                 validate_target_url(robots_url, allow_private=self.config.allow_private)
                 resp = self.client.get(robots_url, timeout=5)
+                with self._lock:
+                    self.documents[host] = resp.text[:20000] if resp.status_code == 200 else ""
                 if resp.status_code == 200:
                     parser = RobotFileParser()
                     parser.parse(resp.text.splitlines())
+                    try:
+                        with self._lock:
+                            self.sitemaps[host] = list(parser.site_maps() or [])
+                    except Exception:
+                        self.sitemaps[host] = []
                     crawl_delay = parser.crawl_delay(self.config.user_agent)
                     if crawl_delay:
                         with self._lock:
@@ -217,7 +258,12 @@ def extract_page(html: str, final_url: str) -> tuple[dict, list[dict]]:
     og = {}
     for node in soup.find_all("meta", attrs={"property": re.compile("^og:", re.I)}):
         og[(node.get("property") or "").lower()] = (node.get("content") or "").strip()
+    twitter = {}
+    for node in soup.find_all("meta", attrs={"name": re.compile("^twitter:", re.I)}):
+        twitter[(node.get("name") or "").lower()] = (node.get("content") or "").strip()
 
+    h1_texts = [h.get_text(" ", strip=True) for h in soup.find_all("h1")][:20]
+    h2_texts = [h.get_text(" ", strip=True) for h in soup.find_all("h2")][:50]
     images = soup.find_all("img")
     pagination = {
         "next": bool(soup.find("link", rel=lambda r: r and "next" in (r if isinstance(r, list) else [r])) or soup.find("a", rel="next")),
@@ -237,15 +283,23 @@ def extract_page(html: str, final_url: str) -> tuple[dict, list[dict]]:
     extracted = {
         "title": title_node.get_text(" ", strip=True) if title_node else "",
         "meta_description": meta("description"),
-        "h1": [h.get_text(" ", strip=True) for h in soup.find_all("h1")][:20],
-        "h2": [h.get_text(" ", strip=True) for h in soup.find_all("h2")][:50],
+        "h1": h1_texts,
+        "h2": h2_texts,
         "canonical": canonical_url(canonical_node.get("href") if canonical_node else None, final_url),
         "meta_robots": meta("robots"),
         "word_count": len(text.split()),
         "image_count": len(images),
         "images_missing_alt": sum(1 for img in images if not (img.get("alt") or "").strip()),
         "schema_types": schema_types,
+        "faq_schema": "FAQPage" in schema_types,
+        "organization_schema": "Organization" in schema_types,
+        "h2_questions": [h for h in h2_texts if h.strip().endswith("?")],
+        "first_paragraph": next(
+            (p.get_text(" ", strip=True) for p in soup.find_all("p") if len(p.get_text(" ", strip=True).split()) >= 12),
+            "",
+        )[:600],
         "og": og,
+        "twitter": twitter,
         "hreflang": hreflang,
         "pagination": pagination,
         "content_type": "text/html",
@@ -279,7 +333,7 @@ class CrawlEngine:
             "discovered": 0, "crawled": 0, "failed": 0, "excluded": 0,
             "by_status": {}, "redirects": 0, "indexable": 0, "non_indexable": 0,
             "slow_pages": 0, "duplicate_titles": 0, "duplicate_descriptions": 0,
-            "depth_distribution": {}, "errors": [],
+            "depth_distribution": {}, "errors": [], "robots": {}, "sitemap": {},
         }
         self.titles: dict[str, str] = {}
         self.descriptions: dict[str, str] = {}
@@ -471,6 +525,151 @@ class CrawlEngine:
                 is_broken=False, observed_at=now,
             ))
 
+    def _add_evidence_observation(self, url: str, status: int | None, text: str, content_type: str, error: str = "") -> None:
+        """Persist robots/sitemap documents as raw evidence, not interpreted fields."""
+        self.db.add(CrawlObservation(
+            crawl_id=self.crawl_id, project_id=self.project_id,
+            requested_url=url, final_url=url, status_code=status,
+            headers={"content-type": content_type}, redirect_chain=[],
+            body_excerpt=(text or "")[:12000], response_time_ms=None,
+            content_size=len((text or "").encode("utf-8")),
+            extracted={"document_type": "robots.txt" if url.endswith("/robots.txt") else "sitemap"},
+            error=error[:1000], observed_at=iso(utcnow()),
+        ))
+
+    def _discover_sitemaps(self, start_url: str) -> dict:
+        """Read robots.txt and sitemap index files, then seed URLs from them.
+
+        Sitemap documents are stored as raw observations and also upserted into
+        the URL inventory with `in_sitemap` provenance so orphan analysis can
+        distinguish sitemap-only URLs from discovered internal links.
+        """
+        base = urlsplit(start_url)
+        robots_url = f"{base.scheme}://{base.netloc}/robots.txt"
+        info: dict = {
+            "robots_url": robots_url, "robots_status": None,
+            "declared_sitemaps": [], "sitemap_files": [], "sitemap_urls": 0,
+            "robots_ai_rules": {}, "document": "", "errors": [],
+        }
+        headers = {"User-Agent": self.config.user_agent}
+        headers.update(self.config.auth_headers or {})
+        parser: RobotFileParser | None = None
+        try:
+            validate_target_url(robots_url, allow_private=self.config.allow_private)
+            with httpx.Client(timeout=8, follow_redirects=True, headers=headers) as client:
+                robots_resp = client.get(robots_url)
+                info["robots_status"] = robots_resp.status_code
+                robots_text = robots_resp.text if robots_resp.status_code == 200 else ""
+                info["document"] = robots_text[:12000]
+                self._add_evidence_observation(
+                    robots_url, robots_resp.status_code, robots_text,
+                    robots_resp.headers.get("content-type", "text/plain"),
+                    "" if robots_resp.status_code == 200 else f"HTTP {robots_resp.status_code}",
+                )
+                if robots_text:
+                    parser = RobotFileParser()
+                    parser.parse(robots_text.splitlines())
+                    try:
+                        info["declared_sitemaps"] = [u for u in (parser.site_maps() or [])][:30]
+                    except Exception:
+                        info["declared_sitemaps"] = []
+                info["robots_ai_rules"] = parse_robots_rules(robots_text)
+
+                from app.services.imports import parse_sitemap, store_sitemap_entries, upsert_urls
+
+                candidates = list(info["declared_sitemaps"]) + [
+                    f"{base.scheme}://{base.netloc}/sitemap.xml",
+                    f"{base.scheme}://{base.netloc}/sitemap_index.xml",
+                ]
+                seen_files: set[str] = set()
+                all_entries: list[dict] = []
+                for candidate in candidates:
+                    if len(seen_files) >= 25 or len(all_entries) >= self.config.max_urls:
+                        break
+                    try:
+                        validate_target_url(candidate, allow_private=self.config.allow_private)
+                        if parser and self.config.respect_robots and not parser.can_fetch(self.config.user_agent, candidate):
+                            continue
+                        if candidate in seen_files:
+                            continue
+                        seen_files.add(candidate)
+                        resp = client.get(candidate)
+                        if resp.status_code != 200:
+                            continue
+                        text = resp.text
+                        self._add_evidence_observation(
+                            candidate, resp.status_code, text[:20000],
+                            resp.headers.get("content-type", "application/xml"),
+                        )
+                        entries, kind = parse_sitemap(resp.content)
+                        info["sitemap_files"].append({"url": candidate, "kind": kind, "entries": len(entries)})
+                        if kind == "sitemap_index":
+                            for child in entries[:25]:
+                                loc = (child.get("loc") or "").strip()
+                                if not loc or loc in seen_files or len(seen_files) >= 25:
+                                    continue
+                                try:
+                                    validate_target_url(loc, allow_private=self.config.allow_private)
+                                    if parser and self.config.respect_robots and not parser.can_fetch(self.config.user_agent, loc):
+                                        continue
+                                    seen_files.add(loc)
+                                    child_resp = client.get(loc)
+                                    if child_resp.status_code != 200:
+                                        continue
+                                    self._add_evidence_observation(
+                                        loc, child_resp.status_code, child_resp.text[:20000],
+                                        child_resp.headers.get("content-type", "application/xml"),
+                                    )
+                                    child_entries, child_kind = parse_sitemap(child_resp.content)
+                                    info["sitemap_files"].append({
+                                        "url": loc, "kind": child_kind, "entries": len(child_entries),
+                                    })
+                                    if child_kind == "sitemap":
+                                        all_entries.extend(child_entries)
+                                except Exception as exc:  # noqa: BLE001 - one broken sitemap must not stop the crawl
+                                    info["errors"].append(f"{loc}: {type(exc).__name__}: {exc}"[:300])
+                        elif kind == "sitemap":
+                            all_entries.extend(entries)
+                    except Exception as exc:  # noqa: BLE001
+                        info["errors"].append(f"{candidate}: {type(exc).__name__}: {exc}"[:300])
+
+                deduped: list[dict] = []
+                seen_urls: set[str] = set()
+                for entry in all_entries[: self.config.max_urls]:
+                    loc = (entry.get("loc") or "").strip()
+                    if not loc or loc in seen_urls:
+                        continue
+                    seen_urls.add(loc)
+                    if not is_same_host(loc, start_url):
+                        continue
+                    deduped.append(entry)
+                if deduped:
+                    store_sitemap_entries(
+                        self.db, self.project_id, deduped,
+                        "sitemap-discovery",
+                    )
+                    accepted, _, _ = upsert_urls(
+                        self.db, self.project_id, [e["loc"] for e in deduped],
+                        source="sitemap", data_kind="public_sitemap",
+                        rules=self.config.rules(), extra={"in_sitemap": True},
+                    )
+                    info["sitemap_urls"] = accepted
+                    hashes = [url_hash(e["loc"], self.config.rules()) for e in deduped]
+                    for i in range(0, len(hashes), 500):
+                        for rec in self.db.query(UrlRecord).filter(
+                            UrlRecord.project_id == self.project_id,
+                            UrlRecord.url_hash.in_(hashes[i:i + 500]),
+                        ):
+                            rec.in_sitemap = True
+                    self.db.flush()
+                    # Release the write lock before the caller reports progress on
+                    # SQLite; on Postgres this also makes sitemap evidence durable
+                    # even if the crawl is later cancelled.
+                    self.db.commit()
+        except Exception as exc:  # noqa: BLE001 - sitemap discovery is best-effort evidence
+            info["errors"].append(f"sitemap discovery: {type(exc).__name__}: {exc}"[:300])
+        return info
+
     def run(self) -> dict:
         seeds: list[tuple[str, int]] = []
         if self.config.start_url:
@@ -478,17 +677,28 @@ class CrawlEngine:
         for url in self.config.seed_urls:
             seeds.append((url, 0))
         if self.config.sitemap_discovery and self.config.start_url:
-            try:
-                base = urlsplit(self.config.start_url)
-                from app.services.imports import parse_sitemap
-                with httpx.Client(timeout=8, follow_redirects=True) as client:
-                    resp = client.get(f"{base.scheme}://{base.netloc}/sitemap.xml")
-                if resp.status_code == 200:
-                    entries, kind = parse_sitemap(resp.content)
-                    if kind == "sitemap":
-                        seeds.extend((e["loc"], 1) for e in entries[:self.config.max_urls] if e.get("loc"))
-            except Exception:
-                pass
+            sitemap_info = self._discover_sitemaps(self.config.start_url)
+            self.stats["sitemap"] = sitemap_info
+            if self.robots is not None:
+                host = hostname_of(self.config.start_url)
+                self.stats["robots"] = {
+                    "url": sitemap_info.get("robots_url", ""),
+                    "status": sitemap_info.get("robots_status"),
+                    "document": (self.robots.documents.get(host, "") or sitemap_info.get("document", ""))[:12000],
+                    "ai_rules": sitemap_info.get("robots_ai_rules", {}),
+                }
+            elif sitemap_info.get("robots_ai_rules") or sitemap_info.get("document"):
+                self.stats["robots"] = {
+                    "url": sitemap_info.get("robots_url", ""),
+                    "status": sitemap_info.get("robots_status"),
+                    "document": sitemap_info.get("document", "")[:12000],
+                    "ai_rules": sitemap_info.get("robots_ai_rules", {}),
+                }
+            for entry in self.db.query(SitemapEntry).filter(
+                SitemapEntry.project_id == self.project_id,
+                SitemapEntry.source.like("sitemap%"),
+            ).order_by(SitemapEntry.id.desc()).limit(self.config.max_urls):
+                seeds.append((entry.loc, 1))
         queue: list[tuple[str, int]] = []
         seen: set[str] = set()
         for url, depth in seeds:
@@ -549,6 +759,9 @@ class CrawlEngine:
                                     queue.append((target, depth + 1))
                                     self.stats["discovered"] += 1
                     visited += 1
+                    # Commit before reporting progress: the progress row is written
+                    # through a different session, and SQLite allows one writer.
+                    self.db.commit()
                     self.on_progress(visited, min(self.config.max_urls, self.stats["discovered"]), f"Fetched {visited} URLs")
             self.db.flush()
         self.stats["duplicate_titles"] = max(0, sum(c - 1 for c in self.titles.values() if c > 1))

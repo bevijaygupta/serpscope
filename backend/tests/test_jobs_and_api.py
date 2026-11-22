@@ -187,6 +187,38 @@ def test_job_cancellation_is_recorded_and_honoured_by_worker(client, auth_header
     HANDLERS.pop("test_cancellable", None)
 
 
+def test_public_audit_routes_and_exports_are_registered(client, db, auth_headers, demo_project):
+    project = db.get(Project, demo_project["project_id"])
+    project.settings = {"public_audit": True}
+    db.commit()
+    base = f"/api/v1/audits/projects/{project.id}/public-audit"
+
+    audit = client.get(base, headers=auth_headers)
+    assert audit.status_code == 200, audit.text
+    payload = audit.json()
+    assert payload["meta"]["method"] == "public_evidence_audit"
+    assert len(payload["roadmap"]) == 6
+    assert "No Search Console queries" in " ".join(payload["missing_data"])
+
+    reports = client.get(base + "/reports", headers=auth_headers)
+    assert reports.status_code == 200
+    assert "items" in reports.json()
+
+    deck = client.get(base + "/export?format=pptx", headers=auth_headers)
+    assert deck.status_code == 200
+    assert deck.content.startswith(b"PK")
+    assert "attachment" in deck.headers["content-disposition"]
+
+    case_study = client.get(f"/api/v1/public/case-studies/{project.id}")
+    assert case_study.status_code == 200
+    assert case_study.json()["meta"]["project_id"] == project.id
+
+    # The body is optional so the Overview one-click button can POST with no JSON.
+    started = client.post(base + "/start", headers=auth_headers)
+    assert started.status_code == 202, started.text
+    assert started.json()["status"] == "queued"
+
+
 def test_bootstrap_reuses_existing_demo_organisation(db):
     from app.main import bootstrap
 
