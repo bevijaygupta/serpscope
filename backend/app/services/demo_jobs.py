@@ -37,13 +37,13 @@ def generate_demo_job(db_session_factory, job_id, payload, project_id, organizat
 def reset_demo_job(db_session_factory, job_id, payload, project_id, organization_id):
     db = db_session_factory()
     try:
-        project_ids = [r[0] for r in db.execute(text("SELECT id FROM projects WHERE is_demo=1")).all()]
+        project_ids = [r[0] for r in db.execute(text("SELECT id FROM projects WHERE is_demo IS TRUE")).all()]
         progress(job_id, 10, 100, "Removing demo projects")
         for pid in project_ids:
             for table in DEMO_TABLES:
                 db.execute(text(f"DELETE FROM {table} WHERE project_id=:p"), {"p": pid})
             db.execute(text("DELETE FROM projects WHERE id=:p"), {"p": pid})
-        db.execute(text("DELETE FROM organizations WHERE is_demo=1 AND slug='demo-organisation'"))
+        db.execute(text("DELETE FROM organizations WHERE is_demo IS TRUE AND slug='demo-organisation'"))
         db.execute(text("DELETE FROM jobs WHERE job_type IN ('generate_demo','reset_demo')"))
         db.commit()
         if payload.get("regenerate"):

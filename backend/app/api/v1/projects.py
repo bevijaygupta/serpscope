@@ -86,7 +86,7 @@ def overview(project_id: int, db: DB, project: ProjectDep):
         "cards": {
             "active_projects": scalar("SELECT COUNT(*) FROM projects WHERE status='active'"),
             "websites_monitored": scalar("SELECT COUNT(DISTINCT domain) FROM projects"),
-            "urls_crawled": scalar("SELECT COUNT(*) FROM url_records WHERE project_id=:p AND crawled=1", {"p": project_id}),
+            "urls_crawled": scalar("SELECT COUNT(*) FROM url_records WHERE project_id=:p AND crawled IS TRUE", {"p": project_id}),
             "critical_issues": open_p,
             "high_priority_issues": open_p1,
             "high_priority_opportunities": scalar("SELECT COUNT(*) FROM orphan_records WHERE project_id=:p AND priority IN ('P0','P1')", {"p": project_id}),
