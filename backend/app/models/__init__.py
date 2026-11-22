@@ -1,0 +1,80 @@
+"""All SQLAlchemy models, imported together for metadata registration."""
+from app.db.base import Base
+from app.models.auth import AuditLog, Membership, Organization, User
+from app.models.projects import DataSource, Job, MeetingNote, Project, ProjectMember, Task
+from app.models.inventory import Crawl, CrawlObservation, LinkEdge, SitemapEntry, UrlRecord
+from app.models.keywords import Keyword, KeywordCluster, KeywordMapping
+from app.models.analysis import (
+    ContentAnalysis,
+    ContentBrief,
+    Issue,
+    IssueUrl,
+    LinkSuggestion,
+    OrphanRecord,
+)
+from app.models.enterprise import (
+    AiReadinessItem,
+    AiVisibilityRecord,
+    Competitor,
+    HreflangRecord,
+    InternationalPlan,
+    KeywordGap,
+    Location,
+    MigrationMapping,
+    MigrationProject,
+    Product,
+)
+from app.models.operations import (
+    AnalyticsRecord,
+    DemoScenario,
+    Forecast,
+    Integration,
+    Report,
+    Workflow,
+    WorkflowRun,
+)
+
+__all__ = [
+    "Base",
+    "AuditLog",
+    "Membership",
+    "Organization",
+    "User",
+    "DataSource",
+    "Job",
+    "MeetingNote",
+    "Project",
+    "ProjectMember",
+    "Task",
+    "Crawl",
+    "CrawlObservation",
+    "LinkEdge",
+    "SitemapEntry",
+    "UrlRecord",
+    "Keyword",
+    "KeywordCluster",
+    "KeywordMapping",
+    "ContentAnalysis",
+    "ContentBrief",
+    "Issue",
+    "IssueUrl",
+    "LinkSuggestion",
+    "OrphanRecord",
+    "AiReadinessItem",
+    "AiVisibilityRecord",
+    "Competitor",
+    "HreflangRecord",
+    "InternationalPlan",
+    "KeywordGap",
+    "Location",
+    "MigrationMapping",
+    "MigrationProject",
+    "Product",
+    "AnalyticsRecord",
+    "DemoScenario",
+    "Forecast",
+    "Integration",
+    "Report",
+    "Workflow",
+    "WorkflowRun",
+]

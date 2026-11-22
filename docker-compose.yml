@@ -1,0 +1,46 @@
+services:
+  api:
+    build: ./backend
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: sqlite:////app/data/serpscope.db
+      UPLOAD_DIR: /app/data/uploads
+      EXPORT_DIR: /app/data/exports
+      RUN_JOBS_IN_API: "false"
+      CORS_ORIGINS: http://localhost:8080,http://127.0.0.1:8080
+    ports:
+      - "8000:8000"
+    volumes:
+      - seo-data:/app/data
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=3)"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  worker:
+    build: ./backend
+    command: ["python", "-m", "app.workers.runner"]
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: sqlite:////app/data/serpscope.db
+      UPLOAD_DIR: /app/data/uploads
+      EXPORT_DIR: /app/data/exports
+      RUN_JOBS_IN_API: "false"
+    volumes:
+      - seo-data:/app/data
+    depends_on:
+      api:
+        condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+
+volumes:
+  seo-data:

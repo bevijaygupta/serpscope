@@ -1,0 +1,46 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+  * { scrollbar-width: thin; scrollbar-color: #263449 transparent; }
+  *::-webkit-scrollbar { width: 9px; height: 9px; }
+  *::-webkit-scrollbar-thumb { background: #263449; border-radius: 999px; }
+  *::-webkit-scrollbar-track { background: transparent; }
+  body { margin: 0; min-width: 320px; }
+  button, input, select, textarea { font: inherit; }
+  a { color: inherit; text-decoration: none; }
+}
+
+@layer components {
+  .panel { @apply rounded-xl border border-edge bg-panel/90 shadow-glow backdrop-blur; }
+  .panel-flat { @apply rounded-xl border border-edge bg-panel/60; }
+  .btn { @apply inline-flex items-center justify-center gap-2 rounded-lg border border-edge bg-elevated px-3 py-2 text-sm font-medium text-ink transition hover:border-accent/60 hover:bg-accent/10 hover:text-white disabled:cursor-not-allowed disabled:opacity-40; }
+  .btn-primary { @apply border-accent/40 bg-accent/15 text-accent hover:bg-accent/25; }
+  .btn-danger { @apply border-danger/40 bg-danger/10 text-danger hover:bg-danger/20; }
+  .btn-ghost { @apply border-transparent bg-transparent text-muted hover:bg-white/5 hover:text-ink; }
+  .input { @apply w-full rounded-lg border border-edge bg-canvas/70 px-3 py-2 text-sm text-ink outline-none transition placeholder:text-muted/60 focus:border-accent/70 focus:ring-2 focus:ring-accent/10; }
+  .label { @apply mb-1.5 block text-xs font-semibold uppercase tracking-wider text-muted; }
+  .tag { @apply inline-flex items-center gap-1 rounded-md border border-edge bg-white/5 px-2 py-0.5 text-[11px] font-medium text-muted; }
+  .table-head { @apply sticky top-0 z-10 bg-elevated/95 text-left text-[11px] font-semibold uppercase tracking-wider text-muted backdrop-blur; }
+  .table-cell { @apply border-t border-edge/70 px-3 py-2.5 text-sm align-top; }
+  .skeleton { @apply relative overflow-hidden rounded bg-white/5; }
+  .skeleton::after { @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/5 to-transparent content-['']; }
+  .card-title { @apply text-sm font-semibold text-ink; }
+  .muted { @apply text-muted; }
+  .mono { @apply font-mono text-xs; }
+  .link { @apply text-accent transition hover:text-white hover:underline; }
+}
+
+.prose-doc h1 { @apply mb-4 text-2xl font-bold text-white; }
+.prose-doc h2 { @apply mb-2 mt-6 text-lg font-semibold text-white; }
+.prose-doc h3 { @apply mb-2 mt-4 text-base font-semibold text-white; }
+.prose-doc p { @apply mb-3 text-sm leading-6 text-muted; }
+.prose-doc ul { @apply mb-4 list-disc space-y-1 pl-5 text-sm text-muted; }
+.prose-doc code { @apply rounded bg-white/5 px-1 py-0.5 font-mono text-xs text-accent; }
+
+.recharts-cartesian-axis-tick-value { fill: #8494ad; font-size: 11px; }
+.recharts-legend-item-text { color: #8494ad !important; font-size: 11px; }
