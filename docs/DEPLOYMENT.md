@@ -97,7 +97,7 @@ Deploy sequence from the GitHub repository:
 6. Log in with `demo@serpscope.local` / `demo1234`.
 7. The Vercel project must allow public access to its production domain. In this deployment, Vercel Authentication (`ssoProtection`) was disabled on project `prj_096DxSK5ekfzYa4vHxEZ1YGbxwbb`; otherwise visitors see a `Protected by Vercel Authentication` page.
 
-**Live deployment (verified 2026-11-22):** UI and same-origin API on `https://serpscope-serpscope.vercel.app`, API/database on Render (`https://serpscope-api.onrender.com`), source on `https://github.com/bevijaygupta/serpscope`. The Render Blueprint ID is `exs-dc1iqeks728c73cic3l0`; future pushes to `main` sync automatically.
+**Live deployment (verified 2026-11-22/23):** UI and same-origin API on `https://serpscope-serpscope.vercel.app`, API/database on Render (`https://serpscope-api.onrender.com`), source on `https://github.com/bevijaygupta/serpscope`. The Render Blueprint ID is `exs-dc1iqeks728c73cic3l0`. Vercel auto-deploys from `main`; Render is connected through a public repository URL, so code changes need **Manual Deploy → Deploy latest commit** on the `serpscope-api` service (and Blueprint sync only when `render.yaml` changes).
 
 Notes:
 
