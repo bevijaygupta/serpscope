@@ -1,0 +1,1356 @@
+# SERPScope · complete hosted public-audit evidence pack
+
+Target: **https://www.techmagnate.com/**  
+Project: Techmagnet (id=2)  
+Job: 17 · status: succeeded  
+Audit generated: 2026-11-23T17:07:58.146572+00:00  
+Pack downloaded: 2026-11-23T17:40:14.088525+00:00  
+
+This file contains every audit segment returned by the live API. Raw rows and every
+export format are in the sibling files listed in `MANIFEST.json`. No GSC, GA4, rank
+or AI-visibility outcome data was supplied or invented.
+
+
+## 1. Job
+
+{
+  "id": 17,
+  "project_id": 2,
+  "job_type": "public_audit",
+  "name": "Public audit · https://www.techmagnate.com/",
+  "status": "succeeded",
+  "progress": 100,
+  "total": 100,
+  "message": "Completed",
+  "error": "",
+  "created_at": "2026-11-23T16:42:56.765718",
+  "started_at": "2026-11-23T16:42:57.266710+00:00",
+  "finished_at": "2026-11-23T17:07:58.440009+00:00",
+  "result": {
+    "crawl_id": 1,
+    "report_id": 2,
+    "fetched_urls": 219,
+    "findings": 12,
+    "roadmap_months": 6
+  },
+  "payload": {
+    "start_url": "https://www.techmagnate.com/",
+    "config": {},
+    "name": null
+  },
+  "cancel_requested": false
+}
+
+
+## 2. Crawl run
+
+{
+  "id": 1,
+  "name": "Public audit · https://www.techmagnate.com/",
+  "config": {
+    "start_url": "https://www.techmagnate.com/",
+    "seed_urls": [],
+    "max_urls": 250,
+    "max_depth": 3,
+    "concurrency": 2,
+    "timeout": 12,
+    "retries": 1,
+    "user_agent": "SERPScopeAuditBot/1.0 (+respects robots.txt)",
+    "crawl_delay": 1.0,
+    "javascript_rendering": false,
+    "follow_internal": true,
+    "follow_external": false,
+    "include_patterns": [],
+    "exclude_patterns": [],
+    "query_handling": "strip_tracking",
+    "canonical_handling": "record",
+    "respect_robots": true,
+    "sitemap_discovery": true,
+    "allow_private": false,
+    "schedule": "manual",
+    "mode": "live"
+  },
+  "status": "completed",
+  "discovered": 497,
+  "crawled": 219,
+  "failed": 0,
+  "excluded": 1,
+  "summary": {
+    "discovered": 497,
+    "crawled": 219,
+    "failed": 0,
+    "excluded": 1,
+    "by_status": {
+      "200": 219,
+      "404": 30
+    },
+    "redirects": 4,
+    "indexable": 216,
+    "non_indexable": 33,
+    "slow_pages": 246,
+    "duplicate_titles": 32,
+    "duplicate_descriptions": 3,
+    "depth_distribution": {
+      "0": 1,
+      "1": 93,
+      "2": 155
+    },
+    "errors": [
+      {
+        "url": "http://techmagnate.com/digital-report-card.html",
+        "error": "robots.txt unavailable: RuntimeError: Cannot send a request, as the client has been closed."
+      }
+    ],
+    "robots": {},
+    "sitemap": {
+      "robots_url": "https://www.techmagnate.com/robots.txt",
+      "robots_status": null,
+      "declared_sitemaps": [],
+      "sitemap_files": [],
+      "sitemap_urls": 0,
+      "robots_ai_rules": {},
+      "document": "",
+      "errors": [
+        "sitemap discovery: ReadTimeout: The read operation timed out"
+      ]
+    }
+  },
+  "started_at": "2026-11-23T16:42:57.269952+00:00",
+  "finished_at": "2026-11-23T17:07:04.141976+00:00",
+  "data_kind": "live"
+}
+
+
+## 3. Audit meta
+
+{
+  "project_id": 2,
+  "project_name": "Techmagnet",
+  "domain": "https://www.techmagnate.com/",
+  "is_demo": false,
+  "generated_at": "2026-11-23T17:07:58.146572+00:00",
+  "method": "public_evidence_audit",
+  "crawl_id": 1,
+  "crawl_name": "Public audit · https://www.techmagnate.com/",
+  "crawl_config": {
+    "start_url": "https://www.techmagnate.com/",
+    "seed_urls": [],
+    "max_urls": 250,
+    "max_depth": 3,
+    "concurrency": 2,
+    "timeout": 12,
+    "retries": 1,
+    "user_agent": "SERPScopeAuditBot/1.0 (+respects robots.txt)",
+    "crawl_delay": 1.0,
+    "javascript_rendering": false,
+    "follow_internal": true,
+    "follow_external": false,
+    "include_patterns": [],
+    "exclude_patterns": [],
+    "query_handling": "strip_tracking",
+    "canonical_handling": "record",
+    "respect_robots": true,
+    "sitemap_discovery": true,
+    "allow_private": false,
+    "schedule": "manual",
+    "mode": "live"
+  },
+  "data_kinds": [
+    "live_crawl",
+    "public_sitemap",
+    "robots.txt",
+    "derived_rules"
+  ],
+  "report_id": 2
+}
+
+
+## 4. Coverage
+
+{
+  "discovered_urls": 497,
+  "fetched_urls": 219,
+  "failed_urls": 0,
+  "excluded_urls": 1,
+  "inventory_urls": 249,
+  "crawled_inventory_urls": 249,
+  "robots_respected": true,
+  "javascript_rendering": false,
+  "sitemap_entries": 0,
+  "sitemap": {
+    "robots_url": "https://www.techmagnate.com/robots.txt",
+    "robots_status": null,
+    "declared_sitemaps": [],
+    "sitemap_files": [],
+    "sitemap_urls": 0,
+    "robots_ai_rules": {},
+    "document": "",
+    "errors": [
+      "sitemap discovery: ReadTimeout: The read operation timed out"
+    ]
+  }
+}
+
+
+## 5. Robots evidence
+
+{
+  "url": "https://www.techmagnate.com/robots.txt",
+  "status": null,
+  "ai_rules": {},
+  "document_excerpt": ""
+}
+
+
+## 6. Counts
+
+{
+  "status_codes": {
+    "200": 219,
+    "404": 30
+  },
+  "page_types": {
+    "unknown": 187,
+    "article": 55,
+    "homepage": 1,
+    "careers": 1,
+    "service": 1,
+    "category": 3,
+    "faq": 1
+  },
+  "indexable": 216,
+  "non_indexable": 33,
+  "redirects": 4,
+  "schema_pages": 0,
+  "average_content_score": 82.8
+}
+
+
+## 7. Source registry
+
+[
+  {
+    "source": "robots.txt",
+    "type": "public_document",
+    "confidence": "verified",
+    "used_for": [
+      "crawler permissions",
+      "AI agent policy",
+      "sitemap discovery"
+    ]
+  },
+  {
+    "source": "sitemap files",
+    "type": "public_document",
+    "confidence": "verified",
+    "used_for": [
+      "URL universe",
+      "orphan reconciliation"
+    ]
+  },
+  {
+    "source": "crawl observations",
+    "type": "observed_http",
+    "confidence": "verified",
+    "used_for": [
+      "status",
+      "headers",
+      "on-page HTML",
+      "timing"
+    ]
+  },
+  {
+    "source": "rule engine",
+    "type": "derived",
+    "confidence": "explained",
+    "used_for": [
+      "issues",
+      "priority",
+      "roadmap"
+    ]
+  },
+  {
+    "source": "Search Console / GA4",
+    "type": "not_supplied",
+    "confidence": "none",
+    "used_for": [
+      "not used; no private data claimed"
+    ]
+  }
+]
+
+
+## 8. Missing-data statements
+
+[
+  "No Search Console queries, impressions, clicks or average positions were supplied.",
+  "No GA4 sessions, conversions or revenue were supplied.",
+  "No keyword volume, difficulty or rank tracking provider was connected.",
+  "No JavaScript-rendered DOM was captured; client-only content may be missing.",
+  "No authenticated, staging or private pages were crawled.",
+  "AI answer visibility is not sampled; only manually observed evidence can be reported."
+]
+
+
+## 9. Deliverables
+
+[
+  "Site audit JSON/CSV/XLSX/PDF",
+  "Editable PPT board deck",
+  "Six-month roadmap with owners and success checks",
+  "Raw crawl observation export",
+  "Source registry and missing-data statement"
+]
+
+
+## 10. Findings (all)
+
+### http_errors · High · HTTP error responses observed
+
+- **category:** status
+- **affected_count:** 30
+- **observation:** 30 fetched URLs returned 4xx/5xx. Observed distribution: 404: 30
+- **recommended_action:** Triage server errors first, then restore or deliberately retire 4xx URLs; map replacements from observed similar pages.
+- **evidence:** {
+  "status_codes": {
+    "200": 219,
+    "404": 30
+  }
+}
+- **source:** [
+  "crawl_observations",
+  "url_records"
+]
+- **confidence:** verified_from_public_evidence
+- **limitation:** 
+
+### missing_title · High · Missing title tags
+
+- **category:** content
+- **affected_count:** 30
+- **observation:** Crawled pages with no <title> element.
+- **recommended_action:** Add unique, descriptive titles reflecting the page topic and brand.
+- **evidence:** {}
+- **source:** [
+  "crawl_observations",
+  "technical issue rules"
+]
+- **confidence:** derived_from_observations
+- **limitation:** 
+
+### canonical_signals · High · Canonical signals require review
+
+- **category:** indexability
+- **affected_count:** 2
+- **observation:** Canonical URL differs from the fetched URL on the observed pages.
+- **recommended_action:** Confirm intended canonical, then align canonical tags, sitemap entries and internal links.
+- **evidence:** {
+  "sample_urls": [
+    "https://www.techmagnate.com/blog/category/ai-llm-seo/",
+    "https://www.techmagnate.com/blog/how-to-use-seo-to-build-brand-awareness/"
+  ]
+}
+- **source:** [
+  "crawl_observations",
+  "technical issue rules"
+]
+- **confidence:** verified_from_public_evidence
+- **limitation:** 
+
+### aeo_readiness · Medium · Answer-engine readiness gaps
+
+- **category:** aeo
+- **affected_count:** 749
+- **observation:** Rule-based gaps across question coverage, answer extraction, entity clarity, structured data, provenance and internal context. Most common: structured_data=249, author_organisation_info=249, question_coverage=191, answer_extraction=30
+- **recommended_action:** Prioritise question headings, concise answer blocks, visible organisation details and valid structured data on commercially important pages.
+- **evidence:** {
+  "by_dimension": {
+    "question_coverage": 191,
+    "structured_data": 249,
+    "author_organisation_info": 249,
+    "answer_extraction": 30,
+    "entity_clarity": 30
+  }
+}
+- **source:** [
+  "crawl_observations",
+  "AEO readiness rules"
+]
+- **confidence:** derived_from_observations
+- **limitation:** Readiness is not the same as observed visibility in ChatGPT, Claude, Perplexity or Google AI Overviews.
+
+### slow_response · Medium · Slow server responses
+
+- **category:** performance
+- **affected_count:** 246
+- **observation:** Fetched URLs exceeded the 2,500 ms rule threshold.
+- **recommended_action:** Investigate server time, caching and heavy templates; re-crawl after fixes.
+- **evidence:** {}
+- **source:** [
+  "crawl_observations",
+  "technical issue rules"
+]
+- **confidence:** derived_from_observations
+- **limitation:** 
+
+### duplicate_title · Medium · Duplicate title tags
+
+- **category:** content
+- **affected_count:** 35
+- **observation:** Identical titles were observed on more than one URL.
+- **recommended_action:** Differentiate titles by topic, intent and location.
+- **evidence:** {}
+- **source:** [
+  "crawl_observations",
+  "technical issue rules"
+]
+- **confidence:** derived_from_observations
+- **limitation:** 
+
+### missing_h1 · Medium · Missing H1 headings
+
+- **category:** content
+- **affected_count:** 30
+- **observation:** Crawled pages with no H1 element.
+- **recommended_action:** Add one clear H1 that matches the page's primary topic.
+- **evidence:** {}
+- **source:** [
+  "crawl_observations",
+  "technical issue rules"
+]
+- **confidence:** derived_from_observations
+- **limitation:** 
+
+### redirects · Medium · Redirect chains or loops detected
+
+- **category:** indexability
+- **affected_count:** 4
+- **observation:** One or more fetched URLs required multiple redirect hops.
+- **recommended_action:** Point internal links and sitemap entries directly at the final URL; remove cyclical rules.
+- **evidence:** {
+  "sample_urls": [
+    "https://www.techmagnate.com/blog/category/ai-llm-seo/",
+    "https://www.techmagnate.com/prism",
+    "https://www.techmagnate.com/blog/how-to-use-seo-to-build-brand-awareness/",
+    "https://www.techmagnate.com/blog/what-are-internal-links/"
+  ]
+}
+- **source:** [
+  "crawl_observations",
+  "technical issue rules"
+]
+- **confidence:** verified_from_public_evidence
+- **limitation:** 
+
+### missing_description · Low · Missing meta descriptions
+
+- **category:** content
+- **affected_count:** 63
+- **observation:** Crawled pages with no meta description.
+- **recommended_action:** Write concise descriptions that differentiate each page; Google may still rewrite them.
+- **evidence:** {}
+- **source:** [
+  "crawl_observations",
+  "technical issue rules"
+]
+- **confidence:** derived_from_observations
+- **limitation:** 
+
+### missing_schema · Low · Structured data missing on commercial pages
+
+- **category:** structured-data
+- **affected_count:** 56
+- **observation:** Service/product/article pages without detected JSON-LD structured data.
+- **recommended_action:** Add valid Organization, Service/Product, BreadcrumbList and FAQ markup where genuinely applicable.
+- **evidence:** {}
+- **source:** [
+  "crawl_observations",
+  "structured-data rules"
+]
+- **confidence:** derived_from_observations
+- **limitation:** 
+
+### crawl_scope · Info · Public crawl scope and limits
+
+- **category:** method
+- **affected_count:** 219
+- **observation:** Fetched 219 URLs from 497 discovered URLs with robots respect enabled; 0 fetch failures recorded.
+- **recommended_action:** Treat this as a representative public sample, then widen depth/limits with authorisation for a full-site audit.
+- **evidence:** {
+  "discovered_urls": 497,
+  "fetched_urls": 219,
+  "failed_urls": 0,
+  "excluded_urls": 1,
+  "inventory_urls": 249,
+  "crawled_inventory_urls": 249,
+  "robots_respected": true,
+  "javascript_rendering": false,
+  "sitemap_entries": 0,
+  "sitemap": {
+    "robots_url": "https://www.techmagnate.com/robots.txt",
+    "robots_status": null,
+    "declared_sitemaps": [],
+    "sitemap_files": [],
+    "sitemap_urls": 0,
+    "robots_ai_rules": {},
+    "document": "",
+    "errors": [
+      "sitemap discovery: ReadTimeout: The read operation timed out"
+    ]
+  }
+}
+- **source:** [
+  "crawl run summary",
+  "raw crawl observations"
+]
+- **confidence:** verified_from_public_evidence
+- **limitation:** No JavaScript rendering, authenticated pages, private analytics or vendor APIs are included.
+
+### sitemap_evidence · Positive · Sitemap evidence captured
+
+- **category:** sitemap
+- **affected_count:** 0
+- **observation:** Discovered 0 sitemap URL entries from 0 sitemap document(s).
+- **recommended_action:** Reconcile sitemap URLs with indexable, canonical final URLs and remove obsolete entries.
+- **evidence:** {
+  "files": [],
+  "declared": []
+}
+- **source:** [
+  "robots.txt",
+  "sitemap.xml",
+  "sitemap index files"
+]
+- **confidence:** verified_from_public_evidence
+- **limitation:** Sitemap inclusion does not guarantee indexing.
+
+
+## 11. Six-month roadmap (all months)
+
+### Month 1 · Baseline, evidence and governance
+
+- **objective:** Lock a reproducible public-data baseline before changing anything.
+- **actions:** [
+  "Re-run the robots-aware crawl and archive raw observations (219 URLs in this run).",
+  "Reconcile 0 sitemap entries with fetched canonical URLs.",
+  "Assign owners for technical, content and measurement workstreams.",
+  "Agree which pages are commercially important using business input; do not infer value from crawl alone."
+]
+- **deliverables:** [
+  "Raw crawl observation export",
+  "Source-tracked URL inventory",
+  "Issue register",
+  "Signed-off priority page list"
+]
+- **owner:** SEO lead + engineering owner
+- **success_checks:** [
+  "Crawl can be reproduced",
+  "Every issue has a source and owner",
+  "No private data is required to start"
+]
+- **without_access:** Fully usable now from crawl, robots.txt, sitemap and public HTML.
+- **with_access:** Add GSC/GA4 exports later to weight pages by actual queries, clicks and conversions.
+
+### Month 2 · Technical stabilisation
+
+- **objective:** Remove confirmed blockers that waste crawl budget or create ambiguous index signals.
+- **actions:** [
+  "Triage 30 observed 4xx/5xx URLs; fix server errors first, then restore or retire error URLs.",
+  "Resolve 2 canonical conflicts and 4 redirect chains/loops.",
+  "Align final URL, canonical tag, sitemap entry and internal links for priority templates.",
+  "Add regression checks so fixed templates do not reintroduce the same issue."
+]
+- **deliverables:** [
+  "Fix log with before/after evidence",
+  "Updated canonical/redirect rules",
+  "Recrawl comparison"
+]
+- **owner:** Technical SEO + engineering
+- **success_checks:** [
+  "Error and canonical issue counts fall on recrawl",
+  "No blanket redirects to the homepage",
+  "Changes are reviewable"
+]
+- **without_access:** Prioritisation uses observed status, canonical and redirect evidence.
+- **with_access:** Use GSC coverage and GA4 landing-page data to confirm which fixed URLs matter commercially.
+
+### Month 3 · Architecture and internal link equity
+
+- **objective:** Make important pages discoverable and reduce reliance on the sitemap alone.
+- **actions:** [
+  "Review 0 confirmed/sitemap-only orphan URLs and remove obsolete ones from the sitemap.",
+  "Apply the highest-relevance 0 link suggestions from hub and topic pages.",
+  "Flatten excessive depth for priority service and commercial pages.",
+  "Set a rule that every new indexable page ships with at least two contextual internal links."
+]
+- **deliverables:** [
+  "Internal-link implementation sheet",
+  "Updated navigation/hub pages",
+  "Orphan reconciliation report"
+]
+- **owner:** SEO lead + content/design
+- **success_checks:** [
+  "Orphan count decreases after recrawl",
+  "Priority pages gain relevant inlinks",
+  "Anchors describe the target topic"
+]
+- **without_access:** Graph evidence comes from observed links, not third-party link databases.
+- **with_access:** Overlay top organic landing pages to prioritise links that protect existing demand.
+
+### Month 4 · Content and intent alignment
+
+- **objective:** Improve clarity and uniqueness using observed on-page evidence.
+- **actions:** [
+  "Rewrite 30 missing titles, 63 missing descriptions and 30 missing H1s.",
+  "Differentiate 35 duplicate titles and expand/consolidate 0 thin pages.",
+  "Build page briefs from the observed topic and page type; approve each brief before publication.",
+  "Define a review cadence for high-value pages based on business priority supplied by the team."
+]
+- **deliverables:** [
+  "On-page fix backlog",
+  "Approved content briefs",
+  "Before/after metadata register"
+]
+- **owner:** Content lead + SEO reviewer
+- **success_checks:** [
+  "Metadata uniqueness improves",
+  "Briefs include an explicit source and approval state",
+  "No copied competitor text"
+]
+- **without_access:** On-page gaps are detected without keyword volume or rank data.
+- **with_access:** Import GSC queries/landing pages to choose which real search intent each page should serve.
+
+### Month 5 · AEO, GEO and machine-readability
+
+- **objective:** Improve extractability for answer engines while clearly separating readiness from observed visibility.
+- **actions:** [
+  "Close the highest-volume 749 readiness gaps on priority pages.",
+  "Add question headings with concise, self-contained answers directly beneath them.",
+  "Add valid Organization, Service/Product, BreadcrumbList and FAQ structured data where applicable.",
+  "Document and periodically review the robots.txt AI-crawler policy; manually record any AI answer observation."
+]
+- **deliverables:** [
+  "AEO readiness tracker",
+  "Structured-data validation results",
+  "Manual AI visibility observation log"
+]
+- **owner:** SEO lead + content + engineering
+- **success_checks:** [
+  "Readiness gaps decrease",
+  "Structured data validates",
+  "Visibility claims only come from recorded observations"
+]
+- **without_access:** Readiness rules run from public crawl evidence; no answer-engine API is claimed.
+- **with_access:** Add manual or licensed AI visibility observations with source and timestamp, never inferred rankings.
+
+### Month 6 · Measurement, reporting and scale
+
+- **objective:** Turn the work into a repeatable management pack with honest data gaps.
+- **actions:** [
+  "Re-run the same audit and compare source-tracked counts month over month.",
+  "Export the site audit, issue register and PPT deck for stakeholders.",
+  "Decide whether to add GSC/GA4 CSV imports; if access is refused, keep public-evidence KPIs and label the gap.",
+  "Schedule recurring crawls and assign a reviewer for every proposed change."
+]
+- **deliverables:** [
+  "Six-month comparison report",
+  "PPT board deck",
+  "CSV/XLSX/JSON evidence pack",
+  "Next-quarter backlog"
+]
+- **owner:** SEO lead + stakeholders
+- **success_checks:** [
+  "Deck opens and every number has a source",
+  "Missing data is listed explicitly",
+  "Next actions have owners"
+]
+- **without_access:** The entire pack is already deliverable from public evidence alone.
+- **with_access:** Vendor data upgrades weighting and outcome measurement; it is not required for the audit to exist.
+
+
+## 12. Report sections
+
+[
+  {
+    "heading": "1. Executive summary",
+    "lines": [
+      "Public-evidence audit of https://www.techmagnate.com/ generated 2026-11-23T17:07:58.146572+00:00.",
+      "The crawler fetched 219 URLs from 497 discovered URLs; 0 fetches failed and 0 sitemap entries were stored.",
+      "12 source-tracked finding groups were produced without Search Console or Analytics access.",
+      "Every figure below comes from robots.txt, sitemap files, observed HTTP responses or explained rules."
+    ]
+  },
+  {
+    "heading": "2. Evidence and coverage",
+    "lines": [
+      "Inventory URLs: 249; crawled URLs: 249.",
+      "Robots respected: True; JavaScript rendering: False.",
+      "Status distribution: {'200': 219, '404': 30}.",
+      "Page types observed: {'unknown': 187, 'article': 55, 'homepage': 1, 'careers': 1, 'service': 1, 'category': 3, 'faq': 1}."
+    ]
+  },
+  {
+    "heading": "3. Priority findings",
+    "lines": [
+      "[High] HTTP error responses observed: 30 — 30 fetched URLs returned 4xx/5xx. Observed distribution: 404: 30 Action: Triage server errors first, then restore or deliberately retire 4xx URLs; map replacements from observed similar pages.",
+      "[High] Missing title tags: 30 — Crawled pages with no <title> element. Action: Add unique, descriptive titles reflecting the page topic and brand.",
+      "[High] Canonical signals require review: 2 — Canonical URL differs from the fetched URL on the observed pages. Action: Confirm intended canonical, then align canonical tags, sitemap entries and internal links.",
+      "[Medium] Answer-engine readiness gaps: 749 — Rule-based gaps across question coverage, answer extraction, entity clarity, structured data, provenance and internal context. Most common: structured_data=249, author_organisation_info=249, question_coverage=191, answer_extraction=30 Action: Prioritise question headings, concise answer blocks, visible organisation details and valid structured data on commercially important pages.",
+      "[Medium] Slow server responses: 246 — Fetched URLs exceeded the 2,500 ms rule threshold. Action: Investigate server time, caching and heavy templates; re-crawl after fixes.",
+      "[Medium] Duplicate title tags: 35 — Identical titles were observed on more than one URL. Action: Differentiate titles by topic, intent and location.",
+      "[Medium] Missing H1 headings: 30 — Crawled pages with no H1 element. Action: Add one clear H1 that matches the page's primary topic.",
+      "[Medium] Redirect chains or loops detected: 4 — One or more fetched URLs required multiple redirect hops. Action: Point internal links and sitemap entries directly at the final URL; remove cyclical rules."
+    ]
+  },
+  {
+    "heading": "4. Six-month roadmap",
+    "lines": [
+      "Month 1 — Baseline, evidence and governance: Lock a reproducible public-data baseline before changing anything. Deliverables: Raw crawl observation export, Source-tracked URL inventory, Issue register, Signed-off priority page list.",
+      "Month 2 — Technical stabilisation: Remove confirmed blockers that waste crawl budget or create ambiguous index signals. Deliverables: Fix log with before/after evidence, Updated canonical/redirect rules, Recrawl comparison.",
+      "Month 3 — Architecture and internal link equity: Make important pages discoverable and reduce reliance on the sitemap alone. Deliverables: Internal-link implementation sheet, Updated navigation/hub pages, Orphan reconciliation report.",
+      "Month 4 — Content and intent alignment: Improve clarity and uniqueness using observed on-page evidence. Deliverables: On-page fix backlog, Approved content briefs, Before/after metadata register.",
+      "Month 5 — AEO, GEO and machine-readability: Improve extractability for answer engines while clearly separating readiness from observed visibility. Deliverables: AEO readiness tracker, Structured-data validation results, Manual AI visibility observation log.",
+      "Month 6 — Measurement, reporting and scale: Turn the work into a repeatable management pack with honest data gaps. Deliverables: Six-month comparison report, PPT board deck, CSV/XLSX/JSON evidence pack, Next-quarter backlog."
+    ]
+  },
+  {
+    "heading": "5. With and without vendor access",
+    "lines": [
+      "Without access: the full audit, PPT and roadmap are produced from public evidence alone.",
+      "With access later: import GSC/GA4 exports to weight real queries, clicks, sessions and conversions.",
+      "Vendor access upgrades prioritisation; it is never required for the audit to exist."
+    ]
+  },
+  {
+    "heading": "6. What this audit does not claim",
+    "lines": [
+      "No Search Console queries, impressions, clicks or average positions were supplied.",
+      "No GA4 sessions, conversions or revenue were supplied.",
+      "No keyword volume, difficulty or rank tracking provider was connected.",
+      "No JavaScript-rendered DOM was captured; client-only content may be missing.",
+      "No authenticated, staging or private pages were crawled.",
+      "AI answer visibility is not sampled; only manually observed evidence can be reported."
+    ]
+  }
+]
+
+
+## 13. Public case study (read-only endpoint)
+
+{
+  "meta": {
+    "project_id": 2,
+    "project_name": "Techmagnet",
+    "domain": "https://www.techmagnate.com/",
+    "is_demo": false,
+    "generated_at": "2026-11-23T17:07:58.146572+00:00",
+    "method": "public_evidence_audit",
+    "crawl_id": 1,
+    "crawl_name": "Public audit · https://www.techmagnate.com/",
+    "crawl_config": {
+      "start_url": "https://www.techmagnate.com/",
+      "seed_urls": [],
+      "max_urls": 250,
+      "max_depth": 3,
+      "concurrency": 2,
+      "timeout": 12,
+      "retries": 1,
+      "user_agent": "SERPScopeAuditBot/1.0 (+respects robots.txt)",
+      "crawl_delay": 1.0,
+      "javascript_rendering": false,
+      "follow_internal": true,
+      "follow_external": false,
+      "include_patterns": [],
+      "exclude_patterns": [],
+      "query_handling": "strip_tracking",
+      "canonical_handling": "record",
+      "respect_robots": true,
+      "sitemap_discovery": true,
+      "allow_private": false,
+      "schedule": "manual",
+      "mode": "live"
+    },
+    "data_kinds": [
+      "live_crawl",
+      "public_sitemap",
+      "robots.txt",
+      "derived_rules"
+    ],
+    "report_id": 2
+  },
+  "coverage": {
+    "discovered_urls": 497,
+    "fetched_urls": 219,
+    "failed_urls": 0,
+    "excluded_urls": 1,
+    "inventory_urls": 249,
+    "crawled_inventory_urls": 249,
+    "robots_respected": true,
+    "javascript_rendering": false,
+    "sitemap_entries": 0,
+    "sitemap": {
+      "robots_url": "https://www.techmagnate.com/robots.txt",
+      "robots_status": null,
+      "declared_sitemaps": [],
+      "sitemap_files": [],
+      "sitemap_urls": 0,
+      "robots_ai_rules": {},
+      "document": "",
+      "errors": [
+        "sitemap discovery: ReadTimeout: The read operation timed out"
+      ]
+    }
+  },
+  "robots": {
+    "url": "https://www.techmagnate.com/robots.txt",
+    "status": null,
+    "ai_rules": {},
+    "document_excerpt": ""
+  },
+  "counts": {
+    "status_codes": {
+      "200": 219,
+      "404": 30
+    },
+    "page_types": {
+      "unknown": 187,
+      "article": 55,
+      "homepage": 1,
+      "careers": 1,
+      "service": 1,
+      "category": 3,
+      "faq": 1
+    },
+    "indexable": 216,
+    "non_indexable": 33,
+    "redirects": 4,
+    "schema_pages": 0,
+    "average_content_score": 82.8
+  },
+  "source_registry": [
+    {
+      "source": "robots.txt",
+      "type": "public_document",
+      "confidence": "verified",
+      "used_for": [
+        "crawler permissions",
+        "AI agent policy",
+        "sitemap discovery"
+      ]
+    },
+    {
+      "source": "sitemap files",
+      "type": "public_document",
+      "confidence": "verified",
+      "used_for": [
+        "URL universe",
+        "orphan reconciliation"
+      ]
+    },
+    {
+      "source": "crawl observations",
+      "type": "observed_http",
+      "confidence": "verified",
+      "used_for": [
+        "status",
+        "headers",
+        "on-page HTML",
+        "timing"
+      ]
+    },
+    {
+      "source": "rule engine",
+      "type": "derived",
+      "confidence": "explained",
+      "used_for": [
+        "issues",
+        "priority",
+        "roadmap"
+      ]
+    },
+    {
+      "source": "Search Console / GA4",
+      "type": "not_supplied",
+      "confidence": "none",
+      "used_for": [
+        "not used; no private data claimed"
+      ]
+    }
+  ],
+  "missing_data": [
+    "No Search Console queries, impressions, clicks or average positions were supplied.",
+    "No GA4 sessions, conversions or revenue were supplied.",
+    "No keyword volume, difficulty or rank tracking provider was connected.",
+    "No JavaScript-rendered DOM was captured; client-only content may be missing.",
+    "No authenticated, staging or private pages were crawled.",
+    "AI answer visibility is not sampled; only manually observed evidence can be reported."
+  ],
+  "deliverables": [
+    "Site audit JSON/CSV/XLSX/PDF",
+    "Editable PPT board deck",
+    "Six-month roadmap with owners and success checks",
+    "Raw crawl observation export",
+    "Source registry and missing-data statement"
+  ],
+  "findings": [
+    {
+      "id": "http_errors",
+      "title": "HTTP error responses observed",
+      "severity": "High",
+      "category": "status",
+      "affected_count": 30,
+      "observation": "30 fetched URLs returned 4xx/5xx. Observed distribution: 404: 30",
+      "recommended_action": "Triage server errors first, then restore or deliberately retire 4xx URLs; map replacements from observed similar pages.",
+      "evidence": {
+        "status_codes": {
+          "200": 219,
+          "404": 30
+        }
+      },
+      "source": [
+        "crawl_observations",
+        "url_records"
+      ],
+      "confidence": "verified_from_public_evidence",
+      "limitation": ""
+    },
+    {
+      "id": "missing_title",
+      "title": "Missing title tags",
+      "severity": "High",
+      "category": "content",
+      "affected_count": 30,
+      "observation": "Crawled pages with no <title> element.",
+      "recommended_action": "Add unique, descriptive titles reflecting the page topic and brand.",
+      "evidence": {},
+      "source": [
+        "crawl_observations",
+        "technical issue rules"
+      ],
+      "confidence": "derived_from_observations",
+      "limitation": ""
+    },
+    {
+      "id": "canonical_signals",
+      "title": "Canonical signals require review",
+      "severity": "High",
+      "category": "indexability",
+      "affected_count": 2,
+      "observation": "Canonical URL differs from the fetched URL on the observed pages.",
+      "recommended_action": "Confirm intended canonical, then align canonical tags, sitemap entries and internal links.",
+      "evidence": {
+        "sample_urls": [
+          "https://www.techmagnate.com/blog/category/ai-llm-seo/",
+          "https://www.techmagnate.com/blog/how-to-use-seo-to-build-brand-awareness/"
+        ]
+      },
+      "source": [
+        "crawl_observations",
+        "technical issue rules"
+      ],
+      "confidence": "verified_from_public_evidence",
+      "limitation": ""
+    },
+    {
+      "id": "aeo_readiness",
+      "title": "Answer-engine readiness gaps",
+      "severity": "Medium",
+      "category": "aeo",
+      "affected_count": 749,
+      "observation": "Rule-based gaps across question coverage, answer extraction, entity clarity, structured data, provenance and internal context. Most common: structured_data=249, author_organisation_info=249, question_coverage=191, answer_extraction=30",
+      "recommended_action": "Prioritise question headings, concise answer blocks, visible organisation details and valid structured data on commercially important pages.",
+      "evidence": {
+        "by_dimension": {
+          "question_coverage": 191,
+          "structured_data": 249,
+          "author_organisation_info": 249,
+          "answer_extraction": 30,
+          "entity_clarity": 30
+        }
+      },
+      "source": [
+        "crawl_observations",
+        "AEO readiness rules"
+      ],
+      "confidence": "derived_from_observations",
+      "limitation": "Readiness is not the same as observed visibility in ChatGPT, Claude, Perplexity or Google AI Overviews."
+    },
+    {
+      "id": "slow_response",
+      "title": "Slow server responses",
+      "severity": "Medium",
+      "category": "performance",
+      "affected_count": 246,
+      "observation": "Fetched URLs exceeded the 2,500 ms rule threshold.",
+      "recommended_action": "Investigate server time, caching and heavy templates; re-crawl after fixes.",
+      "evidence": {},
+      "source": [
+        "crawl_observations",
+        "technical issue rules"
+      ],
+      "confidence": "derived_from_observations",
+      "limitation": ""
+    },
+    {
+      "id": "duplicate_title",
+      "title": "Duplicate title tags",
+      "severity": "Medium",
+      "category": "content",
+      "affected_count": 35,
+      "observation": "Identical titles were observed on more than one URL.",
+      "recommended_action": "Differentiate titles by topic, intent and location.",
+      "evidence": {},
+      "source": [
+        "crawl_observations",
+        "technical issue rules"
+      ],
+      "confidence": "derived_from_observations",
+      "limitation": ""
+    },
+    {
+      "id": "missing_h1",
+      "title": "Missing H1 headings",
+      "severity": "Medium",
+      "category": "content",
+      "affected_count": 30,
+      "observation": "Crawled pages with no H1 element.",
+      "recommended_action": "Add one clear H1 that matches the page's primary topic.",
+      "evidence": {},
+      "source": [
+        "crawl_observations",
+        "technical issue rules"
+      ],
+      "confidence": "derived_from_observations",
+      "limitation": ""
+    },
+    {
+      "id": "redirects",
+      "title": "Redirect chains or loops detected",
+      "severity": "Medium",
+      "category": "indexability",
+      "affected_count": 4,
+      "observation": "One or more fetched URLs required multiple redirect hops.",
+      "recommended_action": "Point internal links and sitemap entries directly at the final URL; remove cyclical rules.",
+      "evidence": {
+        "sample_urls": [
+          "https://www.techmagnate.com/blog/category/ai-llm-seo/",
+          "https://www.techmagnate.com/prism",
+          "https://www.techmagnate.com/blog/how-to-use-seo-to-build-brand-awareness/",
+          "https://www.techmagnate.com/blog/what-are-internal-links/"
+        ]
+      },
+      "source": [
+        "crawl_observations",
+        "technical issue rules"
+      ],
+      "confidence": "verified_from_public_evidence",
+      "limitation": ""
+    },
+    {
+      "id": "missing_description",
+      "title": "Missing meta descriptions",
+      "severity": "Low",
+      "category": "content",
+      "affected_count": 63,
+      "observation": "Crawled pages with no meta description.",
+      "recommended_action": "Write concise descriptions that differentiate each page; Google may still rewrite them.",
+      "evidence": {},
+      "source": [
+        "crawl_observations",
+        "technical issue rules"
+      ],
+      "confidence": "derived_from_observations",
+      "limitation": ""
+    },
+    {
+      "id": "missing_schema",
+      "title": "Structured data missing on commercial pages",
+      "severity": "Low",
+      "category": "structured-data",
+      "affected_count": 56,
+      "observation": "Service/product/article pages without detected JSON-LD structured data.",
+      "recommended_action": "Add valid Organization, Service/Product, BreadcrumbList and FAQ markup where genuinely applicable.",
+      "evidence": {},
+      "source": [
+        "crawl_observations",
+        "structured-data rules"
+      ],
+      "confidence": "derived_from_observations",
+      "limitation": ""
+    },
+    {
+      "id": "crawl_scope",
+      "title": "Public crawl scope and limits",
+      "severity": "Info",
+      "category": "method",
+      "affected_count": 219,
+      "observation": "Fetched 219 URLs from 497 discovered URLs with robots respect enabled; 0 fetch failures recorded.",
+      "recommended_action": "Treat this as a representative public sample, then widen depth/limits with authorisation for a full-site audit.",
+      "evidence": {
+        "discovered_urls": 497,
+        "fetched_urls": 219,
+        "failed_urls": 0,
+        "excluded_urls": 1,
+        "inventory_urls": 249,
+        "crawled_inventory_urls": 249,
+        "robots_respected": true,
+        "javascript_rendering": false,
+        "sitemap_entries": 0,
+        "sitemap": {
+          "robots_url": "https://www.techmagnate.com/robots.txt",
+          "robots_status": null,
+          "declared_sitemaps": [],
+          "sitemap_files": [],
+          "sitemap_urls": 0,
+          "robots_ai_rules": {},
+          "document": "",
+          "errors": [
+            "sitemap discovery: ReadTimeout: The read operation timed out"
+          ]
+        }
+      },
+      "source": [
+        "crawl run summary",
+        "raw crawl observations"
+      ],
+      "confidence": "verified_from_public_evidence",
+      "limitation": "No JavaScript rendering, authenticated pages, private analytics or vendor APIs are included."
+    },
+    {
+      "id": "sitemap_evidence",
+      "title": "Sitemap evidence captured",
+      "severity": "Positive",
+      "category": "sitemap",
+      "affected_count": 0,
+      "observation": "Discovered 0 sitemap URL entries from 0 sitemap document(s).",
+      "recommended_action": "Reconcile sitemap URLs with indexable, canonical final URLs and remove obsolete entries.",
+      "evidence": {
+        "files": [],
+        "declared": []
+      },
+      "source": [
+        "robots.txt",
+        "sitemap.xml",
+        "sitemap index files"
+      ],
+      "confidence": "verified_from_public_evidence",
+      "limitation": "Sitemap inclusion does not guarantee indexing."
+    }
+  ],
+  "roadmap": [
+    {
+      "month": 1,
+      "theme": "Baseline, evidence and governance",
+      "objective": "Lock a reproducible public-data baseline before changing anything.",
+      "actions": [
+        "Re-run the robots-aware crawl and archive raw observations (219 URLs in this run).",
+        "Reconcile 0 sitemap entries with fetched canonical URLs.",
+        "Assign owners for technical, content and measurement workstreams.",
+        "Agree which pages are commercially important using business input; do not infer value from crawl alone."
+      ],
+      "deliverables": [
+        "Raw crawl observation export",
+        "Source-tracked URL inventory",
+        "Issue register",
+        "Signed-off priority page list"
+      ],
+      "owner": "SEO lead + engineering owner",
+      "success_checks": [
+        "Crawl can be reproduced",
+        "Every issue has a source and owner",
+        "No private data is required to start"
+      ],
+      "without_access": "Fully usable now from crawl, robots.txt, sitemap and public HTML.",
+      "with_access": "Add GSC/GA4 exports later to weight pages by actual queries, clicks and conversions."
+    },
+    {
+      "month": 2,
+      "theme": "Technical stabilisation",
+      "objective": "Remove confirmed blockers that waste crawl budget or create ambiguous index signals.",
+      "actions": [
+        "Triage 30 observed 4xx/5xx URLs; fix server errors first, then restore or retire error URLs.",
+        "Resolve 2 canonical conflicts and 4 redirect chains/loops.",
+        "Align final URL, canonical tag, sitemap entry and internal links for priority templates.",
+        "Add regression checks so fixed templates do not reintroduce the same issue."
+      ],
+      "deliverables": [
+        "Fix log with before/after evidence",
+        "Updated canonical/redirect rules",
+        "Recrawl comparison"
+      ],
+      "owner": "Technical SEO + engineering",
+      "success_checks": [
+        "Error and canonical issue counts fall on recrawl",
+        "No blanket redirects to the homepage",
+        "Changes are reviewable"
+      ],
+      "without_access": "Prioritisation uses observed status, canonical and redirect evidence.",
+      "with_access": "Use GSC coverage and GA4 landing-page data to confirm which fixed URLs matter commercially."
+    },
+    {
+      "month": 3,
+      "theme": "Architecture and internal link equity",
+      "objective": "Make important pages discoverable and reduce reliance on the sitemap alone.",
+      "actions": [
+        "Review 0 confirmed/sitemap-only orphan URLs and remove obsolete ones from the sitemap.",
+        "Apply the highest-relevance 0 link suggestions from hub and topic pages.",
+        "Flatten excessive depth for priority service and commercial pages.",
+        "Set a rule that every new indexable page ships with at least two contextual internal links."
+      ],
+      "deliverables": [
+        "Internal-link implementation sheet",
+        "Updated navigation/hub pages",
+        "Orphan reconciliation report"
+      ],
+      "owner": "SEO lead + content/design",
+      "success_checks": [
+        "Orphan count decreases after recrawl",
+        "Priority pages gain relevant inlinks",
+        "Anchors describe the target topic"
+      ],
+      "without_access": "Graph evidence comes from observed links, not third-party link databases.",
+      "with_access": "Overlay top organic landing pages to prioritise links that protect existing demand."
+    },
+    {
+      "month": 4,
+      "theme": "Content and intent alignment",
+      "objective": "Improve clarity and uniqueness using observed on-page evidence.",
+      "actions": [
+        "Rewrite 30 missing titles, 63 missing descriptions and 30 missing H1s.",
+        "Differentiate 35 duplicate titles and expand/consolidate 0 thin pages.",
+        "Build page briefs from the observed topic and page type; approve each brief before publication.",
+        "Define a review cadence for high-value pages based on business priority supplied by the team."
+      ],
+      "deliverables": [
+        "On-page fix backlog",
+        "Approved content briefs",
+        "Before/after metadata register"
+      ],
+      "owner": "Content lead + SEO reviewer",
+      "success_checks": [
+        "Metadata uniqueness improves",
+        "Briefs include an explicit source and approval state",
+        "No copied competitor text"
+      ],
+      "without_access": "On-page gaps are detected without keyword volume or rank data.",
+      "with_access": "Import GSC queries/landing pages to choose which real search intent each page should serve."
+    },
+    {
+      "month": 5,
+      "theme": "AEO, GEO and machine-readability",
+      "objective": "Improve extractability for answer engines while clearly separating readiness from observed visibility.",
+      "actions": [
+        "Close the highest-volume 749 readiness gaps on priority pages.",
+        "Add question headings with concise, self-contained answers directly beneath them.",
+        "Add valid Organization, Service/Product, BreadcrumbList and FAQ structured data where applicable.",
+        "Document and periodically review the robots.txt AI-crawler policy; manually record any AI answer observation."
+      ],
+      "deliverables": [
+        "AEO readiness tracker",
+        "Structured-data validation results",
+        "Manual AI visibility observation log"
+      ],
+      "owner": "SEO lead + content + engineering",
+      "success_checks": [
+        "Readiness gaps decrease",
+        "Structured data validates",
+        "Visibility claims only come from recorded observations"
+      ],
+      "without_access": "Readiness rules run from public crawl evidence; no answer-engine API is claimed.",
+      "with_access": "Add manual or licensed AI visibility observations with source and timestamp, never inferred rankings."
+    },
+    {
+      "month": 6,
+      "theme": "Measurement, reporting and scale",
+      "objective": "Turn the work into a repeatable management pack with honest data gaps.",
+      "actions": [
+        "Re-run the same audit and compare source-tracked counts month over month.",
+        "Export the site audit, issue register and PPT deck for stakeholders.",
+        "Decide whether to add GSC/GA4 CSV imports; if access is refused, keep public-evidence KPIs and label the gap.",
+        "Schedule recurring crawls and assign a reviewer for every proposed change."
+      ],
+      "deliverables": [
+        "Six-month comparison report",
+        "PPT board deck",
+        "CSV/XLSX/JSON evidence pack",
+        "Next-quarter backlog"
+      ],
+      "owner": "SEO lead + stakeholders",
+      "success_checks": [
+        "Deck opens and every number has a source",
+        "Missing data is listed explicitly",
+        "Next actions have owners"
+      ],
+      "without_access": "The entire pack is already deliverable from public evidence alone.",
+      "with_access": "Vendor data upgrades weighting and outcome measurement; it is not required for the audit to exist."
+    }
+  ],
+  "sections": [
+    {
+      "heading": "1. Executive summary",
+      "lines": [
+        "Public-evidence audit of https://www.techmagnate.com/ generated 2026-11-23T17:07:58.146572+00:00.",
+        "The crawler fetched 219 URLs from 497 discovered URLs; 0 fetches failed and 0 sitemap entries were stored.",
+        "12 source-tracked finding groups were produced without Search Console or Analytics access.",
+        "Every figure below comes from robots.txt, sitemap files, observed HTTP responses or explained rules."
+      ]
+    },
+    {
+      "heading": "2. Evidence and coverage",
+      "lines": [
+        "Inventory URLs: 249; crawled URLs: 249.",
+        "Robots respected: True; JavaScript rendering: False.",
+        "Status distribution: {'200': 219, '404': 30}.",
+        "Page types observed: {'unknown': 187, 'article': 55, 'homepage': 1, 'careers': 1, 'service': 1, 'category': 3, 'faq': 1}."
+      ]
+    },
+    {
+      "heading": "3. Priority findings",
+      "lines": [
+        "[High] HTTP error responses observed: 30 — 30 fetched URLs returned 4xx/5xx. Observed distribution: 404: 30 Action: Triage server errors first, then restore or deliberately retire 4xx URLs; map replacements from observed similar pages.",
+        "[High] Missing title tags: 30 — Crawled pages with no <title> element. Action: Add unique, descriptive titles reflecting the page topic and brand.",
+        "[High] Canonical signals require review: 2 — Canonical URL differs from the fetched URL on the observed pages. Action: Confirm intended canonical, then align canonical tags, sitemap entries and internal links.",
+        "[Medium] Answer-engine readiness gaps: 749 — Rule-based gaps across question coverage, answer extraction, entity clarity, structured data, provenance and internal context. Most common: structured_data=249, author_organisation_info=249, question_coverage=191, answer_extraction=30 Action: Prioritise question headings, concise answer blocks, visible organisation details and valid structured data on commercially important pages.",
+        "[Medium] Slow server responses: 246 — Fetched URLs exceeded the 2,500 ms rule threshold. Action: Investigate server time, caching and heavy templates; re-crawl after fixes.",
+        "[Medium] Duplicate title tags: 35 — Identical titles were observed on more than one URL. Action: Differentiate titles by topic, intent and location.",
+        "[Medium] Missing H1 headings: 30 — Crawled pages with no H1 element. Action: Add one clear H1 that matches the page's primary topic.",
+        "[Medium] Redirect chains or loops detected: 4 — One or more fetched URLs required multiple redirect hops. Action: Point internal links and sitemap entries directly at the final URL; remove cyclical rules."
+      ]
+    },
+    {
+      "heading": "4. Six-month roadmap",
+      "lines": [
+        "Month 1 — Baseline, evidence and governance: Lock a reproducible public-data baseline before changing anything. Deliverables: Raw crawl observation export, Source-tracked URL inventory, Issue register, Signed-off priority page list.",
+        "Month 2 — Technical stabilisation: Remove confirmed blockers that waste crawl budget or create ambiguous index signals. Deliverables: Fix log with before/after evidence, Updated canonical/redirect rules, Recrawl comparison.",
+        "Month 3 — Architecture and internal link equity: Make important pages discoverable and reduce reliance on the sitemap alone. Deliverables: Internal-link implementation sheet, Updated navigation/hub pages, Orphan reconciliation report.",
+        "Month 4 — Content and intent alignment: Improve clarity and uniqueness using observed on-page evidence. Deliverables: On-page fix backlog, Approved content briefs, Before/after metadata register.",
+        "Month 5 — AEO, GEO and machine-readability: Improve extractability for answer engines while clearly separating readiness from observed visibility. Deliverables: AEO readiness tracker, Structured-data validation results, Manual AI visibility observation log.",
+        "Month 6 — Measurement, reporting and scale: Turn the work into a repeatable management pack with honest data gaps. Deliverables: Six-month comparison report, PPT board deck, CSV/XLSX/JSON evidence pack, Next-quarter backlog."
+      ]
+    },
+    {
+      "heading": "5. With and without vendor access",
+      "lines": [
+        "Without access: the full audit, PPT and roadmap are produced from public evidence alone.",
+        "With access later: import GSC/GA4 exports to weight real queries, clicks, sessions and conversions.",
+        "Vendor access upgrades prioritisation; it is never required for the audit to exist."
+      ]
+    },
+    {
+      "heading": "6. What this audit does not claim",
+      "lines": [
+        "No Search Console queries, impressions, clicks or average positions were supplied.",
+        "No GA4 sessions, conversions or revenue were supplied.",
+        "No keyword volume, difficulty or rank tracking provider was connected.",
+        "No JavaScript-rendered DOM was captured; client-only content may be missing.",
+        "No authenticated, staging or private pages were crawled.",
+        "AI answer visibility is not sampled; only manually observed evidence can be reported."
+      ]
+    }
+  ]
+}
+
+
+## 14. Download errors
+
+[]

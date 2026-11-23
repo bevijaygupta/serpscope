@@ -1,0 +1,401 @@
+{
+  "generated_at": "2026-11-23T17:40:14.118572+00:00",
+  "api": "https://serpscope-api.onrender.com",
+  "project_id": 2,
+  "job_id": 17,
+  "files": [
+    {
+      "file": "job.json",
+      "endpoint": "/api/v1/jobs/17",
+      "bytes": 633,
+      "sha256": "477cf2645c042dfca07c7335df2f164705b709d7a39afcdd54d26351a2e55a0a",
+      "expect": 200
+    },
+    {
+      "file": "01_complete_audit.json",
+      "endpoint": "/api/v1/audits/projects/2/public-audit",
+      "bytes": 25086,
+      "sha256": "bd9eb36da9d57c449949e02f3608302aadfc6620cd3c8a25176a3ff7d344d7aa",
+      "expect": 200
+    },
+    {
+      "file": "02_public_case_study.json",
+      "endpoint": "/api/v1/public/case-studies/2",
+      "bytes": 25086,
+      "sha256": "bd9eb36da9d57c449949e02f3608302aadfc6620cd3c8a25176a3ff7d344d7aa",
+      "expect": 200
+    },
+    {
+      "file": "03_crawl_run.json",
+      "endpoint": "/api/v1/crawler/runs/1?project_id=2",
+      "bytes": 1900,
+      "sha256": "e9a3458343f0233a20e9a0ea102915d2c67965682a16da755cd5f4f10eeaf80f",
+      "expect": 200
+    },
+    {
+      "file": "04_job_list.json",
+      "endpoint": "/api/v1/jobs?limit=50",
+      "bytes": 118779,
+      "sha256": "bf9d7be61f9d22f45e70a2609b515fb25c2b4e44248793815b0f0bc9e93dec01",
+      "expect": 200
+    },
+    {
+      "file": "05_public_audit_reports.json",
+      "endpoint": "/api/v1/audits/projects/2/public-audit/reports",
+      "bytes": 738,
+      "sha256": "e8d064cd0a42efefc4ba24f140e01d3a66daacba0b5dfcd477049108fe08dcaa",
+      "expect": 200
+    },
+    {
+      "file": "06_analytics_reports.json",
+      "endpoint": "/api/v1/analytics/reports?project_id=2&limit=100",
+      "bytes": 913,
+      "sha256": "c469cbfd5fe983676994106ca0d57f92670350933b8d604b311732b65acab426",
+      "expect": 200
+    },
+    {
+      "file": "07_inventory_summary.json",
+      "endpoint": "/api/v1/inventory/summary?project_id=2",
+      "bytes": 325,
+      "sha256": "feb0934969be40d7d9dc8f6ecd2e455f06f34fc1f1111f4980a90412ffb81fdb",
+      "expect": 200
+    },
+    {
+      "file": "08_meta_export_columns.json",
+      "endpoint": "/api/v1/meta/export-columns",
+      "bytes": 1808,
+      "sha256": "3cbe634afaec3a8924593e3915a6bbc0c4a55daa497953334aa0e9cd3577a97e",
+      "expect": 200
+    },
+    {
+      "file": "09_crawl_observations_page.json",
+      "endpoint": "/api/v1/crawler/runs/1/observations?project_id=2&offset=0&limit=1000",
+      "bytes": 639302,
+      "sha256": "b174d9320a295a9263b7958f3ec62a96e13c89b71aeba6de6c735ad669ca519e",
+      "expect": 200
+    },
+    {
+      "file": "10_url_inventory.json",
+      "endpoint": "/api/v1/inventory/urls?project_id=2",
+      "bytes": 497602,
+      "sha256": "40a4d1c8d451aee5c910babb06f88da49a2df3690a3946fa01184380e39038e2",
+      "expect": 200
+    },
+    {
+      "file": "11_technical_issues.json",
+      "endpoint": "/api/v1/technical/issues?project_id=2",
+      "bytes": 34788,
+      "sha256": "11a13ade75a1b41c3a4c8209258fc9adbe13f8e836d9d869206d5211898506cb",
+      "expect": 200
+    },
+    {
+      "file": "12_orphan_records.json",
+      "endpoint": "/api/v1/orphans?project_id=2",
+      "bytes": 103,
+      "sha256": "ced06919b3e918c30cfe6159a88ec7d4bd52ac5fc451d0e6d604e49cb3b1fd58",
+      "expect": 200
+    },
+    {
+      "file": "13_content_analyses.json",
+      "endpoint": "/api/v1/content/analyses?project_id=2",
+      "bytes": 150747,
+      "sha256": "58efac6d035adee2c723545747425a82aad5a16b1e2cc01b1c4274d2e7d9841e",
+      "expect": 200
+    },
+    {
+      "file": "14_link_suggestions.json",
+      "endpoint": "/api/v1/internal-links/suggestions?project_id=2",
+      "bytes": 244211,
+      "sha256": "599fd676dad8962940015bd0288c7b6aaa618e47f24ce56cf71bd459a9d88884",
+      "expect": 200
+    },
+    {
+      "file": "15_ai_readiness.json",
+      "endpoint": "/api/v1/ai-search/readiness?project_id=2",
+      "bytes": 904910,
+      "sha256": "e0f8436d73608881bd7d551f11a2c750f32e47614ec9fc054c75c4bbe1c22d03",
+      "expect": 200
+    },
+    {
+      "file": "16_ai_visibility_observations.json",
+      "endpoint": "/api/v1/ai-search/observations?project_id=2",
+      "bytes": 118,
+      "sha256": "65c121c84ab661390afd5a8258333ceb13653a701c564d495f9677ec74e8c9e4",
+      "expect": 200
+    },
+    {
+      "file": "exports/public_audit_all_csv.csv",
+      "endpoint": "/api/v1/audits/projects/2/public-audit/export?section=all&format=csv",
+      "bytes": 630,
+      "sha256": "8eb92abdb89fdcbe99ba5e739af98fdb32c888e1aab1392efb8f146852112d02",
+      "expect": 200
+    },
+    {
+      "file": "exports/public_audit_all_json.json",
+      "endpoint": "/api/v1/audits/projects/2/public-audit/export?section=all&format=json",
+      "bytes": 25086,
+      "sha256": "bd9eb36da9d57c449949e02f3608302aadfc6620cd3c8a25176a3ff7d344d7aa",
+      "expect": 200
+    },
+    {
+      "file": "exports/public_audit_all_xlsx.xlsx",
+      "endpoint": "/api/v1/audits/projects/2/public-audit/export?section=all&format=xlsx",
+      "bytes": 5323,
+      "sha256": "bceee5c202ba47328165de3db6e1c4d4ffa9481de64434b76872eb4680f1cbb6",
+      "expect": 200
+    },
+    {
+      "file": "exports/public_audit_findings_csv.csv",
+      "endpoint": "/api/v1/audits/projects/2/public-audit/export?section=findings&format=csv",
+      "bytes": 3566,
+      "sha256": "9850033a8e301da0a0d4de71dbf82f909e4d642bd98c0d99a764d9f05eaa77ae",
+      "expect": 200
+    },
+    {
+      "file": "exports/public_audit_findings_json.json",
+      "endpoint": "/api/v1/audits/projects/2/public-audit/export?section=findings&format=json",
+      "bytes": 5734,
+      "sha256": "7cfae5ab72210444ba31fce7e4d40f8e45a79915a8b86b4720c2cfd556ae6ee8",
+      "expect": 200
+    },
+    {
+      "file": "exports/public_audit_findings_xlsx.xlsx",
+      "endpoint": "/api/v1/audits/projects/2/public-audit/export?section=findings&format=xlsx",
+      "bytes": 6852,
+      "sha256": "9e2f8363433169636eb685e0b5c984da75aac3005f1a854af9ef49df2c0ec6b5",
+      "expect": 200
+    },
+    {
+      "file": "exports/public_audit_roadmap_csv.csv",
+      "endpoint": "/api/v1/audits/projects/2/public-audit/export?section=roadmap&format=csv",
+      "bytes": 5112,
+      "sha256": "0c1e8b2163858cde8a6db02d28e0ef3125c36e2df39376292095bf178a357d42",
+      "expect": 200
+    },
+    {
+      "file": "exports/public_audit_roadmap_json.json",
+      "endpoint": "/api/v1/audits/projects/2/public-audit/export?section=roadmap&format=json",
+      "bytes": 6109,
+      "sha256": "f183b29572d9eebacf3e09814addf4e4221e1fd5b8e61f4b362e374781bdb94e",
+      "expect": 200
+    },
+    {
+      "file": "exports/public_audit_roadmap_xlsx.xlsx",
+      "endpoint": "/api/v1/audits/projects/2/public-audit/export?section=roadmap&format=xlsx",
+      "bytes": 7537,
+      "sha256": "8ed68eb10653db0ea0a0441d68e6d340d6929db460d425431645c881d97ed9e6",
+      "expect": 200
+    },
+    {
+      "file": "exports/public_audit_all_pdf.pdf",
+      "endpoint": "/api/v1/audits/projects/2/public-audit/export?section=all&format=pdf",
+      "bytes": 5575,
+      "sha256": "91c2054ea4d944939a17143c9ff8ae853477a674d717576c4dc0f3ffea3d7652",
+      "expect": 200
+    },
+    {
+      "file": "exports/public_audit_all_pptx.pptx",
+      "endpoint": "/api/v1/audits/projects/2/public-audit/export?section=all&format=pptx",
+      "bytes": 54396,
+      "sha256": "bcab35411b6a30020e4e7b83043eb8e981410507d2e600965469b71fe57c1535",
+      "expect": 200
+    },
+    {
+      "file": "exports/crawl_observations_csv.csv",
+      "endpoint": "/api/v1/crawler/runs/1/export?project_id=2&format=csv",
+      "bytes": 46621,
+      "sha256": "2dbce6abc30274395982d83bcc3b52cef5a0486ab8aa1b53e5556e5433c343d4",
+      "expect": 200
+    },
+    {
+      "file": "exports/crawl_observations_json.json",
+      "endpoint": "/api/v1/crawler/runs/1/export?project_id=2&format=json",
+      "bytes": 90890,
+      "sha256": "a51e31451a9fb1ab2b135c17d09f88359d0bd136c229fd94b57315d48da01ddd",
+      "expect": 200
+    },
+    {
+      "file": "exports/crawl_observations_xlsx.xlsx",
+      "endpoint": "/api/v1/crawler/runs/1/export?project_id=2&format=xlsx",
+      "bytes": 20245,
+      "sha256": "ba865f6f0af219b654f8bbc57ec4b2a62474387bf242d8e9fde0f206b91363cd",
+      "expect": 200
+    },
+    {
+      "file": "exports/url_inventory_csv.csv",
+      "endpoint": "/api/v1/inventory/export?project_id=2&format=csv",
+      "bytes": 201330,
+      "sha256": "5f8320477af5f9e58ea69f9d305b006e6a9461e7338f5c40767bc4a1a0bc14f2",
+      "expect": 200
+    },
+    {
+      "file": "exports/url_inventory_json.json",
+      "endpoint": "/api/v1/inventory/export?project_id=2&format=json",
+      "bytes": 467746,
+      "sha256": "9712fd5b18492125595a30bb2f721a2801c9d3a07397838e3e034fd64f1e88af",
+      "expect": 200
+    },
+    {
+      "file": "exports/url_inventory_xlsx.xlsx",
+      "endpoint": "/api/v1/inventory/export?project_id=2&format=xlsx",
+      "bytes": 89731,
+      "sha256": "144ea3629a81fe7ee1a13745e97bba72ee2fdbb0e4816a9aeae131f748e810ec",
+      "expect": 200
+    },
+    {
+      "file": "exports/technical_issues_csv.csv",
+      "endpoint": "/api/v1/technical/export?project_id=2&format=csv",
+      "bytes": 25627,
+      "sha256": "4452704415c6a44dfe16ddc50d6cbc7f3c31644606ab0d646066d7d74ecded38",
+      "expect": 200
+    },
+    {
+      "file": "exports/technical_issues_json.json",
+      "endpoint": "/api/v1/technical/export?project_id=2&format=json",
+      "bytes": 33407,
+      "sha256": "693999093a5f7a3ab371a91f32179c4cb082ba42477e10c15786968b859e56a0",
+      "expect": 200
+    },
+    {
+      "file": "exports/technical_issues_xlsx.xlsx",
+      "endpoint": "/api/v1/technical/export?project_id=2&format=xlsx",
+      "bytes": 10051,
+      "sha256": "23900437f15cfa6485c75b526713cd551470f3ab062f892831153b41501269b7",
+      "expect": 200
+    },
+    {
+      "file": "exports/orphan_records_csv.csv",
+      "endpoint": "/api/v1/orphans/export?project_id=2&format=csv",
+      "bytes": 229,
+      "sha256": "01075e7977d9ac57ff464b206b16820008d67d0f635ddc1e80a93b7b88010265",
+      "expect": 200
+    },
+    {
+      "file": "exports/orphan_records_json.json",
+      "endpoint": "/api/v1/orphans/export?project_id=2&format=json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "expect": 200
+    },
+    {
+      "file": "exports/orphan_records_xlsx.xlsx",
+      "endpoint": "/api/v1/orphans/export?project_id=2&format=xlsx",
+      "bytes": 5071,
+      "sha256": "241f27e92b2bd58f47f50dd91aff76f61cdc94ff4fb296988d4da5ae600a59cd",
+      "expect": 200
+    },
+    {
+      "file": "exports/internal_link_suggestions_csv.csv",
+      "endpoint": "/api/v1/internal-links/export?project_id=2&format=csv",
+      "bytes": 120116,
+      "sha256": "c46287f698a343084c63ff3b94aa24f662f65b695f8756cd7f6cf28b529009a5",
+      "expect": 200
+    },
+    {
+      "file": "exports/internal_link_suggestions_json.json",
+      "endpoint": "/api/v1/internal-links/export?project_id=2&format=json",
+      "bytes": 230911,
+      "sha256": "b6dd0bf1effd5288d6698f15719f4fa4a97b30b67dd16a56a9d3a5c9894b292a",
+      "expect": 200
+    },
+    {
+      "file": "exports/internal_link_suggestions_xlsx.xlsx",
+      "endpoint": "/api/v1/internal-links/export?project_id=2&format=xlsx",
+      "bytes": 32651,
+      "sha256": "1bea5475fbd460dbe9cb88b227b234d54e95948aa4b7139c6fea71ebea0c6ff2",
+      "expect": 200
+    },
+    {
+      "file": "exports/content_analyses_csv.csv",
+      "endpoint": "/api/v1/content/export?project_id=2&kind=analyses&format=csv",
+      "bytes": 58762,
+      "sha256": "1cb415121f03befdb426f10c988d27c62413b28237649578ca481f8d941b8ca8",
+      "expect": 200
+    },
+    {
+      "file": "exports/content_analyses_json.json",
+      "endpoint": "/api/v1/content/export?project_id=2&kind=analyses&format=json",
+      "bytes": 140091,
+      "sha256": "13c45fcb4335614447d5b09ef4978b3e47a44ad63adf131bbcf32c199785da5c",
+      "expect": 200
+    },
+    {
+      "file": "exports/content_analyses_xlsx.xlsx",
+      "endpoint": "/api/v1/content/export?project_id=2&kind=analyses&format=xlsx",
+      "bytes": 30279,
+      "sha256": "8a18fab32f722864b5be5db1fefba117b8ab34e80ca94fc174dc0ae56f6b94b9",
+      "expect": 200
+    },
+    {
+      "file": "exports/content_briefs_csv.csv",
+      "endpoint": "/api/v1/content/export?project_id=2&kind=briefs&format=csv",
+      "bytes": 199,
+      "sha256": "70e34978ee6f6c4530c26c3fb602906707c655ea69fb3ed3914f1cd2f244ec19",
+      "expect": 200
+    },
+    {
+      "file": "exports/content_briefs_json.json",
+      "endpoint": "/api/v1/content/export?project_id=2&kind=briefs&format=json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "expect": 200
+    },
+    {
+      "file": "exports/content_briefs_xlsx.xlsx",
+      "endpoint": "/api/v1/content/export?project_id=2&kind=briefs&format=xlsx",
+      "bytes": 5035,
+      "sha256": "1d4a1c13e378b65908f68a525f47e0672de3cf3d82654c21433c83933c61b95a",
+      "expect": 200
+    },
+    {
+      "file": "exports/ai_readiness_csv.csv",
+      "endpoint": "/api/v1/ai-search/export?project_id=2&kind=readiness&format=csv",
+      "bytes": 514034,
+      "sha256": "65bca16a2987d73e58f9997cab0e09e9fc59eb429e73cbc73ec47142a41fabd2",
+      "expect": 200
+    },
+    {
+      "file": "exports/ai_readiness_json.json",
+      "endpoint": "/api/v1/ai-search/export?project_id=2&kind=readiness&format=json",
+      "bytes": 858136,
+      "sha256": "082bc0a5788dcb098e1a30e6f4005fae291a644dc772b13d9f4cc1b55824655a",
+      "expect": 200
+    },
+    {
+      "file": "exports/ai_readiness_xlsx.xlsx",
+      "endpoint": "/api/v1/ai-search/export?project_id=2&kind=readiness&format=xlsx",
+      "bytes": 96804,
+      "sha256": "2be1baa7a35a6bc4ed02b9c73d1c2a190a70b90f452454e2d11b02ff368d4fd7",
+      "expect": 200
+    },
+    {
+      "file": "exports/ai_observations_csv.csv",
+      "endpoint": "/api/v1/ai-search/export?project_id=2&kind=observations&format=csv",
+      "bytes": 112,
+      "sha256": "8c0c3f7fd6874885b972d0796c27c684630652e4b0ebdaccf9f909452310ad6c",
+      "expect": 200
+    },
+    {
+      "file": "exports/ai_observations_json.json",
+      "endpoint": "/api/v1/ai-search/export?project_id=2&kind=observations&format=json",
+      "bytes": 2,
+      "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945",
+      "expect": 200
+    },
+    {
+      "file": "exports/ai_observations_xlsx.xlsx",
+      "endpoint": "/api/v1/ai-search/export?project_id=2&kind=observations&format=xlsx",
+      "bytes": 4973,
+      "sha256": "75337d2fba7ddf95e0e449e0932cbaa09da9b36a9c3a68629e077eeb56fe5c0e",
+      "expect": 200
+    },
+    {
+      "file": "17_persisted_report_2.json",
+      "endpoint": "/api/v1/analytics/reports/2?project_id=2",
+      "bytes": 27057,
+      "sha256": "0abe97e1043685d85fa78bd431b4c956e9db844183cc64d0f31d424574c7049a",
+      "expect": 200
+    }
+  ],
+  "errors": []
+}

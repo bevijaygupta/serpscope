@@ -1,0 +1,75 @@
+{
+  "id": 1,
+  "name": "Public audit · https://www.techmagnate.com/",
+  "config": {
+    "start_url": "https://www.techmagnate.com/",
+    "seed_urls": [],
+    "max_urls": 250,
+    "max_depth": 3,
+    "concurrency": 2,
+    "timeout": 12,
+    "retries": 1,
+    "user_agent": "SERPScopeAuditBot/1.0 (+respects robots.txt)",
+    "crawl_delay": 1.0,
+    "javascript_rendering": false,
+    "follow_internal": true,
+    "follow_external": false,
+    "include_patterns": [],
+    "exclude_patterns": [],
+    "query_handling": "strip_tracking",
+    "canonical_handling": "record",
+    "respect_robots": true,
+    "sitemap_discovery": true,
+    "allow_private": false,
+    "schedule": "manual",
+    "mode": "live"
+  },
+  "status": "completed",
+  "discovered": 497,
+  "crawled": 219,
+  "failed": 0,
+  "excluded": 1,
+  "summary": {
+    "discovered": 497,
+    "crawled": 219,
+    "failed": 0,
+    "excluded": 1,
+    "by_status": {
+      "200": 219,
+      "404": 30
+    },
+    "redirects": 4,
+    "indexable": 216,
+    "non_indexable": 33,
+    "slow_pages": 246,
+    "duplicate_titles": 32,
+    "duplicate_descriptions": 3,
+    "depth_distribution": {
+      "0": 1,
+      "1": 93,
+      "2": 155
+    },
+    "errors": [
+      {
+        "url": "http://techmagnate.com/digital-report-card.html",
+        "error": "robots.txt unavailable: RuntimeError: Cannot send a request, as the client has been closed."
+      }
+    ],
+    "robots": {},
+    "sitemap": {
+      "robots_url": "https://www.techmagnate.com/robots.txt",
+      "robots_status": null,
+      "declared_sitemaps": [],
+      "sitemap_files": [],
+      "sitemap_urls": 0,
+      "robots_ai_rules": {},
+      "document": "",
+      "errors": [
+        "sitemap discovery: ReadTimeout: The read operation timed out"
+      ]
+    }
+  },
+  "started_at": "2026-11-23T16:42:57.269952+00:00",
+  "finished_at": "2026-11-23T17:07:04.141976+00:00",
+  "data_kind": "live"
+}

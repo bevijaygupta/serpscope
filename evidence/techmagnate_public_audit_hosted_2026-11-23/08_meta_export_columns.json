@@ -1,0 +1,109 @@
+{
+  "crawl_inventory": [
+    "url",
+    "final_url",
+    "http_status",
+    "title",
+    "meta_description",
+    "canonical",
+    "indexable",
+    "response_time_ms",
+    "crawl_depth",
+    "data_kind",
+    "source",
+    "observed_at"
+  ],
+  "technical_issues": [
+    "code",
+    "name",
+    "priority",
+    "severity",
+    "affected_count",
+    "business_impact",
+    "evidence",
+    "recommended_fix",
+    "owner",
+    "status",
+    "validation_status"
+  ],
+  "orphan_report": [
+    "url",
+    "classification",
+    "sources",
+    "internal_inlinks",
+    "clicks",
+    "impressions",
+    "revenue",
+    "priority",
+    "priority_score",
+    "score_components",
+    "confidence",
+    "recommended_action"
+  ],
+  "keyword_mapping": [
+    "url",
+    "primary_keyword",
+    "secondary_keywords",
+    "intent",
+    "cluster_name",
+    "page_type",
+    "confidence",
+    "cannibalisation_risk",
+    "reasoning",
+    "status"
+  ],
+  "keyword_clusters": [
+    "name",
+    "primary_keyword",
+    "intent",
+    "method",
+    "reasoning",
+    "keywords"
+  ],
+  "internal_link_recommendations": [
+    "source_url",
+    "target_url",
+    "anchor_text",
+    "relevance",
+    "target_importance",
+    "reason",
+    "status"
+  ],
+  "migration_redirect_map": [
+    "old_url",
+    "new_url",
+    "redirect_status",
+    "http_status",
+    "risk",
+    "findings",
+    "recommendation"
+  ],
+  "gbp_location_audit": [
+    "name",
+    "address",
+    "city",
+    "country",
+    "phone",
+    "website",
+    "category",
+    "issues",
+    "duplicate_group",
+    "status"
+  ],
+  "merchant_diagnostics": [
+    "url",
+    "product_id",
+    "title",
+    "availability",
+    "canonical",
+    "schema_types",
+    "diagnostics",
+    "priority"
+  ],
+  "weekly_report": [
+    "section",
+    "lines",
+    "missing_data",
+    "data_kinds"
+  ]
+}

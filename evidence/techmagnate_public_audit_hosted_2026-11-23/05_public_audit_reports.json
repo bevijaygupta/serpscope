@@ -1,0 +1,18 @@
+{
+  "items": [
+    {
+      "id": 2,
+      "title": "Public evidence site audit · https://www.techmagnate.com/",
+      "generated_by": "public-audit",
+      "created_at": "2026-11-23T17:07:58.355287",
+      "missing_data": [
+        "No Search Console queries, impressions, clicks or average positions were supplied.",
+        "No GA4 sessions, conversions or revenue were supplied.",
+        "No keyword volume, difficulty or rank tracking provider was connected.",
+        "No JavaScript-rendered DOM was captured; client-only content may be missing.",
+        "No authenticated, staging or private pages were crawled.",
+        "AI answer visibility is not sampled; only manually observed evidence can be reported."
+      ]
+    }
+  ]
+}

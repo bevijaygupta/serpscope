@@ -1,0 +1,8 @@
+{
+  "endpoint": "/api/v1/ai-search/observations",
+  "params": {
+    "project_id": 2
+  },
+  "total": 0,
+  "items": []
+}

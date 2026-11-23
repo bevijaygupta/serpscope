@@ -1,0 +1,2559 @@
+{
+  "items": [
+    {
+      "id": 23,
+      "project_id": 2,
+      "job_type": "ai_readiness",
+      "name": "AI search readiness audit",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-23T17:02:11.973358",
+      "started_at": "2026-11-23T17:20:32.936243+00:00",
+      "finished_at": "2026-11-23T17:20:35.851054+00:00",
+      "result": {
+        "readiness_items": 2592,
+        "observed_questions": 0,
+        "brand_mentions_observed": 0,
+        "note": "Readiness is derived from crawl evidence. Visibility is only reported from user-supplied or manually verified observations. No guarantee of AI answer inclusion is made."
+      }
+    },
+    {
+      "id": 22,
+      "project_id": 2,
+      "job_type": "competitor_analysis",
+      "name": "Competitor gap analysis",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-23T17:01:48.796755",
+      "started_at": "2026-11-23T17:20:32.728473+00:00",
+      "finished_at": "2026-11-23T17:20:32.922490+00:00",
+      "result": {
+        "competitors": [],
+        "competitor_keywords": 0,
+        "gaps_created": 0,
+        "note": "Analysis uses user-supplied exports only; no private competitor data is implied."
+      }
+    },
+    {
+      "id": 21,
+      "project_id": 2,
+      "job_type": "link_suggestions",
+      "name": "Internal link analysis",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-23T17:01:37.815147",
+      "started_at": "2026-11-23T17:20:12.310346+00:00",
+      "finished_at": "2026-11-23T17:20:32.633213+00:00",
+      "result": {
+        "urls_analysed": 432,
+        "edges_analysed": 67551,
+        "orphans": 183,
+        "important_weak_pages": 1,
+        "excessive_link_pages": 215,
+        "broken_links": 353,
+        "depth_distribution": {
+          "0": 101,
+          "1": 216,
+          "2": 115
+        },
+        "anchor_examples": {
+          "https://www.techmagnate.com/press-releases.html": [
+            [
+              "press releases",
+              937
+            ],
+            [
+              "explore now",
+              268
+            ],
+            [
+              "request a call",
+              2
+            ],
+            [
+              "view all",
+              2
+            ],
+            [
+              "search engine optimization",
+              1
+            ]
+          ],
+          "https://www.techmagnate.com/about-us.html": [
+            [
+              "about us",
+              937
+            ],
+            [
+              "request a call",
+              2
+            ],
+            [
+              "search engine optimization",
+              1
+            ],
+            [
+              "digital marketing",
+              1
+            ],
+            [
+              "app marketing",
+              1
+            ]
+          ],
+          "https://www.techmagnate.com/careers.html": [
+            [
+              "careers",
+              937
+            ],
+            [
+              "request a call",
+              2
+            ],
+            [
+              "search engine optimization",
+              1
+            ],
+            [
+              "digital marketing",
+              1
+            ],
+            [
+              "app marketing",
+              1
+            ]
+          ],
+          "https://www.techmagnate.com/best-place-work-india.html": [
+            [
+              "best place to work",
+              624
+            ],
+            [
+              "best place to work in india",
+              313
+            ],
+            [
+              "request a call",
+              2
+            ],
+            [
+              "search engine optimization",
+              1
+            ],
+            [
+              "digital marketing",
+              1
+            ]
+          ],
+          "https://www.techmagnate.com/awards-recognition.html": [
+            [
+              "awards and recognition",
+              937
+            ],
+            [
+              "view all",
+              83
+            ],
+            [
+              "request a call",
+              2
+            ],
+            [
+              "search engine optimization",
+              1
+            ],
+            [
+              "digital marketing",
+              1
+            ]
+          ],
+          "https://www.techmagnate.com/digital-report-card.html": [
+            [
+              "download report card",
+              2496
+            ],
+            [
+              "digital report card",
+              1022
+            ],
+            [
+              "download report now",
+              272
+            ],
+            [
+              "explore more",
+              32
+            ],
+            [
+              "techmagnate digital report card, fy 2025-26",
+              27
+            ]
+          ],
+          "https://www.techmagnate.com/seo-services.html": [
+            [
+              "seo services",
+              711
+            ],
+            [
+              "search engine optimization",
+              627
+            ],
+            [
+              "seo agency",
+              5
+            ],
+            [
+              "seo service",
+              3
+            ],
+            [
+              "discover seo services",
+              2
+            ]
+          ],
+          "https://www.techmagnate.com/ai-seo-services/": [
+            [
+              "ai seo",
+              658
+            ],
+            [
+              "ai seo services",
+              14
+            ],
+            [
+              "request a call",
+              2
+            ],
+            [
+              "ai seo service",
+              2
+            ],
+            [
+              "search engine optimization",
+              1
+            ]
+          ],
+          "https://www.techmagnate.com/llm-seo-services.html": [
+            [
+              "llm optimization",
+              1039
+            ],
+            [
+              "llm seo",
+              6
+            ],
+            [
+              "llm seo services",
+              4
+            ],
+            [
+              "request a call",
+              2
+            ],
+            [
+              "book your consultation",
+              2
+            ]
+          ],
+          "https://www.techmagnate.com/agentic-ai-seo-services.html": [
+            [
+              "agentic ai seo",
+              625
+            ],
+            [
+              "request a call",
+              2
+            ],
+            [
+              "book your consultation",
+              2
+            ],
+            [
+              "search engine optimization",
+              1
+            ],
+            [
+              "digital marketing",
+              1
+            ]
+          ]
+        },
+        "suggestions_created": 549,
+        "broken_sample": [
+          {
+            "source": "https://www.techmagnate.com/",
+            "target": "https://www.techmagnate.com/blog/digital-marketing-strategy/",
+            "anchor": "digital marketing strategies"
+          },
+          {
+            "source": "https://www.techmagnate.com/",
+            "target": "https://www.techmagnate.com/blog/what-is-conversion-rate-optimization/",
+            "anchor": "conversion rate optimization (CRO)"
+          },
+          {
+            "source": "https://www.techmagnate.com/ai-seo-services/",
+            "target": "https://www.techmagnate.com/blog/latest-seo-trends/",
+            "anchor": "SEO trends"
+          },
+          {
+            "source": "https://www.techmagnate.com/llm-seo-services.html",
+            "target": "https://www.techmagnate.com/blog/what-is-user-search-intent/",
+            "anchor": "user intent"
+          },
+          {
+            "source": "https://www.techmagnate.com/enterprise-seo-services.html",
+            "target": "https://www.techmagnate.com/blog/website-seo-audit-guide/",
+            "anchor": "audit your site"
+          },
+          {
+            "source": "https://www.techmagnate.com/ecommerce-seo.html",
+            "target": "https://www.techmagnate.com/blog/ecommerce-seo-guide/",
+            "anchor": "Ecommerce SEO strategies"
+          },
+          {
+            "source": "https://www.techmagnate.com/ecommerce-seo.html",
+            "target": "https://www.techmagnate.com/blog/seo-strategies/",
+            "anchor": "SEO strategies"
+          },
+          {
+            "source": "https://www.techmagnate.com/technical-seo-services.html",
+            "target": "https://www.techmagnate.com/blog/how-improve-web-page-speed/",
+            "anchor": "improving web page load speed"
+          },
+          {
+            "source": "https://www.techmagnate.com/seo-migration-services/",
+            "target": "https://www.techmagnate.com/blog/types-of-backlinks/",
+            "anchor": "backlink profile"
+          },
+          {
+            "source": "https://www.techmagnate.com/seo-migration-services/",
+            "target": "https://www.techmagnate.com/blog/how-to-optimize-duplicate-content-for-seo/",
+            "anchor": "Duplicate content on your website"
+          },
+          {
+            "source": "https://www.techmagnate.com/javascript-seo-services.html",
+            "target": "https://www.techmagnate.com/blog/server-side-rendering-vs-client-side-rendering/#What_Is_Server-Side_Rendering_And_How_Does_It_Work",
+            "anchor": "server-side rendering"
+          },
+          {
+            "source": "https://www.techmagnate.com/local-seo-services.html",
+            "target": "https://www.techmagnate.com/blog/google-my-business-listing-optimization-gmb-seo/",
+            "anchor": "optimized GBP"
+          },
+          {
+            "source": "https://www.techmagnate.com/local-seo-services.html",
+            "target": "https://www.techmagnate.com/blog/meta-tags-for-seo/",
+            "anchor": "meta descriptions"
+          },
+          {
+            "source": "https://www.techmagnate.com/local-seo-services.html",
+            "target": "https://www.techmagnate.com/blog/what-is-keyword-optimization/",
+            "anchor": "keyword research and optimization"
+          },
+          {
+            "source": "https://www.techmagnate.com/multilingual-seo.html",
+            "target": "https://www.techmagnate.com/blog/types-of-backlinks/",
+            "anchor": "high-quality backlinks"
+          },
+          {
+            "source": "https://www.techmagnate.com/vernacular-seo-services.html",
+            "target": "https://www.techmagnate.com/blog/how-improve-web-page-speed/",
+            "anchor": "fast loading speeds"
+          },
+          {
+            "source": "https://www.techmagnate.com/vernacular-seo-services.html",
+            "target": "https://www.techmagnate.com/blog/how-to-get-natural-links/",
+            "anchor": "build high-quality regional backlinks"
+          },
+          {
+            "source": "https://www.techmagnate.com/link-building-services.html",
+            "target": "https://www.techmagnate.com/blog/types-of-backlinks/",
+            "anchor": "High-quality backlinks"
+          },
+          {
+            "source": "https://www.techmagnate.com/seo-reseller-services.html",
+            "target": "https://www.techmagnate.com/blog/what-is-content-marketing/",
+            "anchor": "content marketing"
+          },
+          {
+            "source": "https://www.techmagnate.com/seo-reseller-services.html",
+            "target": "https://www.techmagnate.com/blog/how-to-get-natural-links/#Natural_Link_Building_Strategies",
+            "anchor": "link-building strategies"
+          }
+        ],
+        "important_weak_sample": [
+          {
+            "url": "https://www.techmagnate.com/koenig-solutions-seo-case-study.html",
+            "inlinks": 0,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.0,
+            "page_type": "service",
+            "reason": "High business or page importance with few internal links"
+          }
+        ]
+      }
+    },
+    {
+      "id": 20,
+      "project_id": 2,
+      "job_type": "generate_briefs",
+      "name": "Content brief generation",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-23T17:01:29.194505",
+      "started_at": "2026-11-23T17:20:12.233995+00:00",
+      "finished_at": "2026-11-23T17:20:12.256602+00:00",
+      "result": {
+        "briefs_created": 0,
+        "data_kind": "rule-based suggestions; not copied competitor content"
+      }
+    },
+    {
+      "id": 19,
+      "project_id": 2,
+      "job_type": "detect_issues",
+      "name": "Technical audit",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-23T17:00:55.812782",
+      "started_at": "2026-11-23T17:20:09.343856+00:00",
+      "finished_at": "2026-11-23T17:20:12.214756+00:00",
+      "result": {
+        "detected_at": "2026-11-23T17:20:09.433250+00:00",
+        "issues": {
+          "http_404": {
+            "count": 30,
+            "priority": "P3",
+            "score": 28.97
+          },
+          "redirect_chain": {
+            "count": 4,
+            "priority": "P3",
+            "score": 19.6
+          },
+          "canonical_mismatch": {
+            "count": 2,
+            "priority": "P3",
+            "score": 18.93
+          },
+          "canonical_chain": {
+            "count": 2,
+            "priority": "P3",
+            "score": 18.93
+          },
+          "canonical_conflict": {
+            "count": 2,
+            "priority": "P3",
+            "score": 23.43
+          },
+          "missing_title": {
+            "count": 32,
+            "priority": "P3",
+            "score": 22.06
+          },
+          "missing_description": {
+            "count": 69,
+            "priority": "P3",
+            "score": 18.54
+          },
+          "missing_h1": {
+            "count": 38,
+            "priority": "P3",
+            "score": 17.77
+          },
+          "multiple_h1": {
+            "count": 22,
+            "priority": "P3",
+            "score": 14.84
+          },
+          "duplicate_title": {
+            "count": 35,
+            "priority": "P3",
+            "score": 22.17
+          },
+          "duplicate_description": {
+            "count": 5,
+            "priority": "P3",
+            "score": 15.33
+          },
+          "thin_content": {
+            "count": 6,
+            "priority": "P3",
+            "score": 20.04
+          },
+          "broken_internal_link": {
+            "count": 66,
+            "priority": "P3",
+            "score": 27.48
+          },
+          "slow_response": {
+            "count": 321,
+            "priority": "P3",
+            "score": 25.02
+          },
+          "missing_schema": {
+            "count": 126,
+            "priority": "P3",
+            "score": 19.31
+          },
+          "pagination_problem": {
+            "count": 7,
+            "priority": "P3",
+            "score": 15.71
+          }
+        },
+        "total_issue_groups": 16,
+        "records_scanned": 432
+      }
+    },
+    {
+      "id": 18,
+      "project_id": 2,
+      "job_type": "crawl",
+      "name": "Site crawl",
+      "status": "running",
+      "progress": 135,
+      "total": 460,
+      "message": "Fetched 135 URLs",
+      "error": "",
+      "created_at": "2026-11-23T17:00:16.004273",
+      "started_at": "2026-11-23T17:07:58.452878+00:00",
+      "finished_at": null,
+      "result": {}
+    },
+    {
+      "id": 17,
+      "project_id": 2,
+      "job_type": "public_audit",
+      "name": "Public audit · https://www.techmagnate.com/",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-23T16:42:56.765718",
+      "started_at": "2026-11-23T16:42:57.266710+00:00",
+      "finished_at": "2026-11-23T17:07:58.440009+00:00",
+      "result": {
+        "crawl_id": 1,
+        "report_id": 2,
+        "fetched_urls": 219,
+        "findings": 12,
+        "roadmap_months": 6
+      }
+    },
+    {
+      "id": 16,
+      "project_id": 1,
+      "job_type": "generate_report",
+      "name": "Weekly SEO report",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:23:25.716519",
+      "started_at": "2026-11-22T18:23:29.935923+00:00",
+      "finished_at": "2026-11-22T18:23:30.030011+00:00",
+      "result": {
+        "report_id": 1,
+        "period": {
+          "start": "2026-11-02",
+          "end": "2026-11-08",
+          "previous_start": "2026-10-26",
+          "previous_end": "2026-11-01"
+        },
+        "current": {
+          "clicks": 106513.0,
+          "impressions": 2760022.0,
+          "sessions": 70284.89999999992,
+          "conversions": 2462.0,
+          "revenue": 721619.0,
+          "ctr": 3.86
+        },
+        "previous": {
+          "clicks": 0.0,
+          "impressions": 0.0,
+          "sessions": 0.0,
+          "conversions": 0.0,
+          "revenue": 0.0,
+          "ctr": 0.0
+        },
+        "changes_percent": {
+          "clicks": null,
+          "impressions": null,
+          "sessions": null,
+          "conversions": null,
+          "revenue": null
+        },
+        "sections": [
+          {
+            "heading": "1. Executive summary",
+            "lines": [
+              "Organic clicks 106513, impressions 2760022, sessions 70285.",
+              "Supplied revenue for the period: 721,619.00.",
+              "320 URLs have no discovered internal inlinks; 4 priority groups remain open."
+            ]
+          },
+          {
+            "heading": "2. Organic performance",
+            "lines": [
+              "Current period 2026-11-02 to 2026-11-08: clicks=106513.0, impressions=2760022.0, sessions=70284.89999999992, conversions=2462.0, revenue=721619.0, ctr=3.86",
+              "Equivalent-period change %: clicks=None, impressions=None, sessions=None, conversions=None, revenue=None",
+              "Business implication: Traffic movement alone is not a business outcome; pair it with conversions/revenue when supplied."
+            ]
+          },
+          {
+            "heading": "3. Keyword movement",
+            "lines": [
+              "cloud-security tools: clicks=173, impressions=10614",
+              "penetration-testing singapore: clicks=170, impressions=7881",
+              "incident-response checklist: clicks=169, impressions=7859",
+              "incident-response how to: clicks=167, impressions=10115",
+              "incident-response best: clicks=159, impressions=8936",
+              "compliance-audit how to: clicks=154, impressions=4441",
+              "managed-security-services best: clicks=152, impressions=8388",
+              "cybersecurity-consulting near me: clicks=152, impressions=8930",
+              "cloud-security what is: clicks=151, impressions=6873",
+              "compliance-audit singapore: clicks=150, impressions=5983"
+            ]
+          },
+          {
+            "heading": "4. Landing-page performance",
+            "lines": [
+              "https://demo.example.com/insights/data-encryption-428/: clicks=200, sessions=140, revenue=368",
+              "https://demo.example.com/blog/ransomware-response-219/: clicks=200, sessions=140, revenue=767",
+              "https://demo.example.com/products/category-2/product-710/: clicks=200, sessions=140, revenue=1025",
+              "https://demo.example.com/sg/services/vapt-936/: clicks=200, sessions=140, revenue=772",
+              "https://demo.example.com/insights/phishing-awareness-277/?utm_source=newsletter: clicks=200, sessions=140, revenue=1330",
+              "https://demo.example.com/insights/phishing-awareness-997/?utm_source=newsletter: clicks=199, sessions=139, revenue=389",
+              "https://demo.example.com/insights/phishing-awareness-517/?utm_source=newsletter: clicks=199, sessions=139, revenue=816",
+              "https://demo.example.com/home-760/: clicks=199, sessions=139, revenue=1340",
+              "https://demo.example.com/services/compliance-audit-39/: clicks=199, sessions=139, revenue=1365",
+              "https://demo.example.com/products/category-11/product-551/: clicks=199, sessions=139, revenue=21"
+            ]
+          },
+          {
+            "heading": "5. Technical SEO findings",
+            "lines": [
+              "P0: 2 open issue groups",
+              "P1: 2 open issue groups",
+              "P2: 5 open issue groups",
+              "P3: 9 open issue groups",
+              "No crawl recorded."
+            ]
+          },
+          {
+            "heading": "6. Work completed",
+            "lines": [
+              "Tasks marked done: 0"
+            ]
+          },
+          {
+            "heading": "7. Issues resolved",
+            "lines": [
+              "Resolved issue groups: 0"
+            ]
+          },
+          {
+            "heading": "8. Open priorities",
+            "lines": [
+              "P0: 2",
+              "P1: 2",
+              "P2: 5",
+              "P3: 9"
+            ]
+          },
+          {
+            "heading": "9. Opportunities",
+            "lines": [
+              "320 orphan URLs are candidates for internal linking, prioritised in the Orphan Finder.",
+              "Use the Forecasting module for scenario estimates; these are not guarantees."
+            ]
+          },
+          {
+            "heading": "10. Next week's action plan",
+            "lines": [
+              "Validate and assign all P0/P1 issues with an owner and due date.",
+              "Review high-value 404s and confirm replacement URLs before redirecting.",
+              "Implement top internal-link suggestions on orphan and weak pages.",
+              "Recrawl after implementation and compare equivalent date ranges again."
+            ]
+          }
+        ],
+        "missing_data": [],
+        "data_kinds": [
+          "imported analytics",
+          "derived issue data",
+          "rule-based recommendations"
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "project_id": 1,
+      "job_type": "map_keywords",
+      "name": "Keyword to URL mapping",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:23:24.416071",
+      "started_at": "2026-11-22T18:23:24.547624+00:00",
+      "finished_at": "2026-11-22T18:23:29.925669+00:00",
+      "result": {
+        "mapped_urls": 1000,
+        "unmapped_urls": 0,
+        "unmapped_sample": [],
+        "cannibalisation_conflicts": 7,
+        "conflicts_sample": [
+          {
+            "primary_keyword": "cybersecurity-consulting guide",
+            "url_count": 512,
+            "urls": [
+              "https://demo.example.com/",
+              "https://demo.example.com/products/category-6/product-150/",
+              "https://demo.example.com/products/category-7/product-151/",
+              "https://demo.example.com/products/category-8/product-152/",
+              "https://demo.example.com/category/category-9/page-153/",
+              "https://demo.example.com/category/category-10/page-154/",
+              "https://demo.example.com/insights/phishing-awareness-157/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-159/",
+              "https://demo.example.com/home-160/",
+              "https://demo.example.com/insights/access-control-165/",
+              "https://demo.example.com/insights/security-logging-166/",
+              "https://demo.example.com/insights/supply-chain-risk-167/",
+              "https://demo.example.com/insights/password-security-168/",
+              "https://demo.example.com/insights/phishing-awareness-169/",
+              "https://demo.example.com/products/category-2/product-170/",
+              "https://demo.example.com/products/category-3/product-171/",
+              "https://demo.example.com/products/category-4/product-172/",
+              "https://demo.example.com/category/category-5/page-173/",
+              "https://demo.example.com/category/category-6/page-174/",
+              "https://demo.example.com/insights/access-control-177/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-179/",
+              "https://demo.example.com/home-180/",
+              "https://demo.example.com/insights/soc-operations-186/",
+              "https://demo.example.com/insights/incident-playbook-187/",
+              "https://demo.example.com/insights/data-encryption-188/",
+              "https://demo.example.com/insights/access-control-189/",
+              "https://demo.example.com/products/category-10/product-190/",
+              "https://demo.example.com/products/category-11/product-191/",
+              "https://demo.example.com/products/category-0/product-192/",
+              "https://demo.example.com/category/category-1/page-193/",
+              "https://demo.example.com/category/category-2/page-194/",
+              "https://demo.example.com/blog/incident-playbook-199/",
+              "https://demo.example.com/home-200/",
+              "https://demo.example.com/insights/phishing-awareness-205/",
+              "https://demo.example.com/insights/zero-trust-206/",
+              "https://demo.example.com/insights/ransomware-response-207/",
+              "https://demo.example.com/insights/cloud-misconfiguration-208/",
+              "https://demo.example.com/products/category-6/product-210/",
+              "https://demo.example.com/products/category-7/product-211/",
+              "https://demo.example.com/products/category-8/product-212/",
+              "https://demo.example.com/category/category-9/page-213/",
+              "https://demo.example.com/category/category-10/page-214/",
+              "https://demo.example.com/insights/phishing-awareness-217/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-219/",
+              "https://demo.example.com/home-220/",
+              "https://demo.example.com/insights/access-control-225/",
+              "https://demo.example.com/insights/security-logging-226/",
+              "https://demo.example.com/insights/supply-chain-risk-227/",
+              "https://demo.example.com/insights/password-security-228/",
+              "https://demo.example.com/insights/phishing-awareness-229/",
+              "https://demo.example.com/products/category-2/product-230/",
+              "https://demo.example.com/products/category-3/product-231/",
+              "https://demo.example.com/products/category-4/product-232/",
+              "https://demo.example.com/category/category-5/page-233/",
+              "https://demo.example.com/category/category-6/page-234/",
+              "https://demo.example.com/insights/access-control-237/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-239/",
+              "https://demo.example.com/home-240/",
+              "https://demo.example.com/insights/soc-operations-246/",
+              "https://demo.example.com/insights/incident-playbook-247/",
+              "https://demo.example.com/insights/data-encryption-248/",
+              "https://demo.example.com/insights/access-control-249/",
+              "https://demo.example.com/products/category-10/product-250/",
+              "https://demo.example.com/products/category-11/product-251/",
+              "https://demo.example.com/products/category-0/product-252/",
+              "https://demo.example.com/category/category-1/page-253/",
+              "https://demo.example.com/category/category-2/page-254/",
+              "https://demo.example.com/blog/incident-playbook-259/",
+              "https://demo.example.com/home-260/",
+              "https://demo.example.com/insights/phishing-awareness-265/",
+              "https://demo.example.com/insights/zero-trust-266/",
+              "https://demo.example.com/insights/ransomware-response-267/",
+              "https://demo.example.com/insights/cloud-misconfiguration-268/",
+              "https://demo.example.com/products/category-6/product-270/",
+              "https://demo.example.com/products/category-7/product-271/",
+              "https://demo.example.com/products/category-8/product-272/",
+              "https://demo.example.com/category/category-9/page-273/",
+              "https://demo.example.com/category/category-10/page-274/",
+              "https://demo.example.com/insights/phishing-awareness-277/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-279/",
+              "https://demo.example.com/home-280/",
+              "https://demo.example.com/insights/access-control-285/",
+              "https://demo.example.com/insights/security-logging-286/",
+              "https://demo.example.com/insights/supply-chain-risk-287/",
+              "https://demo.example.com/insights/password-security-288/",
+              "https://demo.example.com/insights/phishing-awareness-289/",
+              "https://demo.example.com/products/category-2/product-290/",
+              "https://demo.example.com/products/category-3/product-291/",
+              "https://demo.example.com/products/category-4/product-292/",
+              "https://demo.example.com/category/category-5/page-293/",
+              "https://demo.example.com/category/category-6/page-294/",
+              "https://demo.example.com/insights/access-control-309/",
+              "https://demo.example.com/insights/access-control-297/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-299/",
+              "https://demo.example.com/home-300/",
+              "https://demo.example.com/insights/soc-operations-306/",
+              "https://demo.example.com/insights/incident-playbook-307/",
+              "https://demo.example.com/insights/data-encryption-308/",
+              "https://demo.example.com/products/category-10/product-310/",
+              "https://demo.example.com/products/category-11/product-311/",
+              "https://demo.example.com/products/category-0/product-312/",
+              "https://demo.example.com/category/category-1/page-313/",
+              "https://demo.example.com/category/category-2/page-314/",
+              "https://demo.example.com/blog/incident-playbook-319/",
+              "https://demo.example.com/home-320/",
+              "https://demo.example.com/insights/phishing-awareness-325/",
+              "https://demo.example.com/insights/zero-trust-326/",
+              "https://demo.example.com/insights/ransomware-response-327/",
+              "https://demo.example.com/insights/cloud-misconfiguration-328/",
+              "https://demo.example.com/products/category-6/product-330/",
+              "https://demo.example.com/products/category-7/product-331/",
+              "https://demo.example.com/products/category-8/product-332/",
+              "https://demo.example.com/category/category-9/page-333/",
+              "https://demo.example.com/category/category-10/page-334/",
+              "https://demo.example.com/insights/phishing-awareness-337/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-339/",
+              "https://demo.example.com/home-340/",
+              "https://demo.example.com/insights/access-control-345/",
+              "https://demo.example.com/insights/security-logging-346/",
+              "https://demo.example.com/insights/supply-chain-risk-347/",
+              "https://demo.example.com/insights/password-security-348/",
+              "https://demo.example.com/insights/phishing-awareness-349/",
+              "https://demo.example.com/products/category-2/product-350/",
+              "https://demo.example.com/products/category-3/product-351/",
+              "https://demo.example.com/products/category-4/product-352/",
+              "https://demo.example.com/category/category-5/page-353/",
+              "https://demo.example.com/category/category-6/page-354/",
+              "https://demo.example.com/insights/access-control-357/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-359/",
+              "https://demo.example.com/home-360/",
+              "https://demo.example.com/insights/soc-operations-366/",
+              "https://demo.example.com/insights/incident-playbook-367/",
+              "https://demo.example.com/insights/data-encryption-368/",
+              "https://demo.example.com/insights/access-control-369/",
+              "https://demo.example.com/products/category-10/product-370/",
+              "https://demo.example.com/products/category-11/product-371/",
+              "https://demo.example.com/products/category-0/product-372/",
+              "https://demo.example.com/category/category-1/page-373/",
+              "https://demo.example.com/category/category-2/page-374/",
+              "https://demo.example.com/blog/incident-playbook-379/",
+              "https://demo.example.com/home-380/",
+              "https://demo.example.com/insights/phishing-awareness-385/",
+              "https://demo.example.com/insights/zero-trust-386/",
+              "https://demo.example.com/insights/ransomware-response-387/",
+              "https://demo.example.com/insights/cloud-misconfiguration-388/",
+              "https://demo.example.com/products/category-6/product-390/",
+              "https://demo.example.com/products/category-7/product-391/",
+              "https://demo.example.com/products/category-8/product-392/",
+              "https://demo.example.com/category/category-9/page-393/",
+              "https://demo.example.com/category/category-10/page-394/",
+              "https://demo.example.com/insights/phishing-awareness-397/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-399/",
+              "https://demo.example.com/home-400/",
+              "https://demo.example.com/insights/access-control-405/",
+              "https://demo.example.com/insights/security-logging-406/",
+              "https://demo.example.com/insights/supply-chain-risk-407/",
+              "https://demo.example.com/insights/password-security-408/",
+              "https://demo.example.com/insights/phishing-awareness-409/",
+              "https://demo.example.com/products/category-2/product-410/",
+              "https://demo.example.com/products/category-3/product-411/",
+              "https://demo.example.com/products/category-4/product-412/",
+              "https://demo.example.com/category/category-5/page-413/",
+              "https://demo.example.com/category/category-6/page-414/",
+              "https://demo.example.com/insights/access-control-417/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-419/",
+              "https://demo.example.com/home-420/",
+              "https://demo.example.com/insights/soc-operations-426/",
+              "https://demo.example.com/insights/incident-playbook-427/",
+              "https://demo.example.com/insights/data-encryption-428/",
+              "https://demo.example.com/insights/access-control-429/",
+              "https://demo.example.com/products/category-10/product-430/",
+              "https://demo.example.com/products/category-11/product-431/",
+              "https://demo.example.com/products/category-0/product-432/",
+              "https://demo.example.com/category/category-1/page-433/",
+              "https://demo.example.com/category/category-2/page-434/",
+              "https://demo.example.com/blog/incident-playbook-439/",
+              "https://demo.example.com/home-440/",
+              "https://demo.example.com/insights/phishing-awareness-445/",
+              "https://demo.example.com/insights/zero-trust-446/",
+              "https://demo.example.com/insights/ransomware-response-447/",
+              "https://demo.example.com/insights/cloud-misconfiguration-448/",
+              "https://demo.example.com/products/category-6/product-450/",
+              "https://demo.example.com/products/category-7/product-451/",
+              "https://demo.example.com/products/category-8/product-452/",
+              "https://demo.example.com/category/category-9/page-453/",
+              "https://demo.example.com/category/category-10/page-454/",
+              "https://demo.example.com/insights/phishing-awareness-457/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-459/",
+              "https://demo.example.com/home-460/",
+              "https://demo.example.com/insights/access-control-465/",
+              "https://demo.example.com/insights/security-logging-466/",
+              "https://demo.example.com/insights/supply-chain-risk-467/",
+              "https://demo.example.com/insights/password-security-468/",
+              "https://demo.example.com/insights/phishing-awareness-469/",
+              "https://demo.example.com/products/category-2/product-470/",
+              "https://demo.example.com/products/category-3/product-471/",
+              "https://demo.example.com/products/category-4/product-472/",
+              "https://demo.example.com/category/category-5/page-473/",
+              "https://demo.example.com/category/category-6/page-474/",
+              "https://demo.example.com/insights/access-control-477/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-479/",
+              "https://demo.example.com/home-480/",
+              "https://demo.example.com/insights/soc-operations-486/",
+              "https://demo.example.com/insights/incident-playbook-487/",
+              "https://demo.example.com/insights/data-encryption-488/",
+              "https://demo.example.com/insights/access-control-489/",
+              "https://demo.example.com/products/category-10/product-490/",
+              "https://demo.example.com/products/category-11/product-491/",
+              "https://demo.example.com/products/category-0/product-492/",
+              "https://demo.example.com/category/category-1/page-493/",
+              "https://demo.example.com/category/category-2/page-494/",
+              "https://demo.example.com/blog/incident-playbook-499/",
+              "https://demo.example.com/home-500/",
+              "https://demo.example.com/insights/phishing-awareness-505/",
+              "https://demo.example.com/insights/zero-trust-506/",
+              "https://demo.example.com/insights/ransomware-response-507/",
+              "https://demo.example.com/insights/cloud-misconfiguration-508/",
+              "https://demo.example.com/products/category-6/product-510/",
+              "https://demo.example.com/products/category-7/product-511/",
+              "https://demo.example.com/products/category-8/product-512/",
+              "https://demo.example.com/category/category-9/page-513/",
+              "https://demo.example.com/category/category-10/page-514/",
+              "https://demo.example.com/insights/phishing-awareness-517/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-519/",
+              "https://demo.example.com/home-520/",
+              "https://demo.example.com/insights/access-control-525/",
+              "https://demo.example.com/insights/security-logging-526/",
+              "https://demo.example.com/insights/supply-chain-risk-527/",
+              "https://demo.example.com/insights/password-security-528/",
+              "https://demo.example.com/insights/phishing-awareness-529/",
+              "https://demo.example.com/products/category-2/product-530/",
+              "https://demo.example.com/products/category-3/product-531/",
+              "https://demo.example.com/products/category-4/product-532/",
+              "https://demo.example.com/category/category-5/page-533/",
+              "https://demo.example.com/category/category-6/page-534/",
+              "https://demo.example.com/insights/access-control-537/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-539/",
+              "https://demo.example.com/home-540/",
+              "https://demo.example.com/insights/soc-operations-546/",
+              "https://demo.example.com/insights/incident-playbook-547/",
+              "https://demo.example.com/insights/data-encryption-548/",
+              "https://demo.example.com/insights/access-control-549/",
+              "https://demo.example.com/products/category-10/product-550/",
+              "https://demo.example.com/products/category-11/product-551/",
+              "https://demo.example.com/products/category-0/product-552/",
+              "https://demo.example.com/category/category-1/page-553/",
+              "https://demo.example.com/category/category-2/page-554/",
+              "https://demo.example.com/blog/incident-playbook-559/",
+              "https://demo.example.com/home-560/",
+              "https://demo.example.com/insights/phishing-awareness-565/",
+              "https://demo.example.com/insights/zero-trust-566/",
+              "https://demo.example.com/insights/ransomware-response-567/",
+              "https://demo.example.com/insights/cloud-misconfiguration-568/",
+              "https://demo.example.com/products/category-6/product-570/",
+              "https://demo.example.com/products/category-7/product-571/",
+              "https://demo.example.com/products/category-8/product-572/",
+              "https://demo.example.com/category/category-9/page-573/",
+              "https://demo.example.com/category/category-10/page-574/",
+              "https://demo.example.com/insights/phishing-awareness-577/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-579/",
+              "https://demo.example.com/home-580/",
+              "https://demo.example.com/insights/access-control-585/",
+              "https://demo.example.com/insights/security-logging-586/",
+              "https://demo.example.com/insights/supply-chain-risk-587/",
+              "https://demo.example.com/insights/password-security-588/",
+              "https://demo.example.com/insights/phishing-awareness-589/",
+              "https://demo.example.com/products/category-2/product-590/",
+              "https://demo.example.com/products/category-3/product-591/",
+              "https://demo.example.com/products/category-4/product-592/",
+              "https://demo.example.com/category/category-5/page-593/",
+              "https://demo.example.com/category/category-6/page-594/",
+              "https://demo.example.com/insights/access-control-597/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-599/",
+              "https://demo.example.com/home-600/",
+              "https://demo.example.com/insights/soc-operations-606/",
+              "https://demo.example.com/insights/incident-playbook-607/",
+              "https://demo.example.com/insights/data-encryption-608/",
+              "https://demo.example.com/insights/access-control-609/",
+              "https://demo.example.com/products/category-10/product-610/",
+              "https://demo.example.com/products/category-11/product-611/",
+              "https://demo.example.com/products/category-0/product-612/",
+              "https://demo.example.com/category/category-1/page-613/",
+              "https://demo.example.com/category/category-2/page-614/",
+              "https://demo.example.com/blog/incident-playbook-619/",
+              "https://demo.example.com/home-620/",
+              "https://demo.example.com/insights/phishing-awareness-625/",
+              "https://demo.example.com/insights/zero-trust-626/",
+              "https://demo.example.com/insights/ransomware-response-627/",
+              "https://demo.example.com/insights/cloud-misconfiguration-628/",
+              "https://demo.example.com/products/category-6/product-630/",
+              "https://demo.example.com/products/category-7/product-631/",
+              "https://demo.example.com/products/category-8/product-632/",
+              "https://demo.example.com/category/category-9/page-633/",
+              "https://demo.example.com/category/category-10/page-634/",
+              "https://demo.example.com/insights/phishing-awareness-637/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-639/",
+              "https://demo.example.com/home-640/",
+              "https://demo.example.com/insights/access-control-645/",
+              "https://demo.example.com/insights/security-logging-646/",
+              "https://demo.example.com/insights/supply-chain-risk-647/",
+              "https://demo.example.com/insights/password-security-648/",
+              "https://demo.example.com/insights/phishing-awareness-649/",
+              "https://demo.example.com/products/category-2/product-650/",
+              "https://demo.example.com/products/category-3/product-651/",
+              "https://demo.example.com/products/category-4/product-652/",
+              "https://demo.example.com/category/category-5/page-653/",
+              "https://demo.example.com/category/category-6/page-654/",
+              "https://demo.example.com/insights/access-control-657/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-659/",
+              "https://demo.example.com/home-660/",
+              "https://demo.example.com/insights/soc-operations-666/",
+              "https://demo.example.com/insights/incident-playbook-667/",
+              "https://demo.example.com/insights/data-encryption-668/",
+              "https://demo.example.com/insights/access-control-669/",
+              "https://demo.example.com/products/category-10/product-670/",
+              "https://demo.example.com/products/category-11/product-671/",
+              "https://demo.example.com/products/category-0/product-672/",
+              "https://demo.example.com/category/category-1/page-673/",
+              "https://demo.example.com/category/category-2/page-674/",
+              "https://demo.example.com/blog/incident-playbook-679/",
+              "https://demo.example.com/home-680/",
+              "https://demo.example.com/insights/phishing-awareness-685/",
+              "https://demo.example.com/insights/zero-trust-686/",
+              "https://demo.example.com/insights/ransomware-response-687/",
+              "https://demo.example.com/insights/cloud-misconfiguration-688/",
+              "https://demo.example.com/products/category-6/product-690/",
+              "https://demo.example.com/products/category-7/product-691/",
+              "https://demo.example.com/products/category-8/product-692/",
+              "https://demo.example.com/category/category-9/page-693/",
+              "https://demo.example.com/category/category-10/page-694/",
+              "https://demo.example.com/insights/phishing-awareness-697/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-699/",
+              "https://demo.example.com/home-700/",
+              "https://demo.example.com/insights/access-control-705/",
+              "https://demo.example.com/insights/security-logging-706/",
+              "https://demo.example.com/insights/supply-chain-risk-707/",
+              "https://demo.example.com/insights/password-security-708/",
+              "https://demo.example.com/insights/phishing-awareness-709/",
+              "https://demo.example.com/products/category-2/product-710/",
+              "https://demo.example.com/products/category-3/product-711/",
+              "https://demo.example.com/products/category-4/product-712/",
+              "https://demo.example.com/category/category-5/page-713/",
+              "https://demo.example.com/category/category-6/page-714/",
+              "https://demo.example.com/insights/access-control-717/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-719/",
+              "https://demo.example.com/home-720/",
+              "https://demo.example.com/insights/soc-operations-726/",
+              "https://demo.example.com/insights/incident-playbook-727/",
+              "https://demo.example.com/insights/data-encryption-728/",
+              "https://demo.example.com/insights/access-control-729/",
+              "https://demo.example.com/products/category-10/product-730/",
+              "https://demo.example.com/products/category-11/product-731/",
+              "https://demo.example.com/products/category-0/product-732/",
+              "https://demo.example.com/category/category-1/page-733/",
+              "https://demo.example.com/category/category-2/page-734/",
+              "https://demo.example.com/blog/incident-playbook-739/",
+              "https://demo.example.com/home-740/",
+              "https://demo.example.com/insights/phishing-awareness-745/",
+              "https://demo.example.com/insights/zero-trust-746/",
+              "https://demo.example.com/insights/ransomware-response-747/",
+              "https://demo.example.com/insights/cloud-misconfiguration-748/",
+              "https://demo.example.com/products/category-6/product-750/",
+              "https://demo.example.com/products/category-7/product-751/",
+              "https://demo.example.com/products/category-8/product-752/",
+              "https://demo.example.com/category/category-9/page-753/",
+              "https://demo.example.com/category/category-10/page-754/",
+              "https://demo.example.com/insights/phishing-awareness-757/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-759/",
+              "https://demo.example.com/home-760/",
+              "https://demo.example.com/insights/access-control-765/",
+              "https://demo.example.com/insights/security-logging-766/",
+              "https://demo.example.com/insights/supply-chain-risk-767/",
+              "https://demo.example.com/insights/password-security-768/",
+              "https://demo.example.com/insights/phishing-awareness-769/",
+              "https://demo.example.com/products/category-2/product-770/",
+              "https://demo.example.com/products/category-3/product-771/",
+              "https://demo.example.com/products/category-4/product-772/",
+              "https://demo.example.com/category/category-5/page-773/",
+              "https://demo.example.com/category/category-6/page-774/",
+              "https://demo.example.com/insights/access-control-777/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-779/",
+              "https://demo.example.com/home-780/",
+              "https://demo.example.com/insights/soc-operations-786/",
+              "https://demo.example.com/insights/incident-playbook-787/",
+              "https://demo.example.com/insights/data-encryption-788/",
+              "https://demo.example.com/insights/access-control-789/",
+              "https://demo.example.com/products/category-10/product-790/",
+              "https://demo.example.com/products/category-11/product-791/",
+              "https://demo.example.com/products/category-0/product-792/",
+              "https://demo.example.com/category/category-1/page-793/",
+              "https://demo.example.com/category/category-2/page-794/",
+              "https://demo.example.com/blog/incident-playbook-799/",
+              "https://demo.example.com/home-800/",
+              "https://demo.example.com/insights/phishing-awareness-805/",
+              "https://demo.example.com/insights/zero-trust-806/",
+              "https://demo.example.com/insights/ransomware-response-807/",
+              "https://demo.example.com/insights/cloud-misconfiguration-808/",
+              "https://demo.example.com/products/category-6/product-810/",
+              "https://demo.example.com/products/category-7/product-811/",
+              "https://demo.example.com/products/category-8/product-812/",
+              "https://demo.example.com/category/category-9/page-813/",
+              "https://demo.example.com/category/category-10/page-814/",
+              "https://demo.example.com/insights/phishing-awareness-817/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-819/",
+              "https://demo.example.com/home-820/",
+              "https://demo.example.com/insights/access-control-825/",
+              "https://demo.example.com/insights/security-logging-826/",
+              "https://demo.example.com/insights/supply-chain-risk-827/",
+              "https://demo.example.com/insights/password-security-828/",
+              "https://demo.example.com/insights/phishing-awareness-829/",
+              "https://demo.example.com/products/category-2/product-830/",
+              "https://demo.example.com/products/category-3/product-831/",
+              "https://demo.example.com/products/category-4/product-832/",
+              "https://demo.example.com/category/category-5/page-833/",
+              "https://demo.example.com/category/category-6/page-834/",
+              "https://demo.example.com/insights/access-control-837/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-839/",
+              "https://demo.example.com/home-840/",
+              "https://demo.example.com/insights/soc-operations-846/",
+              "https://demo.example.com/insights/incident-playbook-847/",
+              "https://demo.example.com/insights/data-encryption-848/",
+              "https://demo.example.com/insights/access-control-849/",
+              "https://demo.example.com/products/category-10/product-850/",
+              "https://demo.example.com/products/category-11/product-851/",
+              "https://demo.example.com/products/category-0/product-852/",
+              "https://demo.example.com/category/category-1/page-853/",
+              "https://demo.example.com/category/category-2/page-854/",
+              "https://demo.example.com/blog/incident-playbook-859/",
+              "https://demo.example.com/home-860/",
+              "https://demo.example.com/insights/phishing-awareness-865/",
+              "https://demo.example.com/insights/zero-trust-866/",
+              "https://demo.example.com/insights/ransomware-response-867/",
+              "https://demo.example.com/insights/cloud-misconfiguration-868/",
+              "https://demo.example.com/products/category-6/product-870/",
+              "https://demo.example.com/products/category-7/product-871/",
+              "https://demo.example.com/products/category-8/product-872/",
+              "https://demo.example.com/category/category-9/page-873/",
+              "https://demo.example.com/category/category-10/page-874/",
+              "https://demo.example.com/insights/phishing-awareness-877/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-879/",
+              "https://demo.example.com/home-880/",
+              "https://demo.example.com/insights/access-control-885/",
+              "https://demo.example.com/insights/security-logging-886/",
+              "https://demo.example.com/insights/supply-chain-risk-887/",
+              "https://demo.example.com/insights/password-security-888/",
+              "https://demo.example.com/insights/phishing-awareness-889/",
+              "https://demo.example.com/products/category-2/product-890/",
+              "https://demo.example.com/products/category-3/product-891/",
+              "https://demo.example.com/products/category-4/product-892/",
+              "https://demo.example.com/category/category-5/page-893/",
+              "https://demo.example.com/category/category-6/page-894/",
+              "https://demo.example.com/insights/access-control-897/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-899/",
+              "https://demo.example.com/home-900/",
+              "https://demo.example.com/insights/soc-operations-906/",
+              "https://demo.example.com/insights/incident-playbook-907/",
+              "https://demo.example.com/insights/data-encryption-908/",
+              "https://demo.example.com/insights/access-control-909/",
+              "https://demo.example.com/products/category-10/product-910/",
+              "https://demo.example.com/products/category-11/product-911/",
+              "https://demo.example.com/products/category-0/product-912/",
+              "https://demo.example.com/category/category-1/page-913/",
+              "https://demo.example.com/category/category-2/page-914/",
+              "https://demo.example.com/blog/incident-playbook-919/",
+              "https://demo.example.com/home-920/",
+              "https://demo.example.com/insights/phishing-awareness-925/",
+              "https://demo.example.com/insights/zero-trust-926/",
+              "https://demo.example.com/insights/ransomware-response-927/",
+              "https://demo.example.com/insights/cloud-misconfiguration-928/",
+              "https://demo.example.com/products/category-6/product-930/",
+              "https://demo.example.com/products/category-7/product-931/",
+              "https://demo.example.com/products/category-8/product-932/",
+              "https://demo.example.com/category/category-9/page-933/",
+              "https://demo.example.com/category/category-10/page-934/",
+              "https://demo.example.com/insights/phishing-awareness-937/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-939/",
+              "https://demo.example.com/home-940/",
+              "https://demo.example.com/insights/access-control-945/",
+              "https://demo.example.com/insights/security-logging-946/",
+              "https://demo.example.com/insights/supply-chain-risk-947/",
+              "https://demo.example.com/insights/password-security-948/",
+              "https://demo.example.com/insights/phishing-awareness-949/",
+              "https://demo.example.com/products/category-2/product-950/",
+              "https://demo.example.com/products/category-3/product-951/",
+              "https://demo.example.com/products/category-4/product-952/",
+              "https://demo.example.com/category/category-5/page-953/",
+              "https://demo.example.com/category/category-6/page-954/",
+              "https://demo.example.com/insights/access-control-957/?utm_source=newsletter",
+              "https://demo.example.com/blog/supply-chain-risk-959/",
+              "https://demo.example.com/home-960/",
+              "https://demo.example.com/insights/soc-operations-966/",
+              "https://demo.example.com/insights/incident-playbook-967/",
+              "https://demo.example.com/insights/data-encryption-968/",
+              "https://demo.example.com/insights/access-control-969/",
+              "https://demo.example.com/products/category-10/product-970/",
+              "https://demo.example.com/products/category-11/product-971/",
+              "https://demo.example.com/products/category-0/product-972/",
+              "https://demo.example.com/category/category-1/page-973/",
+              "https://demo.example.com/category/category-2/page-974/",
+              "https://demo.example.com/blog/incident-playbook-979/",
+              "https://demo.example.com/home-980/",
+              "https://demo.example.com/insights/phishing-awareness-985/",
+              "https://demo.example.com/insights/zero-trust-986/",
+              "https://demo.example.com/insights/ransomware-response-987/",
+              "https://demo.example.com/insights/cloud-misconfiguration-988/",
+              "https://demo.example.com/products/category-6/product-990/",
+              "https://demo.example.com/products/category-7/product-991/",
+              "https://demo.example.com/products/category-8/product-992/",
+              "https://demo.example.com/category/category-9/page-993/",
+              "https://demo.example.com/category/category-10/page-994/",
+              "https://demo.example.com/insights/phishing-awareness-997/?utm_source=newsletter",
+              "https://demo.example.com/blog/ransomware-response-999/"
+            ],
+            "risk": "high",
+            "recommendation": "Consolidate pages or differentiate intent and primary keyword"
+          },
+          {
+            "primary_keyword": "soc-as-a-service services",
+            "url_count": 170,
+            "urls": [
+              "https://demo.example.com/services/managed-security-services-0/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-156/",
+              "https://demo.example.com/services/managed-security-services-8/",
+              "https://demo.example.com/services/cloud-security-8/",
+              "https://demo.example.com/services/incident-response-8/",
+              "https://demo.example.com/services/cybersecurity-consulting-8/",
+              "https://demo.example.com/services/penetration-testing-9/",
+              "https://demo.example.com/services/soc-as-a-service-9/",
+              "https://demo.example.com/services/compliance-audit-9/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-196/",
+              "https://demo.example.com/services/managed-security-services-10/",
+              "https://demo.example.com/services/cloud-security-10/",
+              "https://demo.example.com/services/incident-response-10/",
+              "https://demo.example.com/services/cybersecurity-consulting-10/",
+              "https://demo.example.com/services/penetration-testing-11/",
+              "https://demo.example.com/services/soc-as-a-service-11/",
+              "https://demo.example.com/services/compliance-audit-11/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-236/",
+              "https://demo.example.com/services/managed-security-services-12/",
+              "https://demo.example.com/services/cloud-security-12/",
+              "https://demo.example.com/services/incident-response-12/",
+              "https://demo.example.com/services/cybersecurity-consulting-12/",
+              "https://demo.example.com/services/penetration-testing-13/",
+              "https://demo.example.com/services/soc-as-a-service-13/",
+              "https://demo.example.com/services/compliance-audit-13/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-276/",
+              "https://demo.example.com/services/managed-security-services-14/",
+              "https://demo.example.com/services/cloud-security-14/",
+              "https://demo.example.com/services/incident-response-14/",
+              "https://demo.example.com/services/cybersecurity-consulting-14/",
+              "https://demo.example.com/services/penetration-testing-15/",
+              "https://demo.example.com/services/soc-as-a-service-15/",
+              "https://demo.example.com/services/compliance-audit-15/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-316/",
+              "https://demo.example.com/services/managed-security-services-16/",
+              "https://demo.example.com/services/cloud-security-16/",
+              "https://demo.example.com/services/incident-response-16/",
+              "https://demo.example.com/services/cybersecurity-consulting-16/",
+              "https://demo.example.com/services/penetration-testing-17/",
+              "https://demo.example.com/services/soc-as-a-service-17/",
+              "https://demo.example.com/services/compliance-audit-17/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-356/",
+              "https://demo.example.com/services/managed-security-services-18/",
+              "https://demo.example.com/services/cloud-security-18/",
+              "https://demo.example.com/services/incident-response-18/",
+              "https://demo.example.com/services/cybersecurity-consulting-18/",
+              "https://demo.example.com/services/penetration-testing-19/",
+              "https://demo.example.com/services/soc-as-a-service-19/",
+              "https://demo.example.com/services/compliance-audit-19/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-396/",
+              "https://demo.example.com/services/managed-security-services-20/",
+              "https://demo.example.com/services/cloud-security-20/",
+              "https://demo.example.com/services/incident-response-20/",
+              "https://demo.example.com/services/cybersecurity-consulting-20/",
+              "https://demo.example.com/services/penetration-testing-21/",
+              "https://demo.example.com/services/soc-as-a-service-21/",
+              "https://demo.example.com/services/compliance-audit-21/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-436/",
+              "https://demo.example.com/services/managed-security-services-22/",
+              "https://demo.example.com/services/cloud-security-22/",
+              "https://demo.example.com/services/incident-response-22/",
+              "https://demo.example.com/services/cybersecurity-consulting-22/",
+              "https://demo.example.com/services/penetration-testing-23/",
+              "https://demo.example.com/services/soc-as-a-service-23/",
+              "https://demo.example.com/services/compliance-audit-23/",
+              "https://demo.example.com/services/cybersecurity-consulting-24/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-476/",
+              "https://demo.example.com/services/managed-security-services-24/",
+              "https://demo.example.com/services/cloud-security-24/",
+              "https://demo.example.com/services/incident-response-24/",
+              "https://demo.example.com/services/penetration-testing-25/",
+              "https://demo.example.com/services/soc-as-a-service-25/",
+              "https://demo.example.com/services/compliance-audit-25/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-516/",
+              "https://demo.example.com/services/managed-security-services-26/",
+              "https://demo.example.com/services/cloud-security-26/",
+              "https://demo.example.com/services/incident-response-26/",
+              "https://demo.example.com/services/cybersecurity-consulting-26/",
+              "https://demo.example.com/services/penetration-testing-27/",
+              "https://demo.example.com/services/soc-as-a-service-27/",
+              "https://demo.example.com/services/compliance-audit-27/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-556/",
+              "https://demo.example.com/services/managed-security-services-28/",
+              "https://demo.example.com/services/cloud-security-28/",
+              "https://demo.example.com/services/incident-response-28/",
+              "https://demo.example.com/services/cybersecurity-consulting-28/",
+              "https://demo.example.com/services/penetration-testing-29/",
+              "https://demo.example.com/services/soc-as-a-service-29/",
+              "https://demo.example.com/services/compliance-audit-29/",
+              "https://demo.example.com/services/managed-security-services-32/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-596/",
+              "https://demo.example.com/services/managed-security-services-30/",
+              "https://demo.example.com/services/cloud-security-30/",
+              "https://demo.example.com/services/incident-response-30/",
+              "https://demo.example.com/services/cybersecurity-consulting-30/",
+              "https://demo.example.com/services/penetration-testing-31/",
+              "https://demo.example.com/services/soc-as-a-service-31/",
+              "https://demo.example.com/services/compliance-audit-31/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-636/",
+              "https://demo.example.com/services/cloud-security-32/",
+              "https://demo.example.com/services/incident-response-32/",
+              "https://demo.example.com/services/cybersecurity-consulting-32/",
+              "https://demo.example.com/services/penetration-testing-33/",
+              "https://demo.example.com/services/soc-as-a-service-33/",
+              "https://demo.example.com/services/compliance-audit-33/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-676/",
+              "https://demo.example.com/services/managed-security-services-34/",
+              "https://demo.example.com/services/cloud-security-34/",
+              "https://demo.example.com/services/incident-response-34/",
+              "https://demo.example.com/services/cybersecurity-consulting-34/",
+              "https://demo.example.com/services/penetration-testing-35/",
+              "https://demo.example.com/services/soc-as-a-service-35/",
+              "https://demo.example.com/services/compliance-audit-35/",
+              "https://demo.example.com/services/cybersecurity-consulting-36/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-716/",
+              "https://demo.example.com/services/managed-security-services-36/",
+              "https://demo.example.com/services/cloud-security-36/",
+              "https://demo.example.com/services/incident-response-36/",
+              "https://demo.example.com/services/penetration-testing-37/",
+              "https://demo.example.com/services/soc-as-a-service-37/",
+              "https://demo.example.com/services/compliance-audit-37/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-756/",
+              "https://demo.example.com/services/managed-security-services-38/",
+              "https://demo.example.com/services/cloud-security-38/",
+              "https://demo.example.com/services/incident-response-38/",
+              "https://demo.example.com/services/cybersecurity-consulting-38/",
+              "https://demo.example.com/services/penetration-testing-39/",
+              "https://demo.example.com/services/soc-as-a-service-39/",
+              "https://demo.example.com/services/compliance-audit-39/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-796/",
+              "https://demo.example.com/services/managed-security-services-40/",
+              "https://demo.example.com/services/cloud-security-40/",
+              "https://demo.example.com/services/incident-response-40/",
+              "https://demo.example.com/services/cybersecurity-consulting-40/",
+              "https://demo.example.com/services/penetration-testing-41/",
+              "https://demo.example.com/services/soc-as-a-service-41/",
+              "https://demo.example.com/services/compliance-audit-41/",
+              "https://demo.example.com/services/cybersecurity-consulting-42/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-836/",
+              "https://demo.example.com/services/managed-security-services-42/",
+              "https://demo.example.com/services/cloud-security-42/",
+              "https://demo.example.com/services/incident-response-42/",
+              "https://demo.example.com/services/penetration-testing-43/",
+              "https://demo.example.com/services/soc-as-a-service-43/",
+              "https://demo.example.com/services/compliance-audit-43/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-876/",
+              "https://demo.example.com/services/managed-security-services-44/",
+              "https://demo.example.com/services/cloud-security-44/",
+              "https://demo.example.com/services/incident-response-44/",
+              "https://demo.example.com/services/cybersecurity-consulting-44/",
+              "https://demo.example.com/services/penetration-testing-45/",
+              "https://demo.example.com/services/soc-as-a-service-45/",
+              "https://demo.example.com/services/compliance-audit-45/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-916/",
+              "https://demo.example.com/services/managed-security-services-46/",
+              "https://demo.example.com/services/cloud-security-46/",
+              "https://demo.example.com/services/incident-response-46/",
+              "https://demo.example.com/services/cybersecurity-consulting-46/",
+              "https://demo.example.com/services/penetration-testing-47/",
+              "https://demo.example.com/services/soc-as-a-service-47/",
+              "https://demo.example.com/services/compliance-audit-47/",
+              "https://demo.example.com/services/cybersecurity-consulting-48/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-956/",
+              "https://demo.example.com/services/managed-security-services-48/",
+              "https://demo.example.com/services/cloud-security-48/",
+              "https://demo.example.com/services/incident-response-48/",
+              "https://demo.example.com/services/penetration-testing-49/",
+              "https://demo.example.com/services/soc-as-a-service-49/",
+              "https://demo.example.com/services/compliance-audit-49/",
+              "https://demo.example.com/sg/services/cybersecurity-consulting-996/"
+            ],
+            "risk": "high",
+            "recommendation": "Consolidate pages or differentiate intent and primary keyword"
+          },
+          {
+            "primary_keyword": "vapt services",
+            "url_count": 49,
+            "urls": [
+              "https://demo.example.com/services/cybersecurity-consulting-0/",
+              "https://demo.example.com/sg/services/vapt-56/",
+              "https://demo.example.com/services/vapt-3/",
+              "https://demo.example.com/sg/services/vapt-96/",
+              "https://demo.example.com/services/vapt-5/",
+              "https://demo.example.com/sg/services/vapt-136/",
+              "https://demo.example.com/services/vapt-7/",
+              "https://demo.example.com/sg/services/vapt-176/",
+              "https://demo.example.com/services/vapt-9/",
+              "https://demo.example.com/sg/services/vapt-216/",
+              "https://demo.example.com/services/vapt-11/",
+              "https://demo.example.com/sg/services/vapt-256/",
+              "https://demo.example.com/services/vapt-13/",
+              "https://demo.example.com/sg/services/vapt-296/",
+              "https://demo.example.com/services/vapt-15/",
+              "https://demo.example.com/sg/services/vapt-336/",
+              "https://demo.example.com/services/vapt-17/",
+              "https://demo.example.com/sg/services/vapt-376/",
+              "https://demo.example.com/services/vapt-19/",
+              "https://demo.example.com/sg/services/vapt-416/",
+              "https://demo.example.com/services/vapt-21/",
+              "https://demo.example.com/sg/services/vapt-456/",
+              "https://demo.example.com/services/vapt-23/",
+              "https://demo.example.com/sg/services/vapt-496/",
+              "https://demo.example.com/services/vapt-25/",
+              "https://demo.example.com/services/vapt-27/",
+              "https://demo.example.com/sg/services/vapt-536/",
+              "https://demo.example.com/sg/services/vapt-576/",
+              "https://demo.example.com/services/vapt-29/",
+              "https://demo.example.com/sg/services/vapt-616/",
+              "https://demo.example.com/services/vapt-31/",
+              "https://demo.example.com/sg/services/vapt-656/",
+              "https://demo.example.com/services/vapt-33/",
+              "https://demo.example.com/sg/services/vapt-696/",
+              "https://demo.example.com/services/vapt-35/",
+              "https://demo.example.com/sg/services/vapt-736/",
+              "https://demo.example.com/services/vapt-37/",
+              "https://demo.example.com/services/vapt-39/",
+              "https://demo.example.com/sg/services/vapt-776/",
+              "https://demo.example.com/sg/services/vapt-816/",
+              "https://demo.example.com/services/vapt-41/",
+              "https://demo.example.com/sg/services/vapt-856/",
+              "https://demo.example.com/services/vapt-43/",
+              "https://demo.example.com/sg/services/vapt-896/",
+              "https://demo.example.com/services/vapt-45/",
+              "https://demo.example.com/sg/services/vapt-936/",
+              "https://demo.example.com/services/vapt-47/",
+              "https://demo.example.com/sg/services/vapt-976/",
+              "https://demo.example.com/services/vapt-49/"
+            ],
+            "risk": "high",
+            "recommendation": "Consolidate pages or differentiate intent and primary keyword"
+          },
+          {
+            "primary_keyword": "vapt what is",
+            "url_count": 46,
+            "urls": [
+              "https://demo.example.com/insights/vapt-checklist-5/",
+              "https://demo.example.com/insights/vapt-checklist-125/",
+              "https://demo.example.com/insights/vapt-checklist-137/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-149/",
+              "https://demo.example.com/insights/vapt-checklist-185/",
+              "https://demo.example.com/insights/vapt-checklist-197/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-209/",
+              "https://demo.example.com/insights/vapt-checklist-545/",
+              "https://demo.example.com/insights/vapt-checklist-245/",
+              "https://demo.example.com/insights/vapt-checklist-257/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-269/",
+              "https://demo.example.com/insights/vapt-checklist-569/",
+              "https://demo.example.com/insights/vapt-checklist-305/",
+              "https://demo.example.com/insights/vapt-checklist-317/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-329/",
+              "https://demo.example.com/insights/vapt-checklist-605/",
+              "https://demo.example.com/insights/vapt-checklist-785/",
+              "https://demo.example.com/insights/vapt-checklist-365/",
+              "https://demo.example.com/insights/vapt-checklist-377/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-389/",
+              "https://demo.example.com/insights/vapt-checklist-797/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-425/",
+              "https://demo.example.com/insights/vapt-checklist-437/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-449/",
+              "https://demo.example.com/insights/vapt-checklist-485/",
+              "https://demo.example.com/insights/vapt-checklist-497/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-509/",
+              "https://demo.example.com/insights/vapt-checklist-557/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-617/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-629/",
+              "https://demo.example.com/insights/vapt-checklist-665/",
+              "https://demo.example.com/insights/vapt-checklist-677/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-689/",
+              "https://demo.example.com/insights/vapt-checklist-725/",
+              "https://demo.example.com/insights/vapt-checklist-737/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-749/",
+              "https://demo.example.com/insights/vapt-checklist-809/",
+              "https://demo.example.com/insights/vapt-checklist-845/",
+              "https://demo.example.com/insights/vapt-checklist-857/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-869/",
+              "https://demo.example.com/insights/vapt-checklist-905/",
+              "https://demo.example.com/insights/vapt-checklist-917/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-929/",
+              "https://demo.example.com/insights/vapt-checklist-965/",
+              "https://demo.example.com/insights/vapt-checklist-977/?utm_source=newsletter",
+              "https://demo.example.com/insights/vapt-checklist-989/"
+            ],
+            "risk": "high",
+            "recommendation": "Consolidate pages or differentiate intent and primary keyword"
+          },
+          {
+            "primary_keyword": "managed-security-services how to",
+            "url_count": 43,
+            "urls": [
+              "https://demo.example.com/support/faq-18/",
+              "https://demo.example.com/support/faq-178/",
+              "https://demo.example.com/support/faq-198/",
+              "https://demo.example.com/support/faq-218/",
+              "https://demo.example.com/support/faq-238/",
+              "https://demo.example.com/support/faq-258/",
+              "https://demo.example.com/support/faq-278/",
+              "https://demo.example.com/support/faq-298/",
+              "https://demo.example.com/support/faq-318/",
+              "https://demo.example.com/support/faq-338/",
+              "https://demo.example.com/support/faq-358/",
+              "https://demo.example.com/support/faq-378/",
+              "https://demo.example.com/support/faq-398/",
+              "https://demo.example.com/support/faq-418/",
+              "https://demo.example.com/support/faq-438/",
+              "https://demo.example.com/support/faq-458/",
+              "https://demo.example.com/support/faq-478/",
+              "https://demo.example.com/support/faq-498/",
+              "https://demo.example.com/support/faq-518/",
+              "https://demo.example.com/support/faq-538/",
+              "https://demo.example.com/support/faq-558/",
+              "https://demo.example.com/support/faq-578/",
+              "https://demo.example.com/support/faq-598/",
+              "https://demo.example.com/support/faq-618/",
+              "https://demo.example.com/support/faq-638/",
+              "https://demo.example.com/support/faq-658/",
+              "https://demo.example.com/support/faq-678/",
+              "https://demo.example.com/support/faq-698/",
+              "https://demo.example.com/support/faq-718/",
+              "https://demo.example.com/support/faq-738/",
+              "https://demo.example.com/support/faq-758/",
+              "https://demo.example.com/support/faq-778/",
+              "https://demo.example.com/support/faq-798/",
+              "https://demo.example.com/support/faq-818/",
+              "https://demo.example.com/support/faq-838/",
+              "https://demo.example.com/support/faq-858/",
+              "https://demo.example.com/support/faq-878/",
+              "https://demo.example.com/support/faq-898/",
+              "https://demo.example.com/support/faq-918/",
+              "https://demo.example.com/support/faq-938/",
+              "https://demo.example.com/support/faq-958/",
+              "https://demo.example.com/support/faq-978/",
+              "https://demo.example.com/support/faq-998/"
+            ],
+            "risk": "high",
+            "recommendation": "Consolidate pages or differentiate intent and primary keyword"
+          },
+          {
+            "primary_keyword": "soc-operations near me",
+            "url_count": 38,
+            "urls": [
+              "https://demo.example.com/locations/japan-15/",
+              "https://demo.example.com/locations/japan-155/",
+              "https://demo.example.com/locations/canada-195/",
+              "https://demo.example.com/locations/united-kingdom-215/",
+              "https://demo.example.com/locations/india-235/",
+              "https://demo.example.com/locations/germany-255/",
+              "https://demo.example.com/locations/australia-275/",
+              "https://demo.example.com/locations/japan-295/",
+              "https://demo.example.com/locations/canada-335/",
+              "https://demo.example.com/locations/united-kingdom-355/",
+              "https://demo.example.com/locations/india-375/",
+              "https://demo.example.com/locations/germany-395/",
+              "https://demo.example.com/locations/australia-415/",
+              "https://demo.example.com/locations/japan-435/",
+              "https://demo.example.com/locations/canada-475/",
+              "https://demo.example.com/locations/united-kingdom-495/",
+              "https://demo.example.com/locations/india-515/",
+              "https://demo.example.com/locations/germany-535/",
+              "https://demo.example.com/locations/australia-555/",
+              "https://demo.example.com/locations/japan-575/",
+              "https://demo.example.com/locations/canada-615/",
+              "https://demo.example.com/locations/united-kingdom-635/",
+              "https://demo.example.com/locations/india-655/",
+              "https://demo.example.com/locations/germany-675/",
+              "https://demo.example.com/locations/australia-695/",
+              "https://demo.example.com/locations/japan-715/",
+              "https://demo.example.com/locations/canada-755/",
+              "https://demo.example.com/locations/united-kingdom-775/",
+              "https://demo.example.com/locations/india-795/",
+              "https://demo.example.com/locations/germany-815/",
+              "https://demo.example.com/locations/australia-835/",
+              "https://demo.example.com/locations/japan-855/",
+              "https://demo.example.com/locations/canada-895/",
+              "https://demo.example.com/locations/united-kingdom-915/",
+              "https://demo.example.com/locations/india-935/",
+              "https://demo.example.com/locations/germany-955/",
+              "https://demo.example.com/locations/australia-975/",
+              "https://demo.example.com/locations/japan-995/"
+            ],
+            "risk": "high",
+            "recommendation": "Consolidate pages or differentiate intent and primary keyword"
+          },
+          {
+            "primary_keyword": "soc-operations near me singapore",
+            "url_count": 7,
+            "urls": [
+              "https://demo.example.com/locations/singapore-35/",
+              "https://demo.example.com/locations/singapore-175/",
+              "https://demo.example.com/locations/singapore-315/",
+              "https://demo.example.com/locations/singapore-455/",
+              "https://demo.example.com/locations/singapore-595/",
+              "https://demo.example.com/locations/singapore-735/",
+              "https://demo.example.com/locations/singapore-875/"
+            ],
+            "risk": "high",
+            "recommendation": "Consolidate pages or differentiate intent and primary keyword"
+          }
+        ],
+        "method": "token_coverage+intent+volume+uniqueness"
+      }
+    },
+    {
+      "id": 14,
+      "project_id": 1,
+      "job_type": "generate_report",
+      "name": "Weekly SEO report",
+      "status": "failed",
+      "progress": 10,
+      "total": 100,
+      "message": "ProgrammingError: (psycopg2.errors.GroupingError) column \"analytics_records.clicks\" must appear in the GROUP BY clause or be used in an aggregate function\nLINE 1: ...d_start<='2026-11-08' GROUP BY dimension ORDER BY clicks DES...\n                                                             ^\n\n[SQL: SELECT dimension, SUM(clicks), SUM(impressions) FROM analytics_records WHERE project_id=%(p)s AND dimension_type='query' AND period_start>=%(s)s AND period_start<=%(e)s GROUP BY dimension ORDER BY cli",
+      "error": "ProgrammingError: (psycopg2.errors.GroupingError) column \"analytics_records.clicks\" must appear in the GROUP BY clause or be used in an aggregate function\nLINE 1: ...d_start<='2026-11-08' GROUP BY dimension ORDER BY clicks DES...\n                                                             ^\n\n[SQL: SELECT dimension, SUM(clicks), SUM(impressions) FROM analytics_records WHERE project_id=%(p)s AND dimension_type='query' AND period_start>=%(s)s AND period_start<=%(e)s GROUP BY dimension ORDER BY clicks DESC LIMIT 10]\n[parameters: {'p': 1, 's': '2026-11-02', 'e': '2026-11-08'}]\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+      "created_at": "2026-11-22T18:16:06.117957",
+      "started_at": "2026-11-22T18:16:36.635990+00:00",
+      "finished_at": "2026-11-22T18:16:36.651083+00:00",
+      "result": {}
+    },
+    {
+      "id": 13,
+      "project_id": 1,
+      "job_type": "ai_readiness",
+      "name": "AI search readiness audit",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:16:05.619599",
+      "started_at": "2026-11-22T18:16:32.222607+00:00",
+      "finished_at": "2026-11-22T18:16:36.626687+00:00",
+      "result": {
+        "readiness_items": 6000,
+        "observed_questions": 8,
+        "brand_mentions_observed": 10,
+        "note": "Readiness is derived from crawl evidence. Visibility is only reported from user-supplied or manually verified observations. No guarantee of AI answer inclusion is made."
+      }
+    },
+    {
+      "id": 12,
+      "project_id": 1,
+      "job_type": "migration_validate",
+      "name": "Migration validation",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:16:05.106804",
+      "started_at": "2026-11-22T18:16:30.336498+00:00",
+      "finished_at": "2026-11-22T18:16:32.152503+00:00",
+      "result": {
+        "mappings_checked": 250,
+        "findings": {
+          "new_url_404": 4,
+          "new_url_not_indexable": 3,
+          "redirect_chain": 2,
+          "canonical_mismatch": 1
+        },
+        "high_risk_mappings": 240,
+        "pre_launch_checklist": [
+          "All old URLs have an intended destination or deliberate 410",
+          "Redirects are 301 for permanent moves and direct to final URL",
+          "No redirect loops or chains",
+          "Canonicals point to new URLs",
+          "New sitemap contains intended indexable URLs",
+          "Internal links updated to new URLs",
+          "GSC/GA baselines captured for equivalent comparison"
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "project_id": 1,
+      "job_type": "ecommerce_audit",
+      "name": "E-commerce audit",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:16:04.568935",
+      "started_at": "2026-11-22T18:16:29.518888+00:00",
+      "finished_at": "2026-11-22T18:16:30.328083+00:00",
+      "result": {
+        "products": 200,
+        "diagnostic_counts": {
+          "missing_product_identifier": 23,
+          "unavailable_product": 7,
+          "duplicate_description": 16,
+          "no_canonical_declared": 19,
+          "missing_product_schema": 40,
+          "missing_breadcrumb_schema": 40
+        },
+        "note": "Merchant Center issues are from imported diagnostics or user data unless an official integration is configured."
+      }
+    },
+    {
+      "id": 10,
+      "project_id": 1,
+      "job_type": "local_audit",
+      "name": "Local SEO audit",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:16:03.828796",
+      "started_at": "2026-11-22T18:16:28.937058+00:00",
+      "finished_at": "2026-11-22T18:16:29.446979+00:00",
+      "result": {
+        "locations": 250,
+        "duplicate_suspects": 0,
+        "incomplete_profiles": 0,
+        "inconsistent_phone_brands": [
+          "Acme Cyber",
+          "Northstar Security",
+          "Sentinel Labs"
+        ],
+        "note": "Review duplicates manually; identical phone numbers can be legitimate for shared call centres."
+      }
+    },
+    {
+      "id": 9,
+      "project_id": 1,
+      "job_type": "competitor_analysis",
+      "name": "Competitor gap analysis",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:16:02.815802",
+      "started_at": "2026-11-22T18:16:28.741942+00:00",
+      "finished_at": "2026-11-22T18:16:28.928895+00:00",
+      "result": {
+        "competitors": [],
+        "competitor_keywords": 0,
+        "gaps_created": 0,
+        "note": "Analysis uses user-supplied exports only; no private competitor data is implied."
+      }
+    },
+    {
+      "id": 8,
+      "project_id": 1,
+      "job_type": "generate_briefs",
+      "name": "Content brief generation",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:16:02.028517",
+      "started_at": "2026-11-22T18:16:27.934522+00:00",
+      "finished_at": "2026-11-22T18:16:28.732928+00:00",
+      "result": {
+        "briefs_created": 500,
+        "data_kind": "rule-based suggestions; not copied competitor content"
+      }
+    },
+    {
+      "id": 7,
+      "project_id": 1,
+      "job_type": "content_analysis",
+      "name": "Content analysis",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:16:00.921281",
+      "started_at": "2026-11-22T18:16:25.329403+00:00",
+      "finished_at": "2026-11-22T18:16:27.925094+00:00",
+      "result": {
+        "analysed": 1000,
+        "average_score": 76.85,
+        "data_kind": "derived_from_crawl_observations"
+      }
+    },
+    {
+      "id": 6,
+      "project_id": 1,
+      "job_type": "map_keywords",
+      "name": "Keyword to URL mapping",
+      "status": "failed",
+      "progress": 20,
+      "total": 100,
+      "message": "ProgrammingError: (psycopg2.errors.UndefinedFunction) function group_concat(text) does not exist\nLINE 1: SELECT primary_keyword, COUNT(*) c, GROUP_CONCAT(url) urls F...\n                                            ^\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\n\n[SQL: SELECT primary_keyword, COUNT(*) c, GROUP_CONCAT(url) urls FROM keyword_mappings WHERE project_id=%(p)s GROUP BY lower(primary_keyword) HAVING c > 1 ORDER BY c DESC LIMIT 50",
+      "error": "ProgrammingError: (psycopg2.errors.UndefinedFunction) function group_concat(text) does not exist\nLINE 1: SELECT primary_keyword, COUNT(*) c, GROUP_CONCAT(url) urls F...\n                                            ^\nHINT:  No function matches the given name and argument types. You might need to add explicit type casts.\n\n[SQL: SELECT primary_keyword, COUNT(*) c, GROUP_CONCAT(url) urls FROM keyword_mappings WHERE project_id=%(p)s GROUP BY lower(primary_keyword) HAVING c > 1 ORDER BY c DESC LIMIT 5000]\n[parameters: {'p': 1}]\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+      "created_at": "2026-11-22T18:15:59.827281",
+      "started_at": "2026-11-22T18:16:19.741645+00:00",
+      "finished_at": "2026-11-22T18:16:25.316562+00:00",
+      "result": {}
+    },
+    {
+      "id": 5,
+      "project_id": 1,
+      "job_type": "cluster_keywords",
+      "name": "Keyword clustering",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:15:58.927270",
+      "started_at": "2026-11-22T18:16:15.422104+00:00",
+      "finished_at": "2026-11-22T18:16:19.729480+00:00",
+      "result": {
+        "method": "normalized",
+        "keywords": 1000,
+        "clusters": 142,
+        "thresholds": {
+          "threshold": 0.45
+        },
+        "clusters_sample": [
+          {
+            "cluster_id": 1,
+            "name": "Singapore Services Password-Security (1)",
+            "keywords": 1,
+            "primary": "password-security services singapore"
+          },
+          {
+            "cluster_id": 2,
+            "name": "Managed-Security-Services Provider (12)",
+            "keywords": 12,
+            "primary": "managed-security-services provider"
+          },
+          {
+            "cluster_id": 3,
+            "name": "Pricing Cloud-Security (11)",
+            "keywords": 11,
+            "primary": "cloud-security pricing"
+          },
+          {
+            "cluster_id": 4,
+            "name": "Ransomware-Response (11)",
+            "keywords": 11,
+            "primary": "ransomware-response best"
+          },
+          {
+            "cluster_id": 5,
+            "name": "Cybersecurity-Consulting Guide (11)",
+            "keywords": 11,
+            "primary": "cybersecurity-consulting guide"
+          },
+          {
+            "cluster_id": 6,
+            "name": "Checklist Penetration-Testing (11)",
+            "keywords": 11,
+            "primary": "penetration-testing checklist"
+          },
+          {
+            "cluster_id": 7,
+            "name": "Soc-Operations (11)",
+            "keywords": 11,
+            "primary": "soc-operations near me"
+          },
+          {
+            "cluster_id": 8,
+            "name": "Singapore Compliance-Audit (11)",
+            "keywords": 11,
+            "primary": "compliance-audit singapore"
+          },
+          {
+            "cluster_id": 9,
+            "name": "Comparison Vapt (11)",
+            "keywords": 11,
+            "primary": "vapt comparison"
+          },
+          {
+            "cluster_id": 10,
+            "name": "Access-Control Review (11)",
+            "keywords": 11,
+            "primary": "access-control review"
+          },
+          {
+            "cluster_id": 11,
+            "name": "Cloud-Security (11)",
+            "keywords": 11,
+            "primary": "cloud-security what is"
+          },
+          {
+            "cluster_id": 12,
+            "name": "Incident-Response (12)",
+            "keywords": 12,
+            "primary": "incident-response how to"
+          },
+          {
+            "cluster_id": 13,
+            "name": "Tools Password-Security (12)",
+            "keywords": 12,
+            "primary": "password-security tools"
+          },
+          {
+            "cluster_id": 14,
+            "name": "Company Penetration-Testing (11)",
+            "keywords": 11,
+            "primary": "penetration-testing company"
+          },
+          {
+            "cluster_id": 15,
+            "name": "Services Soc-As-A-Service (11)",
+            "keywords": 11,
+            "primary": "soc-as-a-service services"
+          },
+          {
+            "cluster_id": 16,
+            "name": "Provider Ransomware-Response (12)",
+            "keywords": 12,
+            "primary": "ransomware-response provider"
+          },
+          {
+            "cluster_id": 17,
+            "name": "Pricing Vapt (12)",
+            "keywords": 12,
+            "primary": "vapt pricing"
+          },
+          {
+            "cluster_id": 18,
+            "name": "Singapore Managed-Security-Services (1)",
+            "keywords": 1,
+            "primary": "managed-security-services best singapore"
+          },
+          {
+            "cluster_id": 19,
+            "name": "Guide Soc-Operations (11)",
+            "keywords": 11,
+            "primary": "soc-operations guide"
+          },
+          {
+            "cluster_id": 20,
+            "name": "Incident-Response Checklist (11)",
+            "keywords": 11,
+            "primary": "incident-response checklist"
+          }
+        ],
+        "note": "Semantic method uses character-similarity rules; no external embedding provider is called unless configured separately."
+      }
+    },
+    {
+      "id": 4,
+      "project_id": 1,
+      "job_type": "link_suggestions",
+      "name": "Internal link analysis",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:15:58.014865",
+      "started_at": "2026-11-22T18:16:10.351129+00:00",
+      "finished_at": "2026-11-22T18:16:15.348663+00:00",
+      "result": {
+        "urls_analysed": 1000,
+        "edges_analysed": 981,
+        "orphans": 320,
+        "important_weak_pages": 438,
+        "excessive_link_pages": 0,
+        "broken_links": 23,
+        "depth_distribution": {
+          "1": 300,
+          "8": 91,
+          "3": 117,
+          "7": 106,
+          "5": 102,
+          "4": 94,
+          "6": 100,
+          "2": 90
+        },
+        "anchor_examples": {
+          "https://demo.example.com/services/cloud-security-0/": [
+            [
+              "password security",
+              1
+            ]
+          ],
+          "https://demo.example.com/insights/vapt-checklist-5/": [
+            [
+              "phishing awareness",
+              1
+            ]
+          ],
+          "https://demo.example.com/services/incident-response-0/": [
+            [
+              "zero trust",
+              1
+            ]
+          ],
+          "https://demo.example.com/services/cybersecurity-consulting-0/": [
+            [
+              "ransomware response",
+              1
+            ]
+          ],
+          "https://demo.example.com/insights/data-encryption-8/": [
+            [
+              "cloud misconfiguration",
+              1
+            ]
+          ],
+          "https://demo.example.com/insights/soc-operations-6/": [
+            [
+              "vapt checklist",
+              1
+            ]
+          ],
+          "https://demo.example.com/products/category-10/product-10/": [
+            [
+              "soc operations",
+              1
+            ],
+            [
+              "data encryption",
+              1
+            ]
+          ],
+          "https://demo.example.com/products/category-0/product-12/": [
+            [
+              "access control",
+              1
+            ]
+          ],
+          "https://demo.example.com/category/category-2/page-14/": [
+            [
+              "security logging",
+              1
+            ]
+          ],
+          "https://demo.example.com/locations/japan-15/": [
+            [
+              "supply chain risk",
+              1
+            ],
+            [
+              "password security",
+              1
+            ]
+          ]
+        },
+        "suggestions_created": 1839,
+        "broken_sample": [
+          {
+            "source": "https://demo.example.com/category/category-1/page-13/",
+            "target": "https://demo.example.com/insights/vapt-checklist-17/?utm_source=newsletter",
+            "anchor": "phishing awareness"
+          },
+          {
+            "source": "https://demo.example.com/category/category-2/page-14/",
+            "target": "https://demo.example.com/insights/vapt-checklist-17/?utm_source=newsletter",
+            "anchor": "zero trust"
+          },
+          {
+            "source": "https://demo.example.com/insights/ransomware-response-27/",
+            "target": "https://demo.example.com/products/category-7/product-31/",
+            "anchor": "ransomware response"
+          },
+          {
+            "source": "https://demo.example.com/support/faq-178/",
+            "target": "https://demo.example.com/services/soc-as-a-service-9/",
+            "anchor": "security logging"
+          },
+          {
+            "source": "https://demo.example.com/support/faq-238/",
+            "target": "https://demo.example.com/home-240/",
+            "anchor": "security logging"
+          },
+          {
+            "source": "https://demo.example.com/blog/supply-chain-risk-239/",
+            "target": "https://demo.example.com/home-240/",
+            "anchor": "supply chain risk"
+          },
+          {
+            "source": "https://demo.example.com/insights/phishing-awareness-289/",
+            "target": "https://demo.example.com/products/category-3/product-291/",
+            "anchor": "phishing awareness"
+          },
+          {
+            "source": "https://demo.example.com/insights/access-control-417/?utm_source=newsletter",
+            "target": "https://demo.example.com/services/penetration-testing-21/",
+            "anchor": "access control"
+          },
+          {
+            "source": "https://demo.example.com/insights/incident-playbook-427/",
+            "target": "https://demo.example.com/insights/data-encryption-428/",
+            "anchor": "incident playbook"
+          },
+          {
+            "source": "https://demo.example.com/home-480/",
+            "target": "https://demo.example.com/services/cybersecurity-consulting-24/",
+            "anchor": "password security"
+          },
+          {
+            "source": "https://demo.example.com/services/cloud-security-24/",
+            "target": "https://demo.example.com/services/cybersecurity-consulting-24/",
+            "anchor": "zero trust"
+          },
+          {
+            "source": "https://demo.example.com/services/incident-response-28/",
+            "target": "https://demo.example.com/insights/phishing-awareness-565/",
+            "anchor": "supply chain risk"
+          },
+          {
+            "source": "https://demo.example.com/services/cybersecurity-consulting-28/",
+            "target": "https://demo.example.com/insights/phishing-awareness-565/",
+            "anchor": "password security"
+          },
+          {
+            "source": "https://demo.example.com/support/faq-598/",
+            "target": "https://demo.example.com/services/cloud-security-30/",
+            "anchor": "security logging"
+          },
+          {
+            "source": "https://demo.example.com/products/category-7/product-631/",
+            "target": "https://demo.example.com/category/category-9/page-633/",
+            "anchor": "incident playbook"
+          },
+          {
+            "source": "https://demo.example.com/products/category-8/product-632/",
+            "target": "https://demo.example.com/locations/united-kingdom-635/",
+            "anchor": "data encryption"
+          },
+          {
+            "source": "https://demo.example.com/category/category-9/page-633/",
+            "target": "https://demo.example.com/locations/united-kingdom-635/",
+            "anchor": "access control"
+          },
+          {
+            "source": "https://demo.example.com/home-780/",
+            "target": "https://demo.example.com/services/compliance-audit-39/",
+            "anchor": "password security"
+          },
+          {
+            "source": "https://demo.example.com/services/soc-as-a-service-39/",
+            "target": "https://demo.example.com/insights/soc-operations-786/",
+            "anchor": "zero trust"
+          },
+          {
+            "source": "https://demo.example.com/home-880/",
+            "target": "https://demo.example.com/services/cybersecurity-consulting-44/",
+            "anchor": "cloud misconfiguration"
+          }
+        ],
+        "important_weak_sample": [
+          {
+            "url": "https://demo.example.com/",
+            "inlinks": 0,
+            "clicks": 72.0,
+            "revenue": 0.0,
+            "importance": 0.4,
+            "page_type": "homepage",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/services/managed-security-services-0/",
+            "inlinks": 0,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "service",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/services/cloud-security-0/",
+            "inlinks": 1,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "service",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/services/incident-response-0/",
+            "inlinks": 1,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "service",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/services/cybersecurity-consulting-0/",
+            "inlinks": 1,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "service",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/insights/incident-playbook-7/",
+            "inlinks": 0,
+            "clicks": 63.0,
+            "revenue": 0.0,
+            "importance": 0.4,
+            "page_type": "article",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/products/category-10/product-10/",
+            "inlinks": 2,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "product",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/products/category-11/product-11/",
+            "inlinks": 0,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "product",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/products/category-0/product-12/",
+            "inlinks": 1,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "product",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/category/category-2/page-14/",
+            "inlinks": 1,
+            "clicks": 96.0,
+            "revenue": 0.0,
+            "importance": 0.4,
+            "page_type": "category",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/sg/services/vapt-16/",
+            "inlinks": 0,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "service",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/insights/vapt-checklist-17/?utm_source=newsletter",
+            "inlinks": 2,
+            "clicks": 57.0,
+            "revenue": 1817.0,
+            "importance": 0.4,
+            "page_type": "article",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/services/penetration-testing-1/",
+            "inlinks": 1,
+            "clicks": 33.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "service",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/services/soc-as-a-service-1/",
+            "inlinks": 1,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "service",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/services/compliance-audit-1/",
+            "inlinks": 0,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "service",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/services/vapt-1/",
+            "inlinks": 1,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "service",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/products/category-6/product-30/",
+            "inlinks": 1,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "product",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/products/category-7/product-31/",
+            "inlinks": 1,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "product",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/products/category-8/product-32/",
+            "inlinks": 2,
+            "clicks": 0.0,
+            "revenue": 0.0,
+            "importance": 0.85,
+            "page_type": "product",
+            "reason": "High business or page importance with few internal links"
+          },
+          {
+            "url": "https://demo.example.com/locations/singapore-35/",
+            "inlinks": 2,
+            "clicks": 76.0,
+            "revenue": 0.0,
+            "importance": 0.4,
+            "page_type": "location",
+            "reason": "High business or page importance with few internal links"
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "project_id": 1,
+      "job_type": "detect_orphans",
+      "name": "Orphan detection",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:15:57.026855",
+      "started_at": "2026-11-22T18:16:02.629700+00:00",
+      "finished_at": "2026-11-22T18:16:10.335905+00:00",
+      "result": {
+        "detected_at": "2026-11-22T18:16:08.522586+00:00",
+        "total_urls_considered": 1000,
+        "orphan_urls": 320,
+        "by_classification": {
+          "Backlink-supported orphan": 26,
+          "Confirmed crawl orphan": 240,
+          "Search-visible orphan": 45,
+          "Excluded or intentionally isolated URL": 6,
+          "Canonicalised orphan": 2,
+          "Redirected orphan": 1
+        },
+        "method": "union_of_sources_minus_discovered_internal_inlinks"
+      }
+    },
+    {
+      "id": 2,
+      "project_id": 1,
+      "job_type": "detect_issues",
+      "name": "Technical audit",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:15:56.395633",
+      "started_at": "2026-11-22T18:15:56.793995+00:00",
+      "finished_at": "2026-11-22T18:16:02.616703+00:00",
+      "result": {
+        "detected_at": "2026-11-22T18:15:56.801207+00:00",
+        "issues": {
+          "http_404": {
+            "count": 15,
+            "priority": "P0",
+            "score": 85.3
+          },
+          "http_4xx": {
+            "count": 4,
+            "priority": "P3",
+            "score": 26.6
+          },
+          "http_5xx": {
+            "count": 6,
+            "priority": "P2",
+            "score": 38.01
+          },
+          "redirect_chain": {
+            "count": 6,
+            "priority": "P2",
+            "score": 48.37
+          },
+          "canonical_mismatch": {
+            "count": 5,
+            "priority": "P2",
+            "score": 46.74
+          },
+          "canonical_conflict": {
+            "count": 5,
+            "priority": "P2",
+            "score": 51.24
+          },
+          "noindex_in_sitemap": {
+            "count": 5,
+            "priority": "P2",
+            "score": 52.72
+          },
+          "indexability_inconsistent": {
+            "count": 12,
+            "priority": "P1",
+            "score": 77.86
+          },
+          "missing_title": {
+            "count": 4,
+            "priority": "P3",
+            "score": 19.6
+          },
+          "missing_h1": {
+            "count": 4,
+            "priority": "P3",
+            "score": 15.1
+          },
+          "duplicate_title": {
+            "count": 996,
+            "priority": "P0",
+            "score": 84.05
+          },
+          "duplicate_description": {
+            "count": 1000,
+            "priority": "P1",
+            "score": 79.56
+          },
+          "thin_content": {
+            "count": 4,
+            "priority": "P3",
+            "score": 19.6
+          },
+          "slow_response": {
+            "count": 4,
+            "priority": "P3",
+            "score": 19.6
+          },
+          "oversized_page": {
+            "count": 4,
+            "priority": "P3",
+            "score": 15.1
+          },
+          "invalid_schema": {
+            "count": 4,
+            "priority": "P3",
+            "score": 19.6
+          },
+          "hreflang_error": {
+            "count": 4,
+            "priority": "P3",
+            "score": 28.56
+          },
+          "soft_404": {
+            "count": 4,
+            "priority": "P3",
+            "score": 19.6
+          }
+        },
+        "total_issue_groups": 18,
+        "records_scanned": 1000
+      }
+    },
+    {
+      "id": 1,
+      "project_id": null,
+      "job_type": "generate_demo",
+      "name": "Generate 1,000 URL demo",
+      "status": "succeeded",
+      "progress": 100,
+      "total": 100,
+      "message": "Completed",
+      "error": "",
+      "created_at": "2026-11-22T18:14:24.636498",
+      "started_at": "2026-11-22T18:14:25.149598+00:00",
+      "finished_at": "2026-11-22T18:14:33.731456+00:00",
+      "result": {
+        "project_id": 1,
+        "organization_id": 1,
+        "size": 1000,
+        "urls": 1000,
+        "sitemap_entries": 857,
+        "link_edges": 981,
+        "keywords": 1000,
+        "analytics_rows": 1200,
+        "planted_issues": {
+          "high_value_404": 8,
+          "ordinary_404": 7,
+          "redirect_chain": 6,
+          "server_error": 6,
+          "canonical_conflict": 5,
+          "noindex_in_sitemap": 5,
+          "duplicate_metadata": 5,
+          "thin_content": 4,
+          "slow_oversized": 4,
+          "invalid_schema": 4,
+          "hreflang_partial": 4,
+          "intentional_410": 4
+        },
+        "data_kind": "synthetic",
+        "disclaimer": "All traffic, revenue and keyword metrics are simulated for rule testing only."
+      }
+    }
+  ],
+  "total": 23,
+  "page": 1,
+  "page_size": 50,
+  "has_more": false
+}

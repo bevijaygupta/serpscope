@@ -1,0 +1,22 @@
+{
+  "total": 432,
+  "by_status": {
+    "0": 2,
+    "200": 300,
+    "404": 30,
+    "None": 100
+  },
+  "by_page_type": {
+    "article": 124,
+    "careers": 1,
+    "category": 7,
+    "faq": 1,
+    "homepage": 1,
+    "service": 2,
+    "unknown": 296
+  },
+  "by_data_kind": {
+    "public_sitemap": 183,
+    "live_crawl": 249
+  }
+}
