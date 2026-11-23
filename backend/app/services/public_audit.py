@@ -466,7 +466,7 @@ def _report_sections(audit: dict) -> list[dict]:
     meta = audit["meta"]
     coverage = audit["coverage"]
     counts = audit["counts"]
-    top = audit["findings"][:8]
+    top = audit["findings"]
     return [
         {
             "heading": "1. Executive summary",
@@ -540,7 +540,7 @@ def to_ppt_slides(audit: dict) -> list[dict]:
         ],
         "note": "Coverage is the observed public sample. See raw crawl observations for request-level evidence.",
     })
-    for finding in audit["findings"][:10]:
+    for finding in audit["findings"]:
         slides.append({
             "title": f"{finding['severity']} · {finding['title']}",
             "bullets": [

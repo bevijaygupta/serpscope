@@ -11,7 +11,6 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import re
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -84,10 +83,7 @@ def save_export(prefix: str, path: str, params: dict[str, Any], fmt: str, *, aut
     response = request(path, params=all_params, auth=auth)
     if response.status_code != 200:
         return
-    disposition = response.headers.get("content-disposition", "")
-    suggested = re.search(r'filename="?([^";]+)"?', disposition)
-    filename = suggested.group(1) if suggested else f"{prefix}.{fmt}"
-    save(f"exports/{prefix}_{fmt}{Path(filename).suffix if not filename.endswith(fmt) else ''}", response.content,
+    save(f"exports/{prefix}_{fmt}.{fmt}", response.content,
          path + "?" + str(httpx.QueryParams(all_params)))
 
 
@@ -195,14 +191,14 @@ def main() -> None:
     result = job.get("result") or {}
     crawl_id = int(result.get("crawl_id") or (audit.get("meta") or {}).get("crawl_id") or 0)
 
-    crawl = save_endpoint("03_crawl_run.json", f"/api/v1/crawler/runs/{crawl_id}") if crawl_id else None
+    crawl = save_endpoint("03_crawl_run.json", f"/api/v1/crawler/runs/{crawl_id}", params={"project_id": PROJECT_ID}) if crawl_id else None
     save_endpoint("04_job_list.json", "/api/v1/jobs", params={"limit": 50})
     save_endpoint("05_public_audit_reports.json", f"/api/v1/audits/projects/{PROJECT_ID}/public-audit/reports")
     save_endpoint("06_analytics_reports.json", f"/api/v1/analytics/reports", params={"project_id": PROJECT_ID, "limit": 100})
     save_endpoint("07_inventory_summary.json", f"/api/v1/inventory/summary", params={"project_id": PROJECT_ID})
     save_endpoint("08_meta_export_columns.json", "/api/v1/meta/export-columns")
     if crawl_id:
-        save_endpoint(f"09_crawl_observations_page.json", f"/api/v1/crawler/runs/{crawl_id}/observations", params={"offset": 0, "limit": 1000})
+        save_endpoint("09_crawl_observations_page.json", f"/api/v1/crawler/runs/{crawl_id}/observations", params={"project_id": PROJECT_ID, "offset": 0, "limit": 1000})
 
     save_paged("10_url_inventory.json", "/api/v1/inventory/urls", params={"project_id": PROJECT_ID})
     save_paged("11_technical_issues.json", "/api/v1/technical/issues", params={"project_id": PROJECT_ID})
@@ -222,7 +218,7 @@ def main() -> None:
     if crawl_id:
         export = f"/api/v1/crawler/runs/{crawl_id}/export"
         for fmt in ("csv", "json", "xlsx"):
-            save_export("crawl_observations", export, {}, fmt)
+            save_export("crawl_observations", export, {"project_id": PROJECT_ID}, fmt)
 
     module_exports = [
         ("url_inventory", "/api/v1/inventory/export", {"project_id": PROJECT_ID}, ("csv", "json", "xlsx")),

@@ -218,6 +218,11 @@ def test_public_audit_routes_and_exports_are_registered(client, db, auth_headers
     assert exported["roadmap"] == payload["roadmap"]
     assert exported["coverage"] == payload["coverage"]
 
+    from app.services.public_audit import to_ppt_slides
+    slide_titles = " | ".join(slide["title"] for slide in to_ppt_slides(exported))
+    for finding in exported["findings"]:
+        assert finding["title"] in slide_titles
+
     case_study = client.get(f"/api/v1/public/case-studies/{project.id}")
     assert case_study.status_code == 200
     assert case_study.json()["meta"]["project_id"] == project.id
