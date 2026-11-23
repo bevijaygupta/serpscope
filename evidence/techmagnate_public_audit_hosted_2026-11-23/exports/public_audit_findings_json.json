@@ -1,0 +1,134 @@
+[
+  {
+    "id": "http_errors",
+    "severity": "High",
+    "category": "status",
+    "affected_count": 30,
+    "observation": "30 fetched URLs returned 4xx/5xx. Observed distribution: 404: 30",
+    "recommended_action": "Triage server errors first, then restore or deliberately retire 4xx URLs; map replacements from observed similar pages.",
+    "source": "crawl_observations; url_records",
+    "confidence": "verified_from_public_evidence",
+    "limitation": ""
+  },
+  {
+    "id": "missing_title",
+    "severity": "High",
+    "category": "content",
+    "affected_count": 30,
+    "observation": "Crawled pages with no <title> element.",
+    "recommended_action": "Add unique, descriptive titles reflecting the page topic and brand.",
+    "source": "crawl_observations; technical issue rules",
+    "confidence": "derived_from_observations",
+    "limitation": ""
+  },
+  {
+    "id": "canonical_signals",
+    "severity": "High",
+    "category": "indexability",
+    "affected_count": 2,
+    "observation": "Canonical URL differs from the fetched URL on the observed pages.",
+    "recommended_action": "Confirm intended canonical, then align canonical tags, sitemap entries and internal links.",
+    "source": "crawl_observations; technical issue rules",
+    "confidence": "verified_from_public_evidence",
+    "limitation": ""
+  },
+  {
+    "id": "aeo_readiness",
+    "severity": "Medium",
+    "category": "aeo",
+    "affected_count": 749,
+    "observation": "Rule-based gaps across question coverage, answer extraction, entity clarity, structured data, provenance and internal context. Most common: structured_data=249, author_organisation_info=249, question_coverage=191, answer_extraction=30",
+    "recommended_action": "Prioritise question headings, concise answer blocks, visible organisation details and valid structured data on commercially important pages.",
+    "source": "crawl_observations; AEO readiness rules",
+    "confidence": "derived_from_observations",
+    "limitation": "Readiness is not the same as observed visibility in ChatGPT, Claude, Perplexity or Google AI Overviews."
+  },
+  {
+    "id": "slow_response",
+    "severity": "Medium",
+    "category": "performance",
+    "affected_count": 246,
+    "observation": "Fetched URLs exceeded the 2,500 ms rule threshold.",
+    "recommended_action": "Investigate server time, caching and heavy templates; re-crawl after fixes.",
+    "source": "crawl_observations; technical issue rules",
+    "confidence": "derived_from_observations",
+    "limitation": ""
+  },
+  {
+    "id": "duplicate_title",
+    "severity": "Medium",
+    "category": "content",
+    "affected_count": 35,
+    "observation": "Identical titles were observed on more than one URL.",
+    "recommended_action": "Differentiate titles by topic, intent and location.",
+    "source": "crawl_observations; technical issue rules",
+    "confidence": "derived_from_observations",
+    "limitation": ""
+  },
+  {
+    "id": "missing_h1",
+    "severity": "Medium",
+    "category": "content",
+    "affected_count": 30,
+    "observation": "Crawled pages with no H1 element.",
+    "recommended_action": "Add one clear H1 that matches the page's primary topic.",
+    "source": "crawl_observations; technical issue rules",
+    "confidence": "derived_from_observations",
+    "limitation": ""
+  },
+  {
+    "id": "redirects",
+    "severity": "Medium",
+    "category": "indexability",
+    "affected_count": 4,
+    "observation": "One or more fetched URLs required multiple redirect hops.",
+    "recommended_action": "Point internal links and sitemap entries directly at the final URL; remove cyclical rules.",
+    "source": "crawl_observations; technical issue rules",
+    "confidence": "verified_from_public_evidence",
+    "limitation": ""
+  },
+  {
+    "id": "missing_description",
+    "severity": "Low",
+    "category": "content",
+    "affected_count": 63,
+    "observation": "Crawled pages with no meta description.",
+    "recommended_action": "Write concise descriptions that differentiate each page; Google may still rewrite them.",
+    "source": "crawl_observations; technical issue rules",
+    "confidence": "derived_from_observations",
+    "limitation": ""
+  },
+  {
+    "id": "missing_schema",
+    "severity": "Low",
+    "category": "structured-data",
+    "affected_count": 56,
+    "observation": "Service/product/article pages without detected JSON-LD structured data.",
+    "recommended_action": "Add valid Organization, Service/Product, BreadcrumbList and FAQ markup where genuinely applicable.",
+    "source": "crawl_observations; structured-data rules",
+    "confidence": "derived_from_observations",
+    "limitation": ""
+  },
+  {
+    "id": "crawl_scope",
+    "severity": "Info",
+    "category": "method",
+    "affected_count": 219,
+    "observation": "Fetched 219 URLs from 497 discovered URLs with robots respect enabled; 0 fetch failures recorded.",
+    "recommended_action": "Treat this as a representative public sample, then widen depth/limits with authorisation for a full-site audit.",
+    "source": "crawl run summary; raw crawl observations",
+    "confidence": "verified_from_public_evidence",
+    "limitation": "No JavaScript rendering, authenticated pages, private analytics or vendor APIs are included."
+  },
+  {
+    "id": "sitemap_evidence",
+    "severity": "Positive",
+    "category": "sitemap",
+    "affected_count": 0,
+    "observation": "Discovered 0 sitemap URL entries from 0 sitemap document(s).",
+    "recommended_action": "Reconcile sitemap URLs with indexable, canonical final URLs and remove obsolete entries.",
+    "source": "robots.txt; sitemap.xml; sitemap index files",
+    "confidence": "verified_from_public_evidence",
+    "limitation": "Sitemap inclusion does not guarantee indexing."
+  }
+]
