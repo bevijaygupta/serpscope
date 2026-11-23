@@ -16,8 +16,9 @@ from sqlalchemy.orm import Session
 
 from app.core.timeutil import iso, utcnow
 from app.models.analysis import ContentAnalysis, Issue, LinkSuggestion, OrphanRecord
-from app.models.enterprise import AiReadinessItem
+from app.models.enterprise import AiReadinessItem, Competitor, KeywordGap
 from app.models.inventory import Crawl, CrawlObservation, SitemapEntry, UrlRecord
+from app.models.keywords import Keyword, KeywordMapping
 from app.models.operations import Report
 from app.models.projects import Project
 from app.services import crawler as crawler_service
@@ -396,6 +397,25 @@ def build_public_audit(db: Session, project_id: int, crawl_id: int | None = None
         "document_excerpt": (robots_doc or "")[:4000],
     }
 
+    derived_counts = {
+        "competitors": db.scalar(select(func.count()).select_from(Competitor).where(
+            Competitor.project_id == project_id,
+            Competitor.notes.like("Discovered from%public crawl%"),
+        )) or 0,
+        "keywords": db.scalar(select(func.count()).select_from(Keyword).where(
+            Keyword.project_id == project_id,
+            Keyword.source.in_(["public_page_evidence", "competitor_public_anchor"]),
+        )) or 0,
+        "keyword_gaps": db.scalar(select(func.count()).select_from(KeywordGap).where(
+            KeywordGap.project_id == project_id,
+            KeywordGap.gap_type == "competitor_topic_evidence",
+        )) or 0,
+        "keyword_mappings": db.scalar(select(func.count()).select_from(KeywordMapping).where(
+            KeywordMapping.project_id == project_id,
+            KeywordMapping.source == "public_page_evidence",
+        )) or 0,
+    }
+
     audit: dict = {
         "meta": {
             "project_id": project_id,
@@ -433,10 +453,17 @@ def build_public_audit(db: Session, project_id: int, crawl_id: int | None = None
             "schema_pages": sum(1 for r in crawled if r.schema_types),
             "average_content_score": round(sum(r.score for r in content_rows) / len(content_rows), 1) if content_rows else None,
         },
+        "derived_evidence": {
+            **derived_counts,
+            "method": "Observed outbound links, page titles, H1s and URL paths from the public crawl. No search volume, difficulty, rank or traffic is claimed.",
+            "candidate_definition": "A competitor is an external hostname linked by a crawled page; it is a candidate for review, not a verified market-share claim.",
+        },
         "source_registry": [
             {"source": "robots.txt", "type": "public_document", "confidence": "verified", "used_for": ["crawler permissions", "AI agent policy", "sitemap discovery"]},
             {"source": "sitemap files", "type": "public_document", "confidence": "verified", "used_for": ["URL universe", "orphan reconciliation"]},
             {"source": "crawl observations", "type": "observed_http", "confidence": "verified", "used_for": ["status", "headers", "on-page HTML", "timing"]},
+            {"source": "observed outbound links", "type": "observed_public_evidence", "confidence": "verified", "used_for": ["candidate competitor domains", "anchor-text topic evidence"]},
+            {"source": "derived keyword candidates", "type": "derived_from_observed_html", "confidence": "explained", "used_for": ["title/H1/anchor topic inventory", "keyword-to-page suggestions"]},
             {"source": "rule engine", "type": "derived", "confidence": "explained", "used_for": ["issues", "priority", "roadmap"]},
             {"source": "Search Console / GA4", "type": "not_supplied", "confidence": "none", "used_for": ["not used; no private data claimed"]},
         ],
@@ -447,6 +474,7 @@ def build_public_audit(db: Session, project_id: int, crawl_id: int | None = None
             "No JavaScript-rendered DOM was captured; client-only content may be missing.",
             "No authenticated, staging or private pages were crawled.",
             "AI answer visibility is not sampled; only manually observed evidence can be reported.",
+            "Competitor domains are link-observed candidates only; third-party rankings, traffic and market share were not supplied.",
         ],
         "deliverables": [
             "Site audit JSON/CSV/XLSX/PDF",

@@ -9,7 +9,7 @@ from app.core.timeutil import iso, utcnow
 from app.core.url_utils import validate_target_url
 from app.models.inventory import Crawl
 from app.models.projects import Project
-from app.services import content, domains, issues, links, orphans, public_audit
+from app.services import competitor_discovery, content, domains, issues, links, orphans, public_audit
 from app.services.crawler import DEFAULT_CONFIG, CrawlConfig, CrawlEngine
 from app.services.jobs import is_cancelled, progress, register
 
@@ -84,7 +84,18 @@ def run_public_audit_job(db_session_factory, job_id: int, payload: dict, project
         progress(job_id, 62, 100, "Rebuilding orphan and link graph")
         orphans.detect_orphans(db, project_id)
         links.analyse_graph(db, project_id)
-        progress(job_id, 74, 100, "Running technical, content and AEO rules")
+        progress(job_id, 74, 100, "Deriving competitor and keyword evidence from observed links")
+        try:
+            derived = competitor_discovery.derive_public_evidence(db, project_id, crawl_id)
+        except Exception as exc:  # pragma: no cover - defensive: audit must still finish
+            derived = {
+                "competitors": 0,
+                "derived_keywords": 0,
+                "keyword_gaps": 0,
+                "derived_mappings": 0,
+                "error": str(exc)[:500],
+            }
+        progress(job_id, 80, 100, "Running technical, content and AEO rules")
         issues.detect_issues(db, project_id)
         content.analyse_content(db, project_id)
         domains.ai_readiness(db, project_id)
@@ -98,6 +109,7 @@ def run_public_audit_job(db_session_factory, job_id: int, payload: dict, project
             "fetched_urls": stats.get("crawled", 0),
             "findings": len(audit["findings"]),
             "roadmap_months": len(audit["roadmap"]),
+            **{f"derived_{key}": value for key, value in derived.items() if key != "error"},
         }
     finally:
         db.close()

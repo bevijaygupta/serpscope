@@ -92,12 +92,12 @@ Deploy sequence from the GitHub repository:
 1. Create a **Blueprint** in Render pointing at the repository. It provisions `serpscope-db` and `serpscope-api`.
 2. Render generates `SECRET_KEY` automatically and injects the database connection string.
 3. After the first successful API deploy, `initialDeployHook` runs `python scripts/seed_demo.py --size 1000 --keyword-count 1000`, so the public demo has the same deterministic synthetic dataset used in screenshots and interview scenarios.
-4. Import the repository into Vercel. It uses `vercel.json`, so no manual build settings are required. The deployed production URL is `https://serpscope-serpscope.vercel.app` (the per-deployment URL is `https://serpscope-3zidgh2ls-serpscope.vercel.app`).
-5. Confirm `https://serpscope-serpscope.vercel.app/api/health` returns `{"status":"ok","environment":"production","database":"postgresql"}`. That proves the Vercel rewrite and Render API are connected and that no database credentials are exposed.
+4. Import the repository into Vercel. It uses `vercel.json`, so no manual build settings are required. The canonical production URL is `https://serpscope.vercel.app`; legacy aliases redirect there in `vercel.json` once the canonical alias is attached to this project.
+5. Confirm `https://serpscope.vercel.app/api/health` returns `{"status":"ok","environment":"production","database":"postgresql"}`. That proves the Vercel rewrite and Render API are connected and that no database credentials are exposed.
 6. Log in with `demo@serpscope.local` / `demo1234`.
 7. The Vercel project must allow public access to its production domain. In this deployment, Vercel Authentication (`ssoProtection`) was disabled on project `prj_096DxSK5ekfzYa4vHxEZ1YGbxwbb`; otherwise visitors see a `Protected by Vercel Authentication` page.
 
-**Live deployment (verified 2026-11-22/23):** UI and same-origin API on `https://serpscope-serpscope.vercel.app`, API/database on Render (`https://serpscope-api.onrender.com`), source on `https://github.com/bevijaygupta/serpscope`. The Render Blueprint ID is `exs-dc1iqeks728c73cic3l0`, API service ID `srv-dc1iqt2vcj2c73en3v8g`. Vercel auto-deploys from `main`; Render is connected through a public repository URL, so code changes need **Manual Deploy → Deploy latest commit** on the `serpscope-api` service (and Blueprint sync only when `render.yaml` changes). Do not use `https://serpscope.vercel.app`.
+**Live deployment (verified 2026-11-22/23 on the project aliases; canonical URL configured):** UI and same-origin API are configured for `https://serpscope.vercel.app`, API/database on Render (`https://serpscope-api.onrender.com`), source on `https://github.com/bevijaygupta/serpscope`. The Render Blueprint ID is `exs-dc1iqeks728c73cic3l0`, API service ID `srv-dc1iqt2vcj2c73en3v8g`. Vercel auto-deploys from `main`; Render is connected through a public repository URL, so code changes need **Manual Deploy → Deploy latest commit** on the `serpscope-api` service (and Blueprint sync only when `render.yaml` changes). The canonical alias is currently assigned to another Vercel team; Vercel returns `serpscope.vercel.app is already assigned to another team. Use a different domain or transfer it.` Until that transfer completes, the configured canonical URL cannot be verified as the served production URL.
 
 ### 3.1 Publishing the real public audit on the hosted demo
 
@@ -117,7 +117,7 @@ The audit code was verified locally against a live domain, but the new endpoints
      -d '{"settings":{"public_audit":true}}'
    ```
 4. Queue the audit, poll `GET /api/v1/jobs/{job_id}` until `succeeded`, then check `GET /api/v1/audits/projects/2/public-audit`, all five export formats and `GET /api/v1/public/case-studies/2`.
-5. Confirm the landing page at `https://serpscope-serpscope.vercel.app`, `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/manifest.webmanifest`, `/favicon.svg`, `/og-preview.svg`, `/login` and `/overview`.
+5. Confirm the landing page at `https://serpscope.vercel.app`, `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/manifest.webmanifest`, `/favicon.svg`, `/og-preview.svg`, `/login` and `/overview`.
 
 Local verification figures were 303 discovered URLs and 60 fetched from a deliberately narrow sample, with 60 sitemap entries from 9 documents and six finding groups. The completed hosted run (job 17, report 2, crawl 1) discovered 497 URLs, fetched 219, recorded 0 failures and 1 robots exclusion, and produced 12 finding groups plus a six-month roadmap. Its sitemap discovery timed out, so the hosted evidence states 0 sitemap entries rather than borrowing the local sample's 60. Neither figure is an exhaustive audit of the domain. Once the deploy and publish steps are done, the landing case study is available at `/api/v1/public/case-studies/2`.
 

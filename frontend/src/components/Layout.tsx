@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   Activity, Bell, CheckCircle2, ChevronDown, CircleDot, FlaskConical, Menu, X,
   AlertTriangle, Loader2, LogOut, ShieldCheck,
@@ -57,6 +57,52 @@ function JobPanel({ onClose }: { onClose: () => void }) {
           })}
         </div>
       )}
+    </div>
+  );
+}
+
+type AuditRibbonData = {
+  meta: { domain: string; generated_at: string };
+  coverage: { discovered_urls: number; fetched_urls: number; sitemap_entries: number };
+  findings: unknown[];
+  derived_evidence?: { competitors?: number; keywords?: number; keyword_gaps?: number; keyword_mappings?: number };
+};
+
+function EvidenceRibbon() {
+  const { projectId, dataVersion } = useApp();
+  const [audit, setAudit] = useState<AuditRibbonData | null>(null);
+
+  useEffect(() => {
+    if (!projectId) { setAudit(null); return; }
+    let cancelled = false;
+    get<AuditRibbonData>(`/audits/projects/${projectId}/public-audit`)
+      .then((value) => { if (!cancelled) setAudit(value); })
+      .catch(() => { if (!cancelled) setAudit(null); });
+    return () => { cancelled = true; };
+  }, [projectId, dataVersion]);
+
+  if (!audit) return null;
+  const metrics = [
+    ['Fetched', audit.coverage.fetched_urls],
+    ['Discovered', audit.coverage.discovered_urls],
+    ['Sitemap', audit.coverage.sitemap_entries],
+    ['Findings', audit.findings.length],
+    ['Competitors', audit.derived_evidence?.competitors ?? 0],
+    ['Keywords', audit.derived_evidence?.keywords ?? 0],
+    ['Gaps', audit.derived_evidence?.keyword_gaps ?? 0],
+  ];
+  return (
+    <div className="mb-5 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border border-accent/20 bg-gradient-to-r from-accent/[0.08] to-violet-500/[0.06] px-4 py-2.5">
+      <span className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-accent">
+        <Activity className="h-3.5 w-3.5" /> Live public evidence
+      </span>
+      {metrics.map(([label, value]) => (
+        <span key={String(label)} className="text-[11px] text-muted">
+          <span className="font-bold text-ink">{Number(value).toLocaleString()}</span> {label}
+        </span>
+      ))}
+      <span className="min-w-0 flex-1 truncate text-[10px] text-muted" title={audit.meta.domain}>{audit.meta.domain}</span>
+      <Link to="/overview" className="text-[11px] font-semibold text-accent hover:underline">Full audit →</Link>
     </div>
   );
 }
@@ -159,6 +205,7 @@ export function Layout() {
         </header>
 
         <main className="mx-auto max-w-[1600px] px-4 py-7 md:px-7">
+          <EvidenceRibbon />
           <Outlet />
         </main>
 

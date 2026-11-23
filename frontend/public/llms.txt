@@ -20,8 +20,8 @@
 
 ## Key pages
 
-- Home: https://serpscope-serpscope.vercel.app/
-- Login / demo: https://serpscope-serpscope.vercel.app/login
+- Home: https://serpscope.vercel.app/
+- Login / demo: https://serpscope.vercel.app/login
 - Source: https://github.com/bevijaygupta/serpscope
 
 ## Documentation

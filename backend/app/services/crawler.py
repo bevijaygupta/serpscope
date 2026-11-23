@@ -515,8 +515,14 @@ class CrawlEngine:
             is_internal = is_same_host(target, result.final_url or result.requested_url)
             if is_internal and not self.config.follow_internal:
                 continue
-            if not is_internal and not self.config.follow_external:
-                continue
+            if not is_internal:
+                # An external link is public evidence even when we deliberately do
+                # not crawl it. Preserve it for competitor discovery, but never
+                # queue it unless follow_external is explicitly enabled.
+                try:
+                    validate_target_url(target, allow_private=self.config.allow_private)
+                except ValueError:
+                    continue
             self.db.add(LinkEdge(
                 project_id=self.project_id, crawl_id=self.crawl_id,
                 source_url=result.final_url or result.requested_url,

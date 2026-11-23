@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState, type FormEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Activity, ArrowRight, BarChart3, CheckCircle2, Database, FileText, Globe2,
   KeyRound, Linkedin, Presentation, Search, ShieldCheck, Sparkles, Workflow,
 } from 'lucide-react';
-import { get } from '../lib/api';
+import { errorMessage, get, login, post, unwrapList, waitForJob, type Job } from '../lib/api';
 import { num } from '../lib/format';
+import { useApp } from '../state/AppContext';
 
 type PublicAudit = {
   meta: { project_name: string; domain: string; generated_at: string };
@@ -14,6 +15,26 @@ type PublicAudit = {
   roadmap: { month: number; theme: string }[];
   missing_data: string[];
 };
+
+type InstantProject = { id: number; name: string; domain: string; is_demo?: boolean };
+
+function hostKey(value: string) {
+  try {
+    return new URL(value).hostname.toLowerCase().replace(/^www\./, '');
+  } catch {
+    return value.toLowerCase().replace(/^www\./, '');
+  }
+}
+
+function normalizeTarget(raw: string) {
+  const trimmed = raw.trim();
+  if (!trimmed) throw new Error('Enter a website URL to audit.');
+  const candidate = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  const url = new URL(candidate);
+  if (!['http:', 'https:'].includes(url.protocol)) throw new Error('Only http:// and https:// websites can be audited.');
+  if (!url.hostname.includes('.') || /\s/.test(url.hostname)) throw new Error('Enter a valid domain such as example.com.');
+  return `${url.protocol}//${url.hostname}/`;
+}
 
 const FEATURES = [
   {
@@ -39,10 +60,10 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  ['01', 'Add a domain', 'Create a project with the public URL you are authorised to audit.'],
-  ['02', 'Run public audit', 'SERPScope crawls, reads robots.txt and sitemaps, then rebuilds issues, orphans and AEO readiness.'],
-  ['03', 'Export the pack', 'Download the audit, evidence CSV and PowerPoint deck with a six-month roadmap.'],
-  ['04', 'Upgrade with access', 'If the client later shares GSC/GA4 exports, import them to improve prioritisation.'],
+  ['01', 'Enter one URL', 'That is all you type. SERPScope normalises it, signs in to the public demo and finds or creates the project.'],
+  ['02', 'Crawl and discover', 'The crawler reads robots.txt, sitemaps and public pages, then derives candidate competitors from observed outbound links.'],
+  ['03', 'Fill every section', 'Issues, orphans, links, content, keywords, mappings, competitors and gaps are rebuilt from the same crawl.'],
+  ['04', 'Export and review', 'Download the complete audit, raw crawl observations, CSV/XLSX/PDF and the six-month PPT roadmap.'],
 ];
 
 const FAQ = [
@@ -65,8 +86,15 @@ const FAQ = [
 ];
 
 export function Landing() {
+  const navigate = useNavigate();
+  const { refreshProjects, setProjectId, bumpData } = useApp();
   const [caseStudy, setCaseStudy] = useState<PublicAudit | null>(null);
   const [caseError, setCaseError] = useState('');
+  const [target, setTarget] = useState('');
+  const [running, setRunning] = useState(false);
+  const [status, setStatus] = useState('');
+  const [error, setError] = useState('');
+  const [job, setJob] = useState<Job | null>(null);
 
   useEffect(() => {
     document.title = 'SERPScope — Public SEO Audit, PPT & 6-Month Roadmap';
@@ -74,6 +102,51 @@ export function Landing() {
       .then(setCaseStudy)
       .catch(() => setCaseError('Published case study is temporarily unavailable. The live demo still generates the same audit pack.'));
   }, []);
+
+  const auditSite = async (event: FormEvent) => {
+    event.preventDefault();
+    if (running) return;
+    setRunning(true);
+    setError('');
+    setJob(null);
+    try {
+      const startUrl = normalizeTarget(target);
+      const host = hostKey(startUrl);
+      setStatus('Signing in to the public demo…');
+      await login('demo@serpscope.local', 'demo1234');
+      setStatus('Finding or creating the project…');
+      await refreshProjects();
+      const payload = unwrapList<InstantProject>(await get('/projects')).items;
+      let project = payload.find((item) => !item.is_demo && hostKey(item.domain) === host);
+      if (!project) {
+        project = await post<InstantProject>('/projects', {
+          name: host,
+          domain: startUrl,
+          description: 'Created by one-field public audit from the landing page.',
+        });
+        await refreshProjects();
+      }
+      setStatus('Queuing the public audit…');
+      const queued = await post<{ job_id: number }>(`/audits/projects/${project.id}/public-audit/start`, {
+        start_url: startUrl,
+        name: `Instant public audit · ${host}`,
+      });
+      setStatus('Crawling public evidence and filling every section…');
+      const finished = await waitForJob(queued.job_id, setJob, 900_000);
+      if (finished.status !== 'succeeded') {
+        throw new Error(finished.error || finished.message || `Audit job ${finished.status}`);
+      }
+      setProjectId(project.id);
+      bumpData();
+      setStatus('Audit complete. Opening your evidence workspace…');
+      navigate('/overview');
+    } catch (cause) {
+      setError(errorMessage(cause));
+      setStatus('');
+    } finally {
+      setRunning(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-canvas text-ink">
@@ -110,10 +183,34 @@ export function Landing() {
               <p className="mt-6 max-w-2xl text-base leading-8 text-slate-300 sm:text-lg">
                 SERPScope turns public website evidence into a defensible audit, an editable board deck and a delivery roadmap. If Search Console or Analytics is refused, the tool states the gap and keeps working.
               </p>
-              <div className="mt-8 flex flex-wrap gap-3">
-                <Link to="/login" className="btn btn-primary px-5 py-3 text-sm">Run a public audit <ArrowRight className="h-4 w-4" /></Link>
-                <a href="#proof" className="btn px-5 py-3 text-sm"><BarChart3 className="h-4 w-4" /> See real-domain findings</a>
-              </div>
+              <form id="instant-audit" onSubmit={(event) => void auditSite(event)} className="mt-8 scroll-mt-24 rounded-2xl border border-accent/25 bg-panel/80 p-3 shadow-[0_20px_60px_-30px_rgba(56,189,248,0.5)]">
+                <label htmlFor="instant-audit-url" className="mb-2 block text-[10px] font-semibold uppercase tracking-[0.18em] text-muted">One field is enough</label>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <div className="relative flex-1">
+                    <Globe2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
+                    <input
+                      id="instant-audit-url"
+                      className="input w-full py-3 pl-10 pr-3 text-sm"
+                      placeholder="example.com"
+                      value={target}
+                      onChange={(event) => setTarget(event.target.value)}
+                      disabled={running}
+                      autoComplete="url"
+                    />
+                  </div>
+                  <button type="submit" className="btn btn-primary justify-center px-5 py-3 text-sm" disabled={running || !target.trim()}>
+                    {running ? 'Auditing…' : 'Audit this site'} <ArrowRight className="h-4 w-4" />
+                  </button>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center justify-between gap-2 px-1 text-[10px] text-muted">
+                  <span>Demo sign-in, project setup, competitors and all sections are automatic.</span>
+                  <a href="#proof" className="inline-flex items-center gap-1 text-accent hover:underline"><BarChart3 className="h-3 w-3" /> See a real audit</a>
+                </div>
+                {status ? <div className="mt-3 rounded-lg border border-accent/20 bg-accent/5 px-3 py-2 text-[11px] text-accent">
+                  {status} {job?.total ? <span className="mono">({job.progress}/{job.total} · {job.message})</span> : null}
+                </div> : null}
+                {error ? <div className="mt-3 rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-[11px] text-danger">{error}</div> : null}
+              </form>
               <div className="mt-9 grid max-w-2xl grid-cols-2 gap-3 sm:grid-cols-4">
                 {[['23', 'SEO modules'], ['17', 'Docs'], ['12', 'Scenarios'], ['CSV', 'PPT · XLSX · PDF']].map(([value, label]) => (
                   <div key={label} className="rounded-xl border border-edge bg-panel/60 p-3">
@@ -267,7 +364,7 @@ export function Landing() {
                   </div>
                 ))}
               </div>
-              <Link to="/login" className="btn btn-primary mt-6 w-full justify-center py-2.5 text-xs"><Workflow className="h-4 w-4" /> Open the audit workspace</Link>
+              <a href="#instant-audit" className="btn btn-primary mt-6 w-full justify-center py-2.5 text-xs"><Workflow className="h-4 w-4" /> Audit a site in one field</a>
             </div>
           </div>
         </section>
@@ -290,8 +387,8 @@ export function Landing() {
           <div className="mx-auto max-w-4xl px-5 text-center">
             <Sparkles className="mx-auto h-7 w-7 text-accent" />
             <h2 className="mt-5 text-3xl font-bold text-white sm:text-4xl">Show the work, not just the claim.</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-muted">Sign in to the public demo, choose a real or synthetic project and produce the same audit, PPT and roadmap the tool documents.</p>
-            <Link to="/login" className="btn btn-primary mx-auto mt-8 px-6 py-3 text-sm">Open SERPScope <ArrowRight className="h-4 w-4" /></Link>
+            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-muted">Enter one public URL above and SERPScope signs in, discovers competitors, fills every module and opens the evidence workspace automatically.</p>
+            <a href="#instant-audit" className="btn btn-primary mx-auto mt-8 px-6 py-3 text-sm">Audit a website <ArrowRight className="h-4 w-4" /></a>
           </div>
         </section>
       </main>

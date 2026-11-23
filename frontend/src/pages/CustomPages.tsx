@@ -9,7 +9,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { ActionModal } from '../components/ActionModal';
 import { DataTable, type Row } from '../components/DataTable';
 import { Badge, Drawer, ErrorState, JsonBlock, KeyValue, PageHeader, ProvenanceNote, Section, Spinner } from '../components/ui';
-import { downloadFile, errorMessage, get, post, unwrapList, waitForJob, type Job } from '../lib/api';
+import { downloadFile, errorMessage, get, post, unwrapList, unwrapNamedLists, waitForJob, type Job } from '../lib/api';
 import { compactJson, humanKey, num, titleCase } from '../lib/format';
 import type { ModuleAction, ModuleConfig } from '../lib/modules';
 import { useApp } from '../state/AppContext';
@@ -52,6 +52,10 @@ type PublicAuditData = {
     status_codes: Record<string, number>; page_types: Record<string, number>;
     indexable: number; non_indexable: number; redirects: number; schema_pages: number;
     average_content_score: number | null;
+  };
+  derived_evidence?: {
+    competitors: number; keywords: number; keyword_gaps: number; keyword_mappings: number;
+    method: string; candidate_definition: string;
   };
   source_registry: { source: string; type: string; confidence: string; used_for: string[] }[];
   missing_data: string[];
@@ -153,13 +157,15 @@ function PublicAuditPanel() {
       ) : null}
       {audit.loading ? <Spinner /> : audit.error ? <ErrorState message={audit.error} retry={audit.reload} /> : audit.data ? (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
             {[
               ['Domain', audit.data.meta.domain],
               ['Fetched URLs', num(audit.data.coverage.fetched_urls)],
+              ['Discovered', num(audit.data.coverage.discovered_urls)],
               ['Sitemap URLs', num(audit.data.coverage.sitemap_entries)],
               ['Findings', num(audit.data.findings.length)],
-              ['Roadmap', `${audit.data.roadmap.length} months`],
+              ['Competitors', num(audit.data.derived_evidence?.competitors ?? 0)],
+              ['Keywords', num(audit.data.derived_evidence?.keywords ?? 0)],
             ].map(([label, value]) => (
               <div key={label} className="panel-flat p-3">
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-muted">{label}</div>
@@ -250,6 +256,9 @@ function PublicAuditPanel() {
                 <div className="text-[11px] text-muted"><span className="font-semibold text-ink">Robots URL:</span> {audit.data.robots.url} · status {String(audit.data.robots.status ?? 'n/a')}</div>
                 <JsonBlock value={audit.data.robots.ai_rules} />
                 <pre className="max-h-64 overflow-auto rounded border border-edge bg-canvas p-2 text-[10px] leading-4 text-muted">{audit.data.robots.document_excerpt || 'No robots.txt excerpt captured.'}</pre>
+                <div className="text-[11px] font-semibold text-ink">Derived public evidence</div>
+                <JsonBlock value={audit.data.derived_evidence} />
+                <div className="text-[11px] font-semibold text-ink">Source registry</div>
                 <JsonBlock value={audit.data.source_registry} />
                 <div className="text-[11px] font-semibold text-ink">Deliverables</div>
                 <ul className="ml-4 list-disc text-[11px] text-muted">{audit.data.deliverables.map((item) => <li key={item}>{item}</li>)}</ul>
@@ -291,6 +300,66 @@ function PublicAuditPanel() {
   );
 }
 
+/* ----------------------------- Live evidence tables ---------------------------- */
+
+function EvidenceTable({ title, description, path, exportPath, dataVersion, open = false }: {
+  title: string; description: string; path: string; exportPath?: string; dataVersion: number; open?: boolean;
+}) {
+  const remote = useRemote<unknown>(path, [dataVersion]);
+  const listed = unwrapList<Row>(remote.data).items;
+  const named = Object.values(unwrapNamedLists(remote.data)).flat() as Row[];
+  const rows = listed.length ? listed : named;
+
+  return (
+    <details open={open} className="rounded-xl border border-edge bg-panel/40 p-3">
+      <summary className="cursor-pointer list-none">
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <div className="text-xs font-semibold text-ink">{title}</div>
+            <div className="mt-0.5 text-[10px] leading-4 text-muted">{description}</div>
+          </div>
+          <Badge>{remote.loading ? 'loading' : `${rows.length} rows`}</Badge>
+        </div>
+      </summary>
+      <div className="mt-3">
+        {remote.error ? <ErrorState message={remote.error} retry={remote.reload} /> : (
+          <DataTable rows={rows} exportPath={exportPath} exportParams={{}} maxColumns={8}
+            emptyTitle="No rows yet" emptyDescription="Run the public audit or the relevant analysis to populate this table." />
+        )}
+      </div>
+    </details>
+  );
+}
+
+function LiveEvidenceTables({ projectId, crawlId, dataVersion }: { projectId: number; crawlId: number | null; dataVersion: number }) {
+  const specs = [
+    { title: 'URL inventory', description: 'Every discovered, imported and crawled URL with provenance.', path: `/inventory/urls?project_id=${projectId}&limit=100`, exportPath: `/inventory/export?project_id=${projectId}` },
+    { title: 'Technical issues', description: 'Rule-detected issue groups with evidence and priority explanation.', path: `/technical/issues?project_id=${projectId}&limit=100`, exportPath: `/technical/export?project_id=${projectId}` },
+    { title: 'Orphan records', description: 'URLs missing from the internal-link graph by source.', path: `/orphans?project_id=${projectId}&limit=100`, exportPath: `/orphans/export?project_id=${projectId}` },
+    { title: 'Content analyses', description: 'Observed on-page fields and transparent content scores.', path: `/content/analyses?project_id=${projectId}&limit=100`, exportPath: `/content/export?project_id=${projectId}` },
+    { title: 'Internal-link suggestions', description: 'Reviewable link proposals derived from the crawl graph.', path: `/internal-links/suggestions?project_id=${projectId}&limit=100`, exportPath: `/internal-links/export?project_id=${projectId}` },
+    { title: 'AI readiness', description: 'Answer-engine readiness rules and AEO observations.', path: `/ai-search/readiness?project_id=${projectId}`, exportPath: `/ai-search/export?project_id=${projectId}` },
+    { title: 'Derived keywords', description: 'Observed titles, H1s and anchors with no volume claims.', path: `/keywords?project_id=${projectId}&limit=100`, exportPath: `/keywords/export?project_id=${projectId}` },
+    { title: 'Keyword mappings', description: 'Suggested primary keyword for each crawled page.', path: `/keywords/mappings?project_id=${projectId}&limit=100`, exportPath: `/keywords/export?project_id=${projectId}` },
+    { title: 'Candidate competitors', description: 'External hostnames observed in outbound links from the crawl.', path: `/competitors?project_id=${projectId}&limit=100`, exportPath: `/competitors/export?project_id=${projectId}` },
+    { title: 'Competitor topic gaps', description: 'Anchor-text topics and comparable public pages, without rank claims.', path: `/competitors/gaps?project_id=${projectId}&limit=100`, exportPath: `/competitors/export?project_id=${projectId}` },
+  ];
+  if (crawlId) specs.push({
+    title: 'Raw crawl observations',
+    description: 'Uninterpreted HTTP status, headers, excerpts and timing from the public crawl.',
+    path: `/crawler/runs/${crawlId}/observations?limit=100`,
+    exportPath: `/crawler/runs/${crawlId}/export`,
+  });
+
+  return (
+    <Section title="Live evidence tables" description="These tables are queried from the same project database as the audit. They stay available in every module through the evidence ribbon.">
+      <div className="grid gap-3 xl:grid-cols-2">
+        {specs.map((spec, index) => <EvidenceTable key={spec.title} {...spec} dataVersion={dataVersion} open={index < 2} />)}
+      </div>
+    </Section>
+  );
+}
+
 /* ---------------------------------- Overview --------------------------------- */
 
 type OverviewData = {
@@ -305,6 +374,7 @@ function OverviewPage() {
   const { projectId, jobs, runAction, dataVersion } = useApp();
   const overview = useRemote<OverviewData>(projectId ? `/projects/${projectId}/overview` : null, [projectId, dataVersion]);
   const issues = useRemote<{ items: Row[] }>(projectId ? `/technical/issues?project_id=${projectId}&limit=6` : null, [projectId, dataVersion]);
+  const audit = useRemote<PublicAuditData>(projectId ? `/audits/projects/${projectId}/public-audit` : null, [projectId, dataVersion]);
   const data = overview.data;
 
   const cards = [
@@ -419,6 +489,10 @@ function OverviewPage() {
 
           <div className="mt-5">
             <PublicAuditPanel />
+          </div>
+
+          <div className="mt-5">
+            <LiveEvidenceTables projectId={projectId as number} crawlId={audit.data?.meta.crawl_id ?? null} dataVersion={dataVersion} />
           </div>
 
           <div className="mt-5">

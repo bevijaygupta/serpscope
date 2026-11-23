@@ -28,7 +28,7 @@ Job 17, persisted report 2, crawl 1, generated `2026-11-23T17:07:58Z`:
 
 ### Live verification
 
-- Landing page: <https://serpscope-serpscope.vercel.app/>
+- Landing page: <https://serpscope.vercel.app/>
 - Public read-only case study: <https://serpscope-api.onrender.com/api/v1/public/case-studies/2>
 - Sign in to the workspace at `/login` with the demo account shown on that page, select the Techmagnate project, and open **Overview → Source-tracked public audit** to see every finding, every roadmap month, all coverage segments, all exports and the complete API payload.
 
