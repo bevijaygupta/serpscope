@@ -1,0 +1,2504 @@
+[
+  {
+    "requested_url": "https://www.techmagnate.com/",
+    "final_url": "https://www.techmagnate.com/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 1108,
+    "content_size": 312794,
+    "error": "",
+    "observed_at": "2026-11-23T16:43:07.248973+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/press-releases.html",
+    "final_url": "https://www.techmagnate.com/press-releases.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10079,
+    "content_size": 223628,
+    "error": "",
+    "observed_at": "2026-11-23T16:43:17.637461+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/about-us.html",
+    "final_url": "https://www.techmagnate.com/about-us.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11594,
+    "content_size": 237441,
+    "error": "",
+    "observed_at": "2026-11-23T16:43:19.151214+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/best-place-work-india.html",
+    "final_url": "https://www.techmagnate.com/best-place-work-india.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4781,
+    "content_size": 226319,
+    "error": "",
+    "observed_at": "2026-11-23T16:43:24.147838+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/careers.html",
+    "final_url": "https://www.techmagnate.com/careers.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9275,
+    "content_size": 307009,
+    "error": "",
+    "observed_at": "2026-11-23T16:43:28.641533+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/digital-report-card.html",
+    "final_url": "https://www.techmagnate.com/digital-report-card.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6204,
+    "content_size": 280250,
+    "error": "",
+    "observed_at": "2026-11-23T16:43:35.138456+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/awards-recognition.html",
+    "final_url": "https://www.techmagnate.com/awards-recognition.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 25011,
+    "content_size": 212237,
+    "error": "",
+    "observed_at": "2026-11-23T16:43:53.944557+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/llm-seo-services.html",
+    "final_url": "https://www.techmagnate.com/llm-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 13820,
+    "content_size": 348539,
+    "error": "",
+    "observed_at": "2026-11-23T16:44:29.548386+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/enterprise-seo-services.html",
+    "final_url": "https://www.techmagnate.com/enterprise-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4788,
+    "content_size": 344346,
+    "error": "",
+    "observed_at": "2026-11-23T16:44:34.641128+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/local-seo-services.html",
+    "final_url": "https://www.techmagnate.com/local-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10235,
+    "content_size": 319619,
+    "error": "",
+    "observed_at": "2026-11-23T16:45:01.445068+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/multilingual-seo.html",
+    "final_url": "https://www.techmagnate.com/multilingual-seo.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9426,
+    "content_size": 333922,
+    "error": "",
+    "observed_at": "2026-11-23T16:45:11.237721+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/vernacular-seo-services.html",
+    "final_url": "https://www.techmagnate.com/vernacular-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10531,
+    "content_size": 335287,
+    "error": "",
+    "observed_at": "2026-11-23T16:45:12.342738+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/link-building-services.html",
+    "final_url": "https://www.techmagnate.com/link-building-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 17415,
+    "content_size": 320419,
+    "error": "",
+    "observed_at": "2026-11-23T16:45:30.044755+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ai-seo-services/",
+    "final_url": "https://www.techmagnate.com/ai-seo-services/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7178,
+    "content_size": 333837,
+    "error": "",
+    "observed_at": "2026-11-23T16:44:01.338571+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-services.html",
+    "final_url": "https://www.techmagnate.com/seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 19988,
+    "content_size": 391619,
+    "error": "",
+    "observed_at": "2026-11-23T16:44:14.147771+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/agentic-ai-seo-services.html",
+    "final_url": "https://www.techmagnate.com/agentic-ai-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10721,
+    "content_size": 332580,
+    "error": "",
+    "observed_at": "2026-11-23T16:44:26.450270+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ecommerce-seo.html",
+    "final_url": "https://www.techmagnate.com/ecommerce-seo.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7886,
+    "content_size": 326652,
+    "error": "",
+    "observed_at": "2026-11-23T16:44:37.739519+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/technical-seo-services.html",
+    "final_url": "https://www.techmagnate.com/technical-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10899,
+    "content_size": 330003,
+    "error": "",
+    "observed_at": "2026-11-23T16:44:48.846959+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-migration-services/",
+    "final_url": "https://www.techmagnate.com/seo-migration-services/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 13089,
+    "content_size": 322950,
+    "error": "",
+    "observed_at": "2026-11-23T16:44:51.036800+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/PPC-Executive.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/PPC-Executive.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 2741,
+    "content_size": 79517,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:58.189184+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/javascript-seo-services.html",
+    "final_url": "https://www.techmagnate.com/javascript-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5340,
+    "content_size": 330477,
+    "error": "",
+    "observed_at": "2026-11-23T16:44:56.549844+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/white-label-seo-services.html",
+    "final_url": "https://www.techmagnate.com/white-label-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6115,
+    "content_size": 337592,
+    "error": "",
+    "observed_at": "2026-11-23T16:45:18.744920+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-reseller-services.html",
+    "final_url": "https://www.techmagnate.com/seo-reseller-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 12621,
+    "content_size": 323817,
+    "error": "",
+    "observed_at": "2026-11-23T16:45:42.946952+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/hyperlocal-marketing-agency.html",
+    "final_url": "https://www.techmagnate.com/hyperlocal-marketing-agency.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6414,
+    "content_size": 310415,
+    "error": "",
+    "observed_at": "2026-11-23T16:45:53.645868+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/digital-marketing-services.html",
+    "final_url": "https://www.techmagnate.com/digital-marketing-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6585,
+    "content_size": 362593,
+    "error": "",
+    "observed_at": "2026-11-23T16:46:00.447735+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/online-reputation-management.html",
+    "final_url": "https://www.techmagnate.com/online-reputation-management.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11580,
+    "content_size": 372249,
+    "error": "",
+    "observed_at": "2026-11-23T16:46:05.443432+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/affiliate-marketing-services.html",
+    "final_url": "https://www.techmagnate.com/affiliate-marketing-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10630,
+    "content_size": 321517,
+    "error": "",
+    "observed_at": "2026-11-23T16:46:16.360748+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-audit-services.html",
+    "final_url": "https://www.techmagnate.com/seo-audit-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 16626,
+    "content_size": 338795,
+    "error": "",
+    "observed_at": "2026-11-23T16:45:46.950861+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/google-penalty-recovery-services.html",
+    "final_url": "https://www.techmagnate.com/google-penalty-recovery-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5616,
+    "content_size": 324848,
+    "error": "",
+    "observed_at": "2026-11-23T16:45:52.848627+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/agentic-ai-digital-marketing.html",
+    "final_url": "https://www.techmagnate.com/agentic-ai-digital-marketing.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 12212,
+    "content_size": 353217,
+    "error": "",
+    "observed_at": "2026-11-23T16:46:17.942915+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ai-digital-marketing-agency.html",
+    "final_url": "https://www.techmagnate.com/ai-digital-marketing-agency.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 13877,
+    "content_size": 350312,
+    "error": "",
+    "observed_at": "2026-11-23T16:46:32.040502+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/campaign-email.html",
+    "final_url": "https://www.techmagnate.com/campaign-email.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 17105,
+    "content_size": 340249,
+    "error": "",
+    "observed_at": "2026-11-23T16:46:49.342683+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/app-conversion-rate-optimization-services.html",
+    "final_url": "https://www.techmagnate.com/app-conversion-rate-optimization-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 16121,
+    "content_size": 319519,
+    "error": "",
+    "observed_at": "2026-11-23T16:47:05.751755+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/content-writing-services.html",
+    "final_url": "https://www.techmagnate.com/content-writing-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6823,
+    "content_size": 346840,
+    "error": "",
+    "observed_at": "2026-11-23T16:47:24.444116+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/youtube-video-marketing-services.html",
+    "final_url": "https://www.techmagnate.com/youtube-video-marketing-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10378,
+    "content_size": 316121,
+    "error": "",
+    "observed_at": "2026-11-23T16:46:28.541927+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/app-store-optimization-services.html",
+    "final_url": "https://www.techmagnate.com/app-store-optimization-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 12808,
+    "content_size": 305488,
+    "error": "",
+    "observed_at": "2026-11-23T16:46:45.046227+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/mobile-app-marketing-services.html",
+    "final_url": "https://www.techmagnate.com/mobile-app-marketing-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7921,
+    "content_size": 312197,
+    "error": "",
+    "observed_at": "2026-11-23T16:46:57.551558+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/guest-posting-services.html",
+    "final_url": "https://www.techmagnate.com/guest-posting-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7711,
+    "content_size": 341675,
+    "error": "",
+    "observed_at": "2026-11-23T16:47:13.744098+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/content-marketing-services.html",
+    "final_url": "https://www.techmagnate.com/content-marketing-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11206,
+    "content_size": 336426,
+    "error": "",
+    "observed_at": "2026-11-23T16:47:17.238624+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/digital-pr-services/",
+    "final_url": "https://www.techmagnate.com/digital-pr-services/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8416,
+    "content_size": 315994,
+    "error": "",
+    "observed_at": "2026-11-23T16:47:26.036773+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ppc-services-company-india.html",
+    "final_url": "https://www.techmagnate.com/ppc-services-company-india.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9414,
+    "content_size": 342915,
+    "error": "",
+    "observed_at": "2026-11-23T16:47:35.656951+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-copywriting.html",
+    "final_url": "https://www.techmagnate.com/seo-copywriting.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 16006,
+    "content_size": 320503,
+    "error": "",
+    "observed_at": "2026-11-23T16:47:42.248733+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/martech-services.html",
+    "final_url": "https://www.techmagnate.com/martech-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11512,
+    "content_size": 311634,
+    "error": "",
+    "observed_at": "2026-11-23T16:48:43.149242+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/digital-marketing-for-bfsi-industry.html",
+    "final_url": "https://www.techmagnate.com/digital-marketing-for-bfsi-industry.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6378,
+    "content_size": 347159,
+    "error": "",
+    "observed_at": "2026-11-23T16:49:09.937560+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/mobile-advertising.html",
+    "final_url": "https://www.techmagnate.com/mobile-advertising.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5096,
+    "content_size": 316816,
+    "error": "",
+    "observed_at": "2026-11-23T16:47:47.649251+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ppc-reseller-services.html",
+    "final_url": "https://www.techmagnate.com/ppc-reseller-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6116,
+    "content_size": 306657,
+    "error": "",
+    "observed_at": "2026-11-23T16:48:00.841118+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/social-media-advertising.html",
+    "final_url": "https://www.techmagnate.com/social-media-advertising.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11912,
+    "content_size": 323552,
+    "error": "",
+    "observed_at": "2026-11-23T16:48:06.637185+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/conversion-rate-optimization-services.html",
+    "final_url": "https://www.techmagnate.com/conversion-rate-optimization-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8435,
+    "content_size": 344281,
+    "error": "",
+    "observed_at": "2026-11-23T16:48:15.249714+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ecommerce-conversion-rate-optimization-services.html",
+    "final_url": "https://www.techmagnate.com/ecommerce-conversion-rate-optimization-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 13626,
+    "content_size": 321969,
+    "error": "",
+    "observed_at": "2026-11-23T16:48:20.441498+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/shopify-conversion-rate-optimization-services/",
+    "final_url": "https://www.techmagnate.com/shopify-conversion-rate-optimization-services/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5139,
+    "content_size": 318564,
+    "error": "",
+    "observed_at": "2026-11-23T16:48:26.249280+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/google-analytics-4-consulting.html",
+    "final_url": "https://www.techmagnate.com/google-analytics-4-consulting.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10331,
+    "content_size": 309684,
+    "error": "",
+    "observed_at": "2026-11-23T16:48:31.441179+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/amazon-advertising-services.html",
+    "final_url": "https://www.techmagnate.com/amazon-advertising-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11897,
+    "content_size": 305434,
+    "error": "",
+    "observed_at": "2026-11-23T16:47:54.450131+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/portfolio.html",
+    "final_url": "https://www.techmagnate.com/portfolio.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9291,
+    "content_size": 239575,
+    "error": "",
+    "observed_at": "2026-11-23T16:48:52.738837+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/digital-marketing-for-b2b-industry.html",
+    "final_url": "https://www.techmagnate.com/digital-marketing-for-b2b-industry.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8990,
+    "content_size": 329094,
+    "error": "",
+    "observed_at": "2026-11-23T16:49:12.549764+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/customer-data-platform-services.html",
+    "final_url": "https://www.techmagnate.com/customer-data-platform-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8502,
+    "content_size": 337956,
+    "error": "",
+    "observed_at": "2026-11-23T16:48:40.139999+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/b2b-conversion-rate-optimization-services.html",
+    "final_url": "https://www.techmagnate.com/b2b-conversion-rate-optimization-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5305,
+    "content_size": 328920,
+    "error": "",
+    "observed_at": "2026-11-23T16:48:48.751789+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/clients-testimonials.html",
+    "final_url": "https://www.techmagnate.com/clients-testimonials.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4718,
+    "content_size": 209592,
+    "error": "",
+    "observed_at": "2026-11-23T16:48:57.645065+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/casestudies.html",
+    "final_url": "https://www.techmagnate.com/casestudies.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10417,
+    "content_size": 225158,
+    "error": "",
+    "observed_at": "2026-11-23T16:49:03.344292+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/digital-marketing-for-education-industry.html",
+    "final_url": "https://www.techmagnate.com/digital-marketing-for-education-industry.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6219,
+    "content_size": 343617,
+    "error": "",
+    "observed_at": "2026-11-23T16:49:19.146336+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/digital-marketing-for-healthcare-industry.html",
+    "final_url": "https://www.techmagnate.com/digital-marketing-for-healthcare-industry.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 18221,
+    "content_size": 333200,
+    "error": "",
+    "observed_at": "2026-11-23T16:49:31.148550+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/search-trends-report.html",
+    "final_url": "https://www.techmagnate.com/search-trends-report.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 3720,
+    "content_size": 216285,
+    "error": "",
+    "observed_at": "2026-11-23T16:49:35.141311+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ecommerce-digital-marketing-agency.html",
+    "final_url": "https://www.techmagnate.com/ecommerce-digital-marketing-agency.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11824,
+    "content_size": 353282,
+    "error": "",
+    "observed_at": "2026-11-23T16:49:43.243822+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-for-bajaj-broking.html",
+    "final_url": "https://www.techmagnate.com/seo-case-study-for-bajaj-broking.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10499,
+    "content_size": 215586,
+    "error": "",
+    "observed_at": "2026-11-23T16:50:14.236760+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/mutual-funds-trends-report.html",
+    "final_url": "https://www.techmagnate.com/mutual-funds-trends-report.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5129,
+    "content_size": 254095,
+    "error": "",
+    "observed_at": "2026-11-23T16:50:19.948701+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/hotel-industry-market-trends-report.html",
+    "final_url": "https://www.techmagnate.com/hotel-industry-market-trends-report.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 13422,
+    "content_size": 254403,
+    "error": "",
+    "observed_at": "2026-11-23T16:50:28.241006+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/personal-loan-trends-report.html",
+    "final_url": "https://www.techmagnate.com/personal-loan-trends-report.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10994,
+    "content_size": 255228,
+    "error": "",
+    "observed_at": "2026-11-23T16:50:39.541763+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/home-loan-trends-report.html",
+    "final_url": "https://www.techmagnate.com/home-loan-trends-report.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10893,
+    "content_size": 254675,
+    "error": "",
+    "observed_at": "2026-11-23T16:50:50.652172+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/faqs.html",
+    "final_url": "https://www.techmagnate.com/faqs.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7216,
+    "content_size": 304050,
+    "error": "",
+    "observed_at": "2026-11-23T16:51:39.441164+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/",
+    "final_url": "https://www.techmagnate.com/blog/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6891,
+    "content_size": 301764,
+    "error": "",
+    "observed_at": "2026-11-23T16:49:50.350256+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-bajaj-finserv-gold-loan.html",
+    "final_url": "https://www.techmagnate.com/seo-case-study-bajaj-finserv-gold-loan.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5896,
+    "content_size": 226929,
+    "error": "",
+    "observed_at": "2026-11-23T16:49:59.848343+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/travel-industry-trends-report.html",
+    "final_url": "https://www.techmagnate.com/travel-industry-trends-report.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 14590,
+    "content_size": 254330,
+    "error": "",
+    "observed_at": "2026-11-23T16:50:54.349945+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/llm-citation-drift-report/",
+    "final_url": "https://www.techmagnate.com/blog/llm-citation-drift-report/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8418,
+    "content_size": 253651,
+    "error": "",
+    "observed_at": "2026-11-23T16:51:03.144517+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/category/seo/",
+    "final_url": "https://www.techmagnate.com/blog/category/seo/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4401,
+    "content_size": 250492,
+    "error": "",
+    "observed_at": "2026-11-23T16:51:07.751282+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Content-Writer.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Content-Writer.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 2895,
+    "content_size": 93744,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:40.014121+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/contact-us.html",
+    "final_url": "https://www.techmagnate.com/contact-us.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10288,
+    "content_size": 211104,
+    "error": "",
+    "observed_at": "2026-11-23T16:49:53.752373+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-for-online-pharmacy.html",
+    "final_url": "https://www.techmagnate.com/seo-case-study-for-online-pharmacy.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9589,
+    "content_size": 217178,
+    "error": "",
+    "observed_at": "2026-11-23T16:50:03.541977+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/womens-wear-trends-report.html",
+    "final_url": "https://www.techmagnate.com/womens-wear-trends-report.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6699,
+    "content_size": 255303,
+    "error": "",
+    "observed_at": "2026-11-23T16:50:10.437569+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/gold-loan-trends-report.html",
+    "final_url": "https://www.techmagnate.com/gold-loan-trends-report.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8300,
+    "content_size": 255208,
+    "error": "",
+    "observed_at": "2026-11-23T16:50:36.848052+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/best-aeo-agencies-for-bfsi-india/",
+    "final_url": "https://www.techmagnate.com/blog/best-aeo-agencies-for-bfsi-india/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8892,
+    "content_size": 265512,
+    "error": "",
+    "observed_at": "2026-11-23T16:51:12.242105+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/chatgpt-vs-gemini-market-share/",
+    "final_url": "https://www.techmagnate.com/blog/chatgpt-vs-gemini-market-share/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4035,
+    "content_size": 265069,
+    "error": "",
+    "observed_at": "2026-11-23T16:51:16.556826+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/digital-marketing-strategy/",
+    "final_url": "https://www.techmagnate.com/blog/digital-marketing-strategy/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 9512,
+    "content_size": 184845,
+    "error": "",
+    "observed_at": "2026-11-23T16:51:32.036787+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/category/ai-llm-seo/",
+    "final_url": "https://www.techmagnate.com/blog/",
+    "status_code": 200,
+    "redirect_chain": [
+      "https://www.techmagnate.com/blog/category/ai-llm-seo/",
+      "https://www.techmagnate.com/blog/"
+    ],
+    "response_time_ms": 2813,
+    "content_size": 301764,
+    "error": "",
+    "observed_at": "2026-11-23T16:50:57.539123+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/10-best-enterprise-seo-agencies-india-global-brands/",
+    "final_url": "https://www.techmagnate.com/blog/10-best-enterprise-seo-agencies-india-global-brands/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9724,
+    "content_size": 263834,
+    "error": "",
+    "observed_at": "2026-11-23T16:51:22.245004+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/branded-geo-control-ai-brand-narrative/",
+    "final_url": "https://www.techmagnate.com/blog/branded-geo-control-ai-brand-narrative/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4515,
+    "content_size": 265525,
+    "error": "",
+    "observed_at": "2026-11-23T16:51:27.039047+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/what-is-conversion-rate-optimization/",
+    "final_url": "https://www.techmagnate.com/blog/what-is-conversion-rate-optimization/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 9326,
+    "content_size": 184855,
+    "error": "",
+    "observed_at": "2026-11-23T16:51:41.550684+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/privacy-policy.html",
+    "final_url": "https://www.techmagnate.com/privacy-policy.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5694,
+    "content_size": 191913,
+    "error": "",
+    "observed_at": "2026-11-23T16:51:47.445055+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/tools/seo-roi-calculator/",
+    "final_url": "https://www.techmagnate.com/tools/seo-roi-calculator/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9821,
+    "content_size": 269769,
+    "error": "",
+    "observed_at": "2026-11-23T16:52:15.241288+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Client-Servicing-Executive-Digital-Marketing.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Client-Servicing-Executive-Digital-Marketing.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6941,
+    "content_size": 95667,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:44.061141+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/prism",
+    "final_url": "https://www.techmagnate.com/prism/",
+    "status_code": 200,
+    "redirect_chain": [
+      "https://www.techmagnate.com/prism",
+      "https://www.techmagnate.com/prism/"
+    ],
+    "response_time_ms": 9192,
+    "content_size": 150210,
+    "error": "",
+    "observed_at": "2026-11-23T16:51:50.944254+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/prism/",
+    "final_url": "https://www.techmagnate.com/prism/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8369,
+    "content_size": 150210,
+    "error": "",
+    "observed_at": "2026-11-23T16:51:59.348958+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/website-designing-development.html",
+    "final_url": "https://www.techmagnate.com/website-designing-development.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 14263,
+    "content_size": 337188,
+    "error": "",
+    "observed_at": "2026-11-23T16:52:05.238588+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/web-stories.html",
+    "final_url": "https://www.techmagnate.com/web-stories.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9605,
+    "content_size": 274437,
+    "error": "",
+    "observed_at": "2026-11-23T16:52:25.044614+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Business-Development-Assistant-Manager.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Business-Development-Assistant-Manager.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 1386,
+    "content_size": 115909,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:45.475935+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/tools/ppc-roi-calculator/",
+    "final_url": "https://www.techmagnate.com/tools/ppc-roi-calculator/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9224,
+    "content_size": 251124,
+    "error": "",
+    "observed_at": "2026-11-23T16:52:14.640674+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/sitemap.html",
+    "final_url": "https://www.techmagnate.com/sitemap.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10110,
+    "content_size": 198108,
+    "error": "",
+    "observed_at": "2026-11-23T16:52:35.443079+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/delhi-ncr/digital-marketing-company-delhi.html",
+    "final_url": "https://www.techmagnate.com/india/delhi-ncr/digital-marketing-company-delhi.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11316,
+    "content_size": 362780,
+    "error": "",
+    "observed_at": "2026-11-23T16:52:47.151485+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2026/06/SEO-Director-Job-Description.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2026/06/SEO-Director-Job-Description.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9299,
+    "content_size": 89589,
+    "error": "",
+    "observed_at": "2026-11-23T16:52:56.742039+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2026/06/Sr.-BDM-PPC-Sales.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2026/06/Sr.-BDM-PPC-Sales.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4313,
+    "content_size": 60167,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:01.156144+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Sr.-Manager-Content.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Sr.-Manager-Content.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10778,
+    "content_size": 114750,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:26.803662+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/HR-Executive.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/HR-Executive.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7422,
+    "content_size": 85784,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:34.241769+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Talent-Acquisition-specialist.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Talent-Acquisition-specialist.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 2792,
+    "content_size": 89911,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:37.104245+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/tools/conversion-rate-calculator/",
+    "final_url": "https://www.techmagnate.com/tools/conversion-rate-calculator/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5704,
+    "content_size": 268094,
+    "error": "",
+    "observed_at": "2026-11-23T16:52:21.143449+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/csr-policy.html",
+    "final_url": "https://www.techmagnate.com/csr-policy.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9914,
+    "content_size": 202095,
+    "error": "",
+    "observed_at": "2026-11-23T16:52:45.748873+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2026/06/JD_Project_Manager_AI.docx.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2026/06/JD_Project_Manager_AI.docx.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6164,
+    "content_size": 144158,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:14.482904+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/JD-Senior-Manager-BD.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/JD-Senior-Manager-BD.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7665,
+    "content_size": 94328,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:15.984474+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/CS-Senior-Manager.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/CS-Senior-Manager.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 2886,
+    "content_size": 93691,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:18.910899+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Business-Development-GM-_-Sr.-Manager.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Business-Development-GM-_-Sr.-Manager.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 2970,
+    "content_size": 124629,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:54.364684+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Senior-Business-Development-Executive.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Senior-Business-Development-Executive.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 3963,
+    "content_size": 83917,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:55.357989+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Senior-Guest-Posting-Executive.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Senior-Guest-Posting-Executive.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7056,
+    "content_size": 94269,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:09.861236+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blogx-blogger-community.html",
+    "final_url": "https://www.techmagnate.com/blogx-blogger-community.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8710,
+    "content_size": 211696,
+    "error": "",
+    "observed_at": "2026-11-23T16:52:34.042439+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/sarveshbagla/",
+    "final_url": "https://www.techmagnate.com/sarveshbagla/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5609,
+    "content_size": 232477,
+    "error": "",
+    "observed_at": "2026-11-23T16:52:53.051713+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2026/06/BUSINESS-HEAD-Techmagnate.docx",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2026/06/BUSINESS-HEAD-Techmagnate.docx",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7545,
+    "content_size": 21770,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:04.382964+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2026/06/JD-Full-Stack-Developer-1.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2026/06/JD-Full-Stack-Developer-1.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 3184,
+    "content_size": 107727,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:07.604123+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2026/06/AI-Product-Manager-JD-1.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2026/06/AI-Product-Manager-JD-1.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 3883,
+    "content_size": 101638,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:08.303299+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/AM-Content-BFSI_Insurance-Expert.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/AM-Content-BFSI_Insurance-Expert.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 2992,
+    "content_size": 91808,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:29.810735+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/SEO-Manager-Pune.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/SEO-Manager-Pune.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 2668,
+    "content_size": 107041,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:36.979401+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Client-Servicing-Manager.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Client-Servicing-Manager.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7291,
+    "content_size": 100308,
+    "error": "",
+    "observed_at": "2026-11-23T16:53:51.378939+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Junior-SEO-Executive.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Junior-SEO-Executive.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 3026,
+    "content_size": 92003,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:05.831846+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/PPC-Manager_Assistant-Manager.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/PPC-Manager_Assistant-Manager.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7341,
+    "content_size": 100430,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:02.789165+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/SEO-Team-Leader-_-Assistant-Team-Leader.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/SEO-Team-Leader-_-Assistant-Team-Leader.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 1986,
+    "content_size": 105851,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:12.099809+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/SEO-Manager.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/SEO-Manager.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 3136,
+    "content_size": 99093,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:13.249551+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/SEO-Assistant-Manager.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/SEO-Assistant-Manager.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 2815,
+    "content_size": 86327,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:16.088348+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/02/Sr.-SEO-Manager-.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/02/Sr.-SEO-Manager-.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7083,
+    "content_size": 96641,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:20.357674+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/General-Manager-_-Assistant-General-Manager.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/General-Manager-_-Assistant-General-Manager.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 2873,
+    "content_size": 98214,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:23.486443+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Senior-SEO-Executive.pdf",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/07/Senior-SEO-Executive.pdf",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6904,
+    "content_size": 97255,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:27.516425+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/chatgpt-seo-services.html",
+    "final_url": "https://www.techmagnate.com/chatgpt-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5114,
+    "content_size": 338040,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:32.651016+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/perplexity-seo-services.html",
+    "final_url": "https://www.techmagnate.com/perplexity-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6004,
+    "content_size": 334568,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:33.541950+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/gemini-seo-services.html",
+    "final_url": "https://www.techmagnate.com/gemini-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6319,
+    "content_size": 344140,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:40.146165+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/latest-seo-trends/",
+    "final_url": "https://www.techmagnate.com/blog/latest-seo-trends/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 9621,
+    "content_size": 184836,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:43.448130+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/geo-llmo-case-study-tile-brand-growth-in-ai-visibility/",
+    "final_url": "https://www.techmagnate.com/geo-llmo-case-study-tile-brand-growth-in-ai-visibility/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 3782,
+    "content_size": 205227,
+    "error": "",
+    "observed_at": "2026-11-23T16:55:02.046167+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/geo-llmo-case-study-of-online-pharmacy-ai-coverage/",
+    "final_url": "https://www.techmagnate.com/geo-llmo-case-study-of-online-pharmacy-ai-coverage/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8980,
+    "content_size": 205985,
+    "error": "",
+    "observed_at": "2026-11-23T16:55:07.243359+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-bajaj-finserv-motor-insurance/",
+    "final_url": "https://www.techmagnate.com/seo-case-study-bajaj-finserv-motor-insurance/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4212,
+    "content_size": 215952,
+    "error": "",
+    "observed_at": "2026-11-23T16:55:57.549851+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/how-to-use-seo-to-build-brand-awareness/",
+    "final_url": "https://www.techmagnate.com/blog/",
+    "status_code": 200,
+    "redirect_chain": [
+      "https://www.techmagnate.com/blog/how-to-use-seo-to-build-brand-awareness/",
+      "https://www.techmagnate.com/blog/"
+    ],
+    "response_time_ms": 7720,
+    "content_size": 301764,
+    "error": "",
+    "observed_at": "2026-11-23T16:56:11.251602+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/create-google-account-for-business/",
+    "final_url": "https://www.techmagnate.com/blog/create-google-account-for-business/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5838,
+    "content_size": 260307,
+    "error": "",
+    "observed_at": "2026-11-23T16:56:22.247745+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/geo-llmo-case-study-for-women-health-queries/",
+    "final_url": "https://www.techmagnate.com/geo-llmo-case-study-for-women-health-queries/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6792,
+    "content_size": 205563,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:50.445615+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/geo-llmo-case-study-bank-growth-in-ai-visibility/",
+    "final_url": "https://www.techmagnate.com/geo-llmo-case-study-bank-growth-in-ai-visibility/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5581,
+    "content_size": 205691,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:56.937311+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/geo-llmo-case-study-of-nbfc-perplexity-visibility-growth/",
+    "final_url": "https://www.techmagnate.com/geo-llmo-case-study-of-nbfc-perplexity-visibility-growth/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6688,
+    "content_size": 205152,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:58.045427+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/lab-tests-trends-report.html",
+    "final_url": "https://www.techmagnate.com/lab-tests-trends-report.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5480,
+    "content_size": 242236,
+    "error": "",
+    "observed_at": "2026-11-23T16:55:12.946369+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ai-search-llm-citation-drift-report.html",
+    "final_url": "https://www.techmagnate.com/ai-search-llm-citation-drift-report.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9373,
+    "content_size": 239039,
+    "error": "",
+    "observed_at": "2026-11-23T16:55:16.838421+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/google-ai-mode-optimization/",
+    "final_url": "https://www.techmagnate.com/blog/google-ai-mode-optimization/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9393,
+    "content_size": 266875,
+    "error": "",
+    "observed_at": "2026-11-23T16:55:37.738933+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/mobile-seo-services.html",
+    "final_url": "https://www.techmagnate.com/mobile-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11403,
+    "content_size": 338211,
+    "error": "",
+    "observed_at": "2026-11-23T16:55:39.749391+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/1496-boost-in-website-traffic-for-bajaj-finservs-bill-payments-lob.html",
+    "final_url": "https://www.techmagnate.com/1496-boost-in-website-traffic-for-bajaj-finservs-bill-payments-lob.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5323,
+    "content_size": 215942,
+    "error": "",
+    "observed_at": "2026-11-23T16:55:45.340156+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/techmagnate-ai-seo-case-study/",
+    "final_url": "https://www.techmagnate.com/techmagnate-ai-seo-case-study/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7496,
+    "content_size": 205606,
+    "error": "",
+    "observed_at": "2026-11-23T16:54:51.150598+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/baby-products-market-trends-report.html",
+    "final_url": "https://www.techmagnate.com/baby-products-market-trends-report.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7110,
+    "content_size": 246938,
+    "error": "",
+    "observed_at": "2026-11-23T16:55:24.147678+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/cosmetics-industry-market-trends-report.html",
+    "final_url": "https://www.techmagnate.com/cosmetics-industry-market-trends-report.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11118,
+    "content_size": 247349,
+    "error": "",
+    "observed_at": "2026-11-23T16:55:28.146391+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-bajaj-finserv-bill-payments.html",
+    "final_url": "https://www.techmagnate.com/seo-case-study-bajaj-finserv-bill-payments.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 13033,
+    "content_size": 228367,
+    "error": "",
+    "observed_at": "2026-11-23T16:55:53.050860+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/seo-for-financial-services/",
+    "final_url": "https://www.techmagnate.com/blog/seo-for-financial-services/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4488,
+    "content_size": 255501,
+    "error": "",
+    "observed_at": "2026-11-23T16:56:32.442123+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/seo-for-new-website/",
+    "final_url": "https://www.techmagnate.com/blog/seo-for-new-website/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9586,
+    "content_size": 261687,
+    "error": "",
+    "observed_at": "2026-11-23T16:56:37.541013+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/maharashtra/seo-services-mumbai.html",
+    "final_url": "https://www.techmagnate.com/india/maharashtra/seo-services-mumbai.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5979,
+    "content_size": 359883,
+    "error": "",
+    "observed_at": "2026-11-23T16:56:55.140437+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/what-is-llmo/",
+    "final_url": "https://www.techmagnate.com/blog/what-is-llmo/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10563,
+    "content_size": 262024,
+    "error": "",
+    "observed_at": "2026-11-23T16:59:00.045059+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-bajaj-finserv-health.html",
+    "final_url": "https://www.techmagnate.com/seo-case-study-bajaj-finserv-health.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10000,
+    "content_size": 216128,
+    "error": "",
+    "observed_at": "2026-11-23T16:56:03.337206+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-for-bajaj-allianz.html",
+    "final_url": "https://www.techmagnate.com/seo-case-study-for-bajaj-allianz.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 12211,
+    "content_size": 217151,
+    "error": "",
+    "observed_at": "2026-11-23T16:56:15.741107+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/delhi-ncr/seo-company-in-delhi.html",
+    "final_url": "https://www.techmagnate.com/india/delhi-ncr/seo-company-in-delhi.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11089,
+    "content_size": 348341,
+    "error": "",
+    "observed_at": "2026-11-23T16:56:48.844642+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/karnataka/seo-services-company-bangalore.html",
+    "final_url": "https://www.techmagnate.com/india/karnataka/seo-services-company-bangalore.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 15987,
+    "content_size": 372043,
+    "error": "",
+    "observed_at": "2026-11-23T16:57:15.742913+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/delhi-ncr/seo-company-gurgaon.html",
+    "final_url": "https://www.techmagnate.com/india/delhi-ncr/seo-company-gurgaon.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 26723,
+    "content_size": 352078,
+    "error": "",
+    "observed_at": "2026-11-23T16:57:42.749820+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/delhi-ncr/seo-company-faridabad.html",
+    "final_url": "https://www.techmagnate.com/india/delhi-ncr/seo-company-faridabad.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7690,
+    "content_size": 341496,
+    "error": "",
+    "observed_at": "2026-11-23T16:57:50.738472+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/gujarat/seo-services-company-ahmedabad.html",
+    "final_url": "https://www.techmagnate.com/india/gujarat/seo-services-company-ahmedabad.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 19405,
+    "content_size": 350039,
+    "error": "",
+    "observed_at": "2026-11-23T16:58:02.453939+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/seo-kpis-to-track/",
+    "final_url": "https://www.techmagnate.com/blog/seo-kpis-to-track/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11336,
+    "content_size": 262517,
+    "error": "",
+    "observed_at": "2026-11-23T16:56:27.746867+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/what-is-seo-marketing/",
+    "final_url": "https://www.techmagnate.com/blog/what-is-seo-marketing/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5588,
+    "content_size": 254872,
+    "error": "",
+    "observed_at": "2026-11-23T16:56:43.342806+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/tamil-nadu/seo-services-chennai.html",
+    "final_url": "https://www.techmagnate.com/india/tamil-nadu/seo-services-chennai.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5791,
+    "content_size": 362221,
+    "error": "",
+    "observed_at": "2026-11-23T16:57:05.546472+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/tamil-nadu/seo-services-company-coimbatore.html",
+    "final_url": "https://www.techmagnate.com/india/tamil-nadu/seo-services-company-coimbatore.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10512,
+    "content_size": 351880,
+    "error": "",
+    "observed_at": "2026-11-23T16:58:49.049974+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/website-seo-audit-guide/",
+    "final_url": "https://www.techmagnate.com/blog/website-seo-audit-guide/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 9012,
+    "content_size": 184842,
+    "error": "",
+    "observed_at": "2026-11-23T16:59:20.441285+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-for-leading-hospital-in-mumbai/",
+    "final_url": "https://www.techmagnate.com/seo-case-study-for-leading-hospital-in-mumbai/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11503,
+    "content_size": 217449,
+    "error": "",
+    "observed_at": "2026-11-23T16:59:51.865584+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/maharashtra/seo-company-pune.html",
+    "final_url": "https://www.techmagnate.com/india/maharashtra/seo-company-pune.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10285,
+    "content_size": 368282,
+    "error": "",
+    "observed_at": "2026-11-23T16:56:59.451070+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/telangana/seo-services-company-hyderabad.html",
+    "final_url": "https://www.techmagnate.com/india/telangana/seo-services-company-hyderabad.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5914,
+    "content_size": 356731,
+    "error": "",
+    "observed_at": "2026-11-23T16:57:21.941776+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/seo-company-lucknow.html",
+    "final_url": "https://www.techmagnate.com/india/seo-company-lucknow.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5969,
+    "content_size": 342382,
+    "error": "",
+    "observed_at": "2026-11-23T16:58:08.742864+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/rajasthan/seo-services-company-jaipur.html",
+    "final_url": "https://www.techmagnate.com/india/rajasthan/seo-services-company-jaipur.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10667,
+    "content_size": 345851,
+    "error": "",
+    "observed_at": "2026-11-23T16:58:13.442255+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/seo-company-kolkata.html",
+    "final_url": "https://www.techmagnate.com/india/seo-company-kolkata.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7024,
+    "content_size": 356508,
+    "error": "",
+    "observed_at": "2026-11-23T16:58:20.844086+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/delhi-ncr/seo-company-noida.html",
+    "final_url": "https://www.techmagnate.com/india/delhi-ncr/seo-company-noida.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5407,
+    "content_size": 356547,
+    "error": "",
+    "observed_at": "2026-11-23T16:58:43.946594+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/automobile-manufacturer-ai-seo-case-study/",
+    "final_url": "https://www.techmagnate.com/automobile-manufacturer-ai-seo-case-study/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8757,
+    "content_size": 207279,
+    "error": "",
+    "observed_at": "2026-11-23T16:58:58.238728+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/punjab/seo-services-company-chandigarh.html",
+    "final_url": "https://www.techmagnate.com/india/punjab/seo-services-company-chandigarh.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 24431,
+    "content_size": 346126,
+    "error": "",
+    "observed_at": "2026-11-23T16:58:38.250527+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/on-page-seo.html",
+    "final_url": "https://www.techmagnate.com/on-page-seo.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6586,
+    "content_size": 333498,
+    "error": "",
+    "observed_at": "2026-11-23T16:59:06.839466+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/what-is-user-search-intent/",
+    "final_url": "https://www.techmagnate.com/blog/what-is-user-search-intent/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 10898,
+    "content_size": 184845,
+    "error": "",
+    "observed_at": "2026-11-23T16:59:11.151667+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-bajaj-mall/",
+    "final_url": "https://www.techmagnate.com/seo-case-study-bajaj-mall/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4832,
+    "content_size": 215947,
+    "error": "",
+    "observed_at": "2026-11-23T16:59:25.841968+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-get-my-books.html",
+    "final_url": "https://www.techmagnate.com/seo-case-study-get-my-books.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9040,
+    "content_size": 216442,
+    "error": "",
+    "observed_at": "2026-11-23T16:59:30.049566+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-grihashakti/",
+    "final_url": "https://www.techmagnate.com/seo-case-study-grihashakti/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8092,
+    "content_size": 216578,
+    "error": "",
+    "observed_at": "2026-11-23T17:00:00.142963+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/ecommerce-seo-guide/",
+    "final_url": "https://www.techmagnate.com/blog/ecommerce-seo-guide/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 4020,
+    "content_size": 184838,
+    "error": "",
+    "observed_at": "2026-11-23T16:59:15.450391+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-rbl-bank/",
+    "final_url": "https://www.techmagnate.com/seo-case-study-rbl-bank/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4897,
+    "content_size": 215994,
+    "error": "",
+    "observed_at": "2026-11-23T16:59:35.246706+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-for-two-wheeler-and-used-car-loan-provider/",
+    "final_url": "https://www.techmagnate.com/seo-case-study-for-two-wheeler-and-used-car-loan-provider/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9608,
+    "content_size": 216616,
+    "error": "",
+    "observed_at": "2026-11-23T16:59:39.957180+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/seo-strategies/",
+    "final_url": "https://www.techmagnate.com/blog/seo-strategies/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 11302,
+    "content_size": 184833,
+    "error": "",
+    "observed_at": "2026-11-23T16:59:51.638149+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/technical-seo-case-study-insurance-growth/",
+    "final_url": "https://www.techmagnate.com/technical-seo-case-study-insurance-growth/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6500,
+    "content_size": 205019,
+    "error": "",
+    "observed_at": "2026-11-23T16:59:58.551280+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/what-is-on-page-seo/",
+    "final_url": "https://www.techmagnate.com/blog/what-is-on-page-seo/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10838,
+    "content_size": 284524,
+    "error": "",
+    "observed_at": "2026-11-23T17:00:11.148408+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/how-improve-web-page-speed/",
+    "final_url": "https://www.techmagnate.com/blog/how-improve-web-page-speed/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 10035,
+    "content_size": 184845,
+    "error": "",
+    "observed_at": "2026-11-23T17:00:10.345491+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/types-of-backlinks/",
+    "final_url": "https://www.techmagnate.com/blog/types-of-backlinks/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 6313,
+    "content_size": 184837,
+    "error": "",
+    "observed_at": "2026-11-23T17:00:17.741814+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/google-core-web-vitals/",
+    "final_url": "https://www.techmagnate.com/blog/google-core-web-vitals/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11719,
+    "content_size": 258709,
+    "error": "",
+    "observed_at": "2026-11-23T17:00:23.147135+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/how-to-optimize-duplicate-content-for-seo/",
+    "final_url": "https://www.techmagnate.com/blog/how-to-optimize-duplicate-content-for-seo/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 5964,
+    "content_size": 184860,
+    "error": "",
+    "observed_at": "2026-11-23T17:00:29.445232+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/what-are-internal-links/",
+    "final_url": "https://www.techmagnate.com/wp-content/uploads/2025/04/What-are-Internal-Links.png",
+    "status_code": 200,
+    "redirect_chain": [
+      "https://www.techmagnate.com/blog/what-are-internal-links/",
+      "https://www.techmagnate.com/wp-content/uploads/2025/04/What-are-Internal-Links.png"
+    ],
+    "response_time_ms": 9685,
+    "content_size": 153319,
+    "error": "",
+    "observed_at": "2026-11-23T17:00:33.165263+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/digital-marketing-agency-guide/",
+    "final_url": "https://www.techmagnate.com/blog/digital-marketing-agency-guide/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4023,
+    "content_size": 268862,
+    "error": "",
+    "observed_at": "2026-11-23T17:02:23.039760+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/fenesta-seo-case-study.html",
+    "final_url": "https://www.techmagnate.com/fenesta-seo-case-study.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5261,
+    "content_size": 218521,
+    "error": "",
+    "observed_at": "2026-11-23T17:00:38.444741+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/google-my-business-listing-optimization-gmb-seo/",
+    "final_url": "https://www.techmagnate.com/blog/google-my-business-listing-optimization-gmb-seo/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 21394,
+    "content_size": 184866,
+    "error": "",
+    "observed_at": "2026-11-23T17:01:04.153346+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-for-bajaj-finserv-mutual-funds/",
+    "final_url": "https://www.techmagnate.com/seo-case-study-for-bajaj-finserv-mutual-funds/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5102,
+    "content_size": 215194,
+    "error": "",
+    "observed_at": "2026-11-23T17:01:09.838320+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/meta-tags-for-seo/",
+    "final_url": "https://www.techmagnate.com/blog/meta-tags-for-seo/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 9307,
+    "content_size": 184836,
+    "error": "",
+    "observed_at": "2026-11-23T17:01:14.041317+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/what-is-keyword-optimization/",
+    "final_url": "https://www.techmagnate.com/blog/what-is-keyword-optimization/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 6119,
+    "content_size": 184847,
+    "error": "",
+    "observed_at": "2026-11-23T17:01:20.638811+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/denis-ferranti-group-seo-case-study.html",
+    "final_url": "https://www.techmagnate.com/denis-ferranti-group-seo-case-study.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9261,
+    "content_size": 220692,
+    "error": "",
+    "observed_at": "2026-11-23T17:00:42.445599+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/server-side-rendering-vs-client-side-rendering/#What_Is_Server-Side_Rendering_And_How_Does_It_Work",
+    "final_url": "https://www.techmagnate.com/blog/server-side-rendering-vs-client-side-rendering/#What_Is_Server-Side_Rendering_And_How_Does_It_Work",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 5088,
+    "content_size": 184865,
+    "error": "",
+    "observed_at": "2026-11-23T17:00:47.845938+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/mobile-seo-case-study-educational-website.html",
+    "final_url": "https://www.techmagnate.com/mobile-seo-case-study-educational-website.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9534,
+    "content_size": 233127,
+    "error": "",
+    "observed_at": "2026-11-23T17:01:35.636684+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/seo-best-practices/",
+    "final_url": "https://www.techmagnate.com/blog/seo-best-practices/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 5693,
+    "content_size": 184837,
+    "error": "",
+    "observed_at": "2026-11-23T17:01:41.548760+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/ai-analytics-in-digital-marketing-guide/",
+    "final_url": "https://www.techmagnate.com/blog/ai-analytics-in-digital-marketing-guide/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8989,
+    "content_size": 254382,
+    "error": "",
+    "observed_at": "2026-11-23T17:02:16.041295+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/category/digital-marketing/",
+    "final_url": "https://www.techmagnate.com/blog/category/digital-marketing/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10896,
+    "content_size": 224585,
+    "error": "",
+    "observed_at": "2026-11-23T17:02:18.309000+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/seo-case-study-for-getzype/",
+    "final_url": "https://www.techmagnate.com/seo-case-study-for-getzype/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11129,
+    "content_size": 215840,
+    "error": "",
+    "observed_at": "2026-11-23T17:01:25.648592+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ppc-case-study-tostem-india.html",
+    "final_url": "https://www.techmagnate.com/ppc-case-study-tostem-india.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4699,
+    "content_size": 215717,
+    "error": "",
+    "observed_at": "2026-11-23T17:02:02.440032+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/shopify-cro-strategy/",
+    "final_url": "https://www.techmagnate.com/blog/shopify-cro-strategy/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8291,
+    "content_size": 253614,
+    "error": "",
+    "observed_at": "2026-11-23T17:02:36.642344+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/insurance-seo-services.html",
+    "final_url": "https://www.techmagnate.com/insurance-seo-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 12183,
+    "content_size": 328279,
+    "error": "",
+    "observed_at": "2026-11-23T17:02:49.136856+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/how-to-get-natural-links/",
+    "final_url": "https://www.techmagnate.com/blog/how-to-get-natural-links/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 5534,
+    "content_size": 184843,
+    "error": "",
+    "observed_at": "2026-11-23T17:01:31.550615+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/what-is-content-marketing/",
+    "final_url": "https://www.techmagnate.com/blog/what-is-content-marketing/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 11782,
+    "content_size": 184844,
+    "error": "",
+    "observed_at": "2026-11-23T17:01:47.638484+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/google-disavow-tool/",
+    "final_url": "https://www.techmagnate.com/blog/google-disavow-tool/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 5511,
+    "content_size": 184838,
+    "error": "",
+    "observed_at": "2026-11-23T17:01:53.451585+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/google-penalties-common-causes-and-how-to-avoid-them/",
+    "final_url": "https://www.techmagnate.com/blog/google-penalties-common-causes-and-how-to-avoid-them/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 9605,
+    "content_size": 184871,
+    "error": "",
+    "observed_at": "2026-11-23T17:01:57.544520+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/content-marketing-case-study-private-hospital-chain-in-india.html",
+    "final_url": "https://www.techmagnate.com/content-marketing-case-study-private-hospital-chain-in-india.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9103,
+    "content_size": 215624,
+    "error": "",
+    "observed_at": "2026-11-23T17:02:06.843068+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/ai-in-ppc-advertising/",
+    "final_url": "https://www.techmagnate.com/blog/ai-in-ppc-advertising/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9034,
+    "content_size": 252648,
+    "error": "",
+    "observed_at": "2026-11-23T17:02:28.050691+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/ai-in-digital-marketing/",
+    "final_url": "https://www.techmagnate.com/blog/ai-in-digital-marketing/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4795,
+    "content_size": 278370,
+    "error": "",
+    "observed_at": "2026-11-23T17:02:33.145763+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/bfsi-leader-orm-case-study.html",
+    "final_url": "https://www.techmagnate.com/bfsi-leader-orm-case-study.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5834,
+    "content_size": 214978,
+    "error": "",
+    "observed_at": "2026-11-23T17:02:55.451055+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/hyperlocal-marketing-guide/",
+    "final_url": "https://www.techmagnate.com/blog/hyperlocal-marketing-guide/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 4892,
+    "content_size": 184845,
+    "error": "",
+    "observed_at": "2026-11-23T17:02:41.845366+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/delhi-ncr/digital-marketing-company-noida.html",
+    "final_url": "https://www.techmagnate.com/india/delhi-ncr/digital-marketing-company-noida.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7718,
+    "content_size": 358260,
+    "error": "",
+    "observed_at": "2026-11-23T17:03:08.338348+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/karnataka/digital-marketing-company-bangalore.html",
+    "final_url": "https://www.techmagnate.com/india/karnataka/digital-marketing-company-bangalore.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 23029,
+    "content_size": 376952,
+    "error": "",
+    "observed_at": "2026-11-23T17:03:37.548723+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/maharashtra/digital-marketing-agency-mumbai.html",
+    "final_url": "https://www.techmagnate.com/india/maharashtra/digital-marketing-agency-mumbai.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 11204,
+    "content_size": 387896,
+    "error": "",
+    "observed_at": "2026-11-23T17:03:49.147839+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/maharashtra/digital-marketing-company-pune.html",
+    "final_url": "https://www.techmagnate.com/india/maharashtra/digital-marketing-company-pune.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10622,
+    "content_size": 399020,
+    "error": "",
+    "observed_at": "2026-11-23T17:03:00.239698+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/delhi-ncr/digital-marketing-company-gurgaon.html",
+    "final_url": "https://www.techmagnate.com/india/delhi-ncr/digital-marketing-company-gurgaon.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 13223,
+    "content_size": 392511,
+    "error": "",
+    "observed_at": "2026-11-23T17:03:13.844243+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/tamil-nadu/digital-marketing-company-chennai.html",
+    "final_url": "https://www.techmagnate.com/india/tamil-nadu/digital-marketing-company-chennai.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 15125,
+    "content_size": 358182,
+    "error": "",
+    "observed_at": "2026-11-23T17:03:29.644321+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/india/telangana/digital-marketing-company-hyderabad.html",
+    "final_url": "https://www.techmagnate.com/india/telangana/digital-marketing-company-hyderabad.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9807,
+    "content_size": 349699,
+    "error": "",
+    "observed_at": "2026-11-23T17:03:47.748950+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/app-store-optimization-case-study-my-airtel.html",
+    "final_url": "https://www.techmagnate.com/app-store-optimization-case-study-my-airtel.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5299,
+    "content_size": 230167,
+    "error": "",
+    "observed_at": "2026-11-23T17:03:54.942769+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/affiliate-marketing-guide/",
+    "final_url": "https://www.techmagnate.com/blog/affiliate-marketing-guide/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 9796,
+    "content_size": 184844,
+    "error": "",
+    "observed_at": "2026-11-23T17:03:59.440977+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/trainman-app-aso-case-study.html",
+    "final_url": "https://www.techmagnate.com/trainman-app-aso-case-study.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5926,
+    "content_size": 235871,
+    "error": "",
+    "observed_at": "2026-11-23T17:04:05.641956+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/app-marketing-case-study-for-loan-app.html",
+    "final_url": "https://www.techmagnate.com/app-marketing-case-study-for-loan-app.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10227,
+    "content_size": 215263,
+    "error": "",
+    "observed_at": "2026-11-23T17:04:09.942730+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/aso-case-study-bajaj-finserv.html",
+    "final_url": "https://www.techmagnate.com/aso-case-study-bajaj-finserv.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9429,
+    "content_size": 230880,
+    "error": "",
+    "observed_at": "2026-11-23T17:04:20.442403+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/british-paints-social-media-case-study.html",
+    "final_url": "https://www.techmagnate.com/british-paints-social-media-case-study.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10531,
+    "content_size": 231789,
+    "error": "",
+    "observed_at": "2026-11-23T17:04:21.545362+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/top-10-video-marketing-strategies/",
+    "final_url": "https://www.techmagnate.com/blog/top-10-video-marketing-strategies/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 4290,
+    "content_size": 184852,
+    "error": "",
+    "observed_at": "2026-11-23T17:04:26.043505+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/category/content-marketing/",
+    "final_url": "https://www.techmagnate.com/blog/category/content-marketing/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8689,
+    "content_size": 218473,
+    "error": "",
+    "observed_at": "2026-11-23T17:04:30.442913+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/content-decay/",
+    "final_url": "https://www.techmagnate.com/blog/content-decay/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 5506,
+    "content_size": 246011,
+    "error": "",
+    "observed_at": "2026-11-23T17:04:36.149096+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/technical-content-writing/",
+    "final_url": "https://www.techmagnate.com/blog/technical-content-writing/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8306,
+    "content_size": 266962,
+    "error": "",
+    "observed_at": "2026-11-23T17:04:38.949813+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/duplicate-content-checker-tools/",
+    "final_url": "https://www.techmagnate.com/blog/duplicate-content-checker-tools/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 4119,
+    "content_size": 258066,
+    "error": "",
+    "observed_at": "2026-11-23T17:04:44.738092+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ppc-agency-in-delhi.html",
+    "final_url": "https://www.techmagnate.com/ppc-agency-in-delhi.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 14700,
+    "content_size": 314529,
+    "error": "",
+    "observed_at": "2026-11-23T17:06:06.645050+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/how-to-use-digital-pr-in-building-brand-authority/",
+    "final_url": "https://www.techmagnate.com/blog/how-to-use-digital-pr-in-building-brand-authority/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 10929,
+    "content_size": 184868,
+    "error": "",
+    "observed_at": "2026-11-23T17:04:51.547743+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ppc-services-in-bangalore.html",
+    "final_url": "https://www.techmagnate.com/ppc-services-in-bangalore.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9526,
+    "content_size": 322601,
+    "error": "",
+    "observed_at": "2026-11-23T17:06:16.642737+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/google-analytics-4-setup-guide/",
+    "final_url": "https://www.techmagnate.com/blog/google-analytics-4-setup-guide/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 4209,
+    "content_size": 184849,
+    "error": "",
+    "observed_at": "2026-11-23T17:06:44.347457+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/landing-page-checklist/",
+    "final_url": "https://www.techmagnate.com/blog/landing-page-checklist/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 7986,
+    "content_size": 184841,
+    "error": "",
+    "observed_at": "2026-11-23T17:04:59.737439+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/insurance-digital-marketing-services.html",
+    "final_url": "https://www.techmagnate.com/insurance-digital-marketing-services.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 28685,
+    "content_size": 332662,
+    "error": "",
+    "observed_at": "2026-11-23T17:05:20.437214+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ppc-case-study-for-aviva-india/",
+    "final_url": "https://www.techmagnate.com/ppc-case-study-for-aviva-india/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7915,
+    "content_size": 215265,
+    "error": "",
+    "observed_at": "2026-11-23T17:05:29.741370+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/aditya-birla-finance-ppc-case-study.html",
+    "final_url": "https://www.techmagnate.com/aditya-birla-finance-ppc-case-study.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 10918,
+    "content_size": 232017,
+    "error": "",
+    "observed_at": "2026-11-23T17:05:32.743280+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ppc-case-study-for-venkateshwar-hospital/",
+    "final_url": "https://www.techmagnate.com/ppc-case-study-for-venkateshwar-hospital/",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 2899,
+    "content_size": 216151,
+    "error": "",
+    "observed_at": "2026-11-23T17:05:35.851454+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ppc-case-study-leading-hotel-chain-in-india.html",
+    "final_url": "https://www.techmagnate.com/ppc-case-study-leading-hotel-chain-in-india.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 8591,
+    "content_size": 211423,
+    "error": "",
+    "observed_at": "2026-11-23T17:05:41.543793+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/what-is-click-through-rate/",
+    "final_url": "https://www.techmagnate.com/blog/what-is-click-through-rate/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 5622,
+    "content_size": 184845,
+    "error": "",
+    "observed_at": "2026-11-23T17:05:47.451576+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ppc-case-study-kitchen-countertop-provider.html",
+    "final_url": "https://www.techmagnate.com/ppc-case-study-kitchen-countertop-provider.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 9914,
+    "content_size": 215623,
+    "error": "",
+    "observed_at": "2026-11-23T17:05:51.743061+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/important-seo-ranking-factors/",
+    "final_url": "https://www.techmagnate.com/blog/important-seo-ranking-factors/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 4212,
+    "content_size": 184848,
+    "error": "",
+    "observed_at": "2026-11-23T17:06:21.150649+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ppc-agency-in-pune.html",
+    "final_url": "https://www.techmagnate.com/ppc-agency-in-pune.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 13504,
+    "content_size": 305398,
+    "error": "",
+    "observed_at": "2026-11-23T17:06:30.441625+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/speed-optimization-for-ecommerce-product-pages/",
+    "final_url": "https://www.techmagnate.com/blog/speed-optimization-for-ecommerce-product-pages/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 9223,
+    "content_size": 184865,
+    "error": "",
+    "observed_at": "2026-11-23T17:06:39.940019+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ppc-services-mumbai.html",
+    "final_url": "https://www.techmagnate.com/ppc-services-mumbai.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 6123,
+    "content_size": 321325,
+    "error": "",
+    "observed_at": "2026-11-23T17:06:13.239163+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/ppc-case-study-for-one-of-leading-indian-hospital-chain.html",
+    "final_url": "https://www.techmagnate.com/ppc-case-study-for-one-of-leading-indian-hospital-chain.html",
+    "status_code": 200,
+    "redirect_chain": [],
+    "response_time_ms": 7326,
+    "content_size": 215428,
+    "error": "",
+    "observed_at": "2026-11-23T17:06:38.042631+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/conversion-rate-optimization-techniques/",
+    "final_url": "https://www.techmagnate.com/blog/conversion-rate-optimization-techniques/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 13013,
+    "content_size": 184858,
+    "error": "",
+    "observed_at": "2026-11-23T17:06:53.150101+00:00"
+  },
+  {
+    "requested_url": "https://www.techmagnate.com/blog/event-count-in-google-analytics/",
+    "final_url": "https://www.techmagnate.com/blog/event-count-in-google-analytics/",
+    "status_code": 404,
+    "redirect_chain": [],
+    "response_time_ms": 10435,
+    "content_size": 184850,
+    "error": "",
+    "observed_at": "2026-11-23T17:07:03.850407+00:00"
+  }
+]
