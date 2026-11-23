@@ -17,7 +17,6 @@ export default function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route element={<Protected><Layout /></Protected>}>
-        <Route path="/overview" element={<ModulePage />} />
         <Route path="/:moduleId" element={<ModulePage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
