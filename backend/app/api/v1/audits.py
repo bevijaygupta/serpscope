@@ -1,6 +1,8 @@
 """Public-evidence site audit, six-month roadmap and presentation exports."""
 from __future__ import annotations
 
+import json
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy import select
@@ -27,6 +29,28 @@ ROADMAP_COLUMNS = [
 ]
 
 
+def _audit_for_project(db, project_id: int) -> dict:
+    """Return the persisted public-audit report when one exists.
+
+    Rebuilding from the latest crawl can silently switch the numbers to an
+    unrelated or still-running crawl. The stored report is the exact output
+    produced when the public-audit job succeeded, so it is the authoritative
+    evidence pack for that job.
+    """
+    report = db.scalars(
+        select(Report).where(
+            Report.project_id == project_id,
+            Report.report_type == "public_audit",
+        ).order_by(Report.id.desc()).limit(1)
+    ).first()
+    if report and isinstance(report.content, dict) and report.content.get("meta"):
+        audit = dict(report.content)
+        audit["meta"] = dict(audit["meta"])
+        audit["meta"]["report_id"] = report.id
+        return audit
+    return public_audit.build_public_audit(db, project_id)
+
+
 @router.post("/projects/{project_id}/public-audit/start", status_code=202)
 def start_public_audit(db: DB, user: UserDep, project: ProjectDep, payload: dict | None = None):
     """Queue a full public-evidence audit: crawl → analysis → report → roadmap."""
@@ -47,13 +71,13 @@ def start_public_audit(db: DB, user: UserDep, project: ProjectDep, payload: dict
 
 @router.get("/projects/{project_id}/public-audit")
 def get_public_audit(db: DB, project: ProjectDep):
-    return public_audit.build_public_audit(db, project.id)
+    return _audit_for_project(db, project.id)
 
 
 @router.get("/projects/{project_id}/public-audit/export")
 def export_public_audit(project: ProjectDep, db: DB, format: str = "json", section: str = "all"):
     format = (format or "json").lower()
-    audit = public_audit.build_public_audit(db, project.id)
+    audit = _audit_for_project(db, project.id)
     base = f"serpscope_public_audit_{project.id}"
     if section == "findings":
         rows = public_audit.finding_rows(audit)
@@ -61,6 +85,13 @@ def export_public_audit(project: ProjectDep, db: DB, format: str = "json", secti
     if section == "roadmap":
         rows = public_audit.roadmap_rows(audit)
         return download(rows, ROADMAP_COLUMNS, f"{base}_6_month_roadmap", format)
+    if section == "all" and format == "json":
+        # "All" must mean the complete source-tracked audit, not a summary row.
+        content = json.dumps(audit, ensure_ascii=False, indent=2, default=str).encode("utf-8")
+        settings.export_path.mkdir(parents=True, exist_ok=True)
+        path = settings.export_path / f"{base}.json"
+        path.write_bytes(content)
+        return FileResponse(str(path), media_type="application/json", filename=f"{base}.json")
     if format == "pdf":
         return download([], [], base, "pdf", pdf_sections=audit["sections"])
     if format == "pptx":
@@ -103,4 +134,4 @@ def published_case_study(project_id: int, db: DB):
     project = db.get(Project, project_id)
     if project is None or not (project.settings or {}).get("public_audit"):
         raise HTTPException(404, "Published audit not found")
-    return public_audit.build_public_audit(db, project_id)
+    return _audit_for_project(db, project_id)

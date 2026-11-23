@@ -217,11 +217,11 @@ Use this after the synthetic walkthroughs to show the same platform working on p
 1. Select the **Techmagnate** project (`https://www.techmagnate.com/`) or create a project with a public domain you are authorised to audit.
 2. Open **Overview → Source-tracked public audit** (or **Crawler → Run public audit**) and click **Run public audit**. The job defaults to 250 URLs, depth 3, concurrency 2, 1-second delay and robots respected.
 3. Poll the job to `succeeded`, then show the audit's `coverage`, `findings`, `sources`, `roadmap` and `missing_data` sections.
-4. Export the **PPTX** (16 editable slides in the verified run), plus PDF/CSV/XLSX/JSON. The public case study is available at `/api/v1/public/case-studies/{id}` once the project has `settings.public_audit=true`.
+4. Export the **PPTX** (16 editable slides in the local sample; 22 in the hosted run), plus PDF/CSV/XLSX/JSON. The **Full JSON** export contains every audit segment, not a one-row summary. The public case study is available at `/api/v1/public/case-studies/{id}` once the project has `settings.public_audit=true`.
 
 **Verified local result (60-URL sample, not exhaustive):** 303 URLs discovered, 60 fetched, 0 failed, 60 sitemap entries from 9 sitemap documents, 59 articles + 1 homepage, all HTTP 200. Findings: AEO readiness 140, slow responses 52, missing schema 60, crawl scope 60, AI-crawler policy 12 and sitemap evidence 60. Six explicit missing-data statements cover GSC, GA4, rank data, JS-rendered DOM, private pages and AI-answer sampling. 12 named AI/search agents are explicitly allowed in robots.txt — declared policy only, not an inclusion guarantee.
 
-**Hosted caveat:** backend changes require Render **Manual Deploy → Deploy latest commit**; until then the hosted landing case study shows as unavailable. See [DEPLOYMENT.md](DEPLOYMENT.md#31-publishing-the-real-public-audit-on-the-hosted-demo).
+**Verified hosted result (job 17, report 2, crawl 1, generated `2026-11-23T17:07:58Z`):** 497 discovered URLs, 219 fetched, 0 failed, 1 excluded, status codes 200:219 and 404:30, 216 indexable and 33 non-indexable, 4 redirects, average content score 82.8. All 12 finding groups are shown in the Overview panel and in the evidence pack: HTTP errors 30, missing titles 30, canonical signals 2, AEO readiness 749, slow responses 246, duplicate titles 35, missing H1 30, redirects 4, missing descriptions 63, missing schema 56, crawl scope 219 and sitemap evidence 0. Sitemap discovery timed out in the hosted run, so it honestly reports 0 sitemap entries; the local sample's 60 sitemap entries are a separate run. The endpoints now serve the persisted audit report so a later manual crawl cannot silently replace the job's numbers. See [DEPLOYMENT.md](DEPLOYMENT.md#31-publishing-the-real-public-audit-on-the-hosted-demo).
 
 ---
 
@@ -245,7 +245,7 @@ Only edit the JSON when you deliberately want different inputs; the API field na
 - The 12-scenario dataset is deterministic and synthetic; the same size always produces the same "findings".
 - No live GSC, GA4, GBP, Merchant Center, Semrush, Ahrefs or LLM API is contacted, including in the real public audit.
 - The demo data contains no crawl results; the real public-audit flow fetches only public pages you are authorised to audit, under robots and delay rules.
-- The verified real audit fetched a narrow 60-URL sample; do not present it as a complete audit of the domain.
+- The local verification fetched a narrow 60-URL sample and the hosted run fetched 219 URLs; neither is presented as an exhaustive audit of the domain.
 - Forecasts are arithmetic scenarios on user-supplied inputs, not predictions.
 - AI-search outcomes are never guaranteed; readiness is rule-derived and observations are manual, synthetic or absent.
 - Exports carry `data_kind` and source columns so a screenshot cannot be quietly presented as real performance.

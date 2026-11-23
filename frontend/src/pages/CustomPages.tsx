@@ -8,7 +8,7 @@ import {
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ActionModal } from '../components/ActionModal';
 import { DataTable, type Row } from '../components/DataTable';
-import { Badge, Drawer, ErrorState, KeyValue, PageHeader, ProvenanceNote, Section, Spinner } from '../components/ui';
+import { Badge, Drawer, ErrorState, JsonBlock, KeyValue, PageHeader, ProvenanceNote, Section, Spinner } from '../components/ui';
 import { downloadFile, errorMessage, get, post, unwrapList, waitForJob, type Job } from '../lib/api';
 import { compactJson, humanKey, num, titleCase } from '../lib/format';
 import type { ModuleAction, ModuleConfig } from '../lib/modules';
@@ -35,18 +35,37 @@ function useRemote<T>(path: string | null, deps: unknown[] = []) {
 }
 
 type PublicAuditData = {
-  meta: { project_name: string; domain: string; generated_at: string; crawl_id: number | null };
-  coverage: {
-    discovered_urls: number; fetched_urls: number; failed_urls: number;
-    sitemap_entries: number; robots_respected: boolean; javascript_rendering: boolean;
+  meta: {
+    project_id: number; project_name: string; domain: string; is_demo: boolean;
+    generated_at: string; method: string; crawl_id: number | null;
+    crawl_name: string | null; crawl_config: Record<string, unknown>; data_kinds: string[];
   };
+  coverage: {
+    discovered_urls: number; fetched_urls: number; failed_urls: number; excluded_urls: number;
+    inventory_urls: number; crawled_inventory_urls: number; robots_respected: boolean;
+    javascript_rendering: boolean; sitemap_entries: number; sitemap: Record<string, unknown>;
+  };
+  robots: {
+    url: string; status: number | null; ai_rules: Record<string, unknown>; document_excerpt: string;
+  };
+  counts: {
+    status_codes: Record<string, number>; page_types: Record<string, number>;
+    indexable: number; non_indexable: number; redirects: number; schema_pages: number;
+    average_content_score: number | null;
+  };
+  source_registry: { source: string; type: string; confidence: string; used_for: string[] }[];
+  missing_data: string[];
+  deliverables: string[];
   findings: {
     id: string; title: string; severity: string; category: string;
     affected_count: number; observation: string; recommended_action: string;
-    source: string[]; limitation: string;
+    evidence: unknown; source: string[]; confidence: string; limitation: string;
   }[];
-  roadmap: { month: number; theme: string; objective: string; owner: string }[];
-  missing_data: string[];
+  roadmap: {
+    month: number; theme: string; objective: string; actions: string[]; deliverables: string[];
+    owner: string; success_checks: string[]; without_access: string; with_access: string;
+  }[];
+  sections: { heading: string; lines: string[] }[];
 };
 
 async function runPublicAuditJob(projectId: number, startUrl: string, onUpdate?: (job: Job) => void) {
@@ -91,13 +110,26 @@ function PublicAuditPanel() {
     } catch (e) { notify(errorMessage(e), 'error'); }
   };
 
+  const exportCrawl = async (format: string) => {
+    const crawlId = audit.data?.meta.crawl_id;
+    if (!crawlId) return;
+    try {
+      await downloadFile(`/crawler/runs/${crawlId}/export`, { format }, `serpscope-crawl-observations.${format}`);
+    } catch (e) { notify(errorMessage(e), 'error'); }
+  };
+
   const exports = [
+    { label: 'Full JSON', format: 'json', section: 'all', file: 'serpscope-full-audit.json' },
     { label: 'PPTX', format: 'pptx', section: 'all', file: 'serpscope-audit.pptx' },
     { label: 'PDF', format: 'pdf', section: 'all', file: 'serpscope-audit.pdf' },
-    { label: 'CSV', format: 'csv', section: 'all', file: 'serpscope-audit.csv' },
-    { label: 'XLSX', format: 'xlsx', section: 'all', file: 'serpscope-audit.xlsx' },
-    { label: 'JSON', format: 'json', section: 'all', file: 'serpscope-audit.json' },
+    { label: 'Summary CSV', format: 'csv', section: 'all', file: 'serpscope-audit-summary.csv' },
+    { label: 'Summary XLSX', format: 'xlsx', section: 'all', file: 'serpscope-audit-summary.xlsx' },
+    { label: 'Findings CSV', format: 'csv', section: 'findings', file: 'serpscope-findings.csv' },
+    { label: 'Findings JSON', format: 'json', section: 'findings', file: 'serpscope-findings.json' },
+    { label: 'Findings XLSX', format: 'xlsx', section: 'findings', file: 'serpscope-findings.xlsx' },
     { label: 'Roadmap CSV', format: 'csv', section: 'roadmap', file: 'serpscope-6-month-roadmap.csv' },
+    { label: 'Roadmap JSON', format: 'json', section: 'roadmap', file: 'serpscope-6-month-roadmap.json' },
+    { label: 'Roadmap XLSX', format: 'xlsx', section: 'roadmap', file: 'serpscope-6-month-roadmap.xlsx' },
   ];
 
   if (!projectId) return <Section title="Public audit"><div className="py-10 text-center text-xs text-muted">Select a project to run a public audit.</div></Section>;
@@ -138,47 +170,121 @@ function PublicAuditPanel() {
 
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             <div>
-              <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted"><ShieldAlert className="h-3.5 w-3.5 text-accent" /> Priority findings</h3>
+              <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted"><ShieldAlert className="h-3.5 w-3.5 text-accent" /> All findings ({audit.data.findings.length})</h3>
               <div className="space-y-2">
-                {audit.data.findings.slice(0, 5).map((finding) => (
-                  <div key={finding.id} className="rounded-lg border border-edge bg-canvas/50 p-3">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="text-xs font-semibold text-ink">{finding.title}</div>
-                      <Badge>{finding.severity}</Badge>
+                {audit.data.findings.map((finding) => (
+                  <details key={finding.id} className="rounded-lg border border-edge bg-canvas/50 p-3">
+                    <summary className="cursor-pointer list-none">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="text-xs font-semibold text-ink">{finding.title}</div>
+                        <Badge>{finding.severity}</Badge>
+                      </div>
+                      <div className="mt-1 text-[10px] text-muted">{finding.id} · {finding.category} · {finding.affected_count} affected · {finding.confidence}</div>
+                    </summary>
+                    <div className="mt-2 space-y-1 border-t border-edge pt-2 text-[11px] leading-5 text-muted">
+                      <div><span className="font-semibold text-ink">Observation:</span> {finding.observation}</div>
+                      <div><span className="font-semibold text-ink">Action:</span> {finding.recommended_action}</div>
+                      <div><span className="font-semibold text-ink">Sources:</span> {finding.source.join(', ')}</div>
+                      <div><span className="font-semibold text-ink">Limitation:</span> {finding.limitation || 'None stated'}</div>
+                      <div className="pt-1"><JsonBlock value={finding.evidence} /></div>
                     </div>
-                    <div className="mt-1 text-[11px] leading-5 text-muted">{finding.observation}</div>
-                    <div className="mt-1.5 text-[10px] text-muted">Source: {finding.source.join(', ')} · {finding.affected_count} affected</div>
-                  </div>
+                  </details>
                 ))}
               </div>
             </div>
             <div>
-              <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted"><Presentation className="h-3.5 w-3.5 text-accent" /> Six-month roadmap</h3>
+              <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted"><Presentation className="h-3.5 w-3.5 text-accent" /> Six-month roadmap · all months</h3>
               <div className="space-y-2">
                 {audit.data.roadmap.map((month) => (
-                  <div key={month.month} className="rounded-lg border border-edge bg-canvas/50 p-3">
-                    <div className="text-xs font-semibold text-ink">M{month.month} · {month.theme}</div>
-                    <div className="mt-1 text-[11px] leading-5 text-muted">{month.objective}</div>
-                    <div className="mt-1 text-[10px] text-muted">Owner: {month.owner}</div>
-                  </div>
+                  <details key={month.month} className="rounded-lg border border-edge bg-canvas/50 p-3">
+                    <summary className="cursor-pointer list-none">
+                      <div className="text-xs font-semibold text-ink">M{month.month} · {month.theme}</div>
+                      <div className="mt-1 text-[10px] text-muted">Owner: {month.owner}</div>
+                    </summary>
+                    <div className="mt-2 space-y-2 border-t border-edge pt-2 text-[11px] leading-5 text-muted">
+                      <div>{month.objective}</div>
+                      <div><span className="font-semibold text-ink">Actions:</span><ul className="ml-4 list-disc">{month.actions.map((item) => <li key={item}>{item}</li>)}</ul></div>
+                      <div><span className="font-semibold text-ink">Deliverables:</span> {month.deliverables.join(', ')}</div>
+                      <div><span className="font-semibold text-ink">Success checks:</span> {month.success_checks.join(' · ')}</div>
+                      <div><span className="font-semibold text-ink">Without access:</span> {month.without_access}</div>
+                      <div><span className="font-semibold text-ink">With access:</span> {month.with_access}</div>
+                    </div>
+                  </details>
                 ))}
               </div>
               <div className="mt-3 rounded-lg border border-warning/20 bg-warning/5 p-3">
-                <div className="text-[11px] font-semibold text-warning">Missing data stated explicitly</div>
+                <div className="text-[11px] font-semibold text-warning">Missing data stated explicitly ({audit.data.missing_data.length})</div>
                 <ul className="mt-1 space-y-1 text-[10px] leading-4 text-muted">
-                  {audit.data.missing_data.slice(0, 3).map((item) => <li key={item}>• {item}</li>)}
+                  {audit.data.missing_data.map((item) => <li key={item}>• {item}</li>)}
                 </ul>
               </div>
             </div>
           </div>
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <details className="rounded-lg border border-edge bg-canvas/50 p-3">
+              <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-muted">Coverage, counts and crawl configuration</summary>
+              <div className="mt-3 space-y-3">
+                {[
+                  ['Discovered', num(audit.data.coverage.discovered_urls)],
+                  ['Fetched', num(audit.data.coverage.fetched_urls)],
+                  ['Failed', num(audit.data.coverage.failed_urls)],
+                  ['Excluded', num(audit.data.coverage.excluded_urls)],
+                  ['Inventory URLs', num(audit.data.coverage.inventory_urls)],
+                  ['Crawled inventory', num(audit.data.coverage.crawled_inventory_urls)],
+                  ['Sitemap entries', num(audit.data.coverage.sitemap_entries)],
+                  ['Robots respected', String(audit.data.coverage.robots_respected)],
+                  ['JavaScript rendering', String(audit.data.coverage.javascript_rendering)],
+                  ['Indexable', num(audit.data.counts.indexable)],
+                  ['Non-indexable', num(audit.data.counts.non_indexable)],
+                  ['Redirects', num(audit.data.counts.redirects)],
+                  ['Schema pages', num(audit.data.counts.schema_pages)],
+                  ['Average content score', String(audit.data.counts.average_content_score ?? 'n/a')],
+                ].map(([label, value]) => <KeyValue key={label} label={label} value={value} />)}
+                <JsonBlock value={{ status_codes: audit.data.counts.status_codes, page_types: audit.data.counts.page_types, sitemap: audit.data.coverage.sitemap, crawl_config: audit.data.meta.crawl_config, data_kinds: audit.data.meta.data_kinds }} />
+              </div>
+            </details>
+            <details className="rounded-lg border border-edge bg-canvas/50 p-3">
+              <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-muted">Robots evidence and source registry</summary>
+              <div className="mt-3 space-y-3">
+                <div className="text-[11px] text-muted"><span className="font-semibold text-ink">Robots URL:</span> {audit.data.robots.url} · status {String(audit.data.robots.status ?? 'n/a')}</div>
+                <JsonBlock value={audit.data.robots.ai_rules} />
+                <pre className="max-h-64 overflow-auto rounded border border-edge bg-canvas p-2 text-[10px] leading-4 text-muted">{audit.data.robots.document_excerpt || 'No robots.txt excerpt captured.'}</pre>
+                <JsonBlock value={audit.data.source_registry} />
+                <div className="text-[11px] font-semibold text-ink">Deliverables</div>
+                <ul className="ml-4 list-disc text-[11px] text-muted">{audit.data.deliverables.map((item) => <li key={item}>{item}</li>)}</ul>
+              </div>
+            </details>
+          </div>
+
+          <details className="mt-4 rounded-lg border border-edge bg-canvas/50 p-3">
+            <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-muted">Report sections and full audit JSON</summary>
+            <div className="mt-3 space-y-3">
+              {audit.data.sections.map((section) => (
+                <div key={section.heading}>
+                  <div className="text-xs font-semibold text-ink">{section.heading}</div>
+                  <ul className="mt-1 ml-4 list-disc text-[11px] leading-5 text-muted">{section.lines.map((line) => <li key={line}>{line}</li>)}</ul>
+                </div>
+              ))}
+              <div className="text-xs font-semibold text-ink">Complete API payload</div>
+              <JsonBlock value={audit.data} />
+            </div>
+          </details>
 
           <div className="mt-4 flex flex-wrap gap-2 border-t border-edge pt-4">
             <span className="mr-1 flex items-center gap-1 text-[11px] font-semibold uppercase tracking-wider text-muted"><Download className="h-3.5 w-3.5" /> Downloads</span>
             {exports.map((item) => (
               <button key={item.label} className="btn text-[11px]" onClick={() => void exportAudit(item.format, item.section, item.file)}>{item.label}</button>
             ))}
+            {audit.data.meta.crawl_id ? (
+              <>
+                <button className="btn text-[11px]" onClick={() => void exportCrawl('csv')}>Raw crawl CSV</button>
+                <button className="btn text-[11px]" onClick={() => void exportCrawl('json')}>Raw crawl JSON</button>
+                <button className="btn text-[11px]" onClick={() => void exportCrawl('xlsx')}>Raw crawl XLSX</button>
+              </>
+            ) : null}
           </div>
-          <div className="mt-2 text-[10px] text-muted">Generated {audit.data.meta.generated_at.slice(0, 16).replace('T', ' ')} UTC · robots respected: {String(audit.data.coverage.robots_respected)} · JS rendering: {String(audit.data.coverage.javascript_rendering)}</div>
+          <div className="mt-2 text-[10px] text-muted">Generated {audit.data.meta.generated_at.slice(0, 16).replace('T', ' ')} UTC · crawl {String(audit.data.meta.crawl_id ?? 'n/a')} · robots respected: {String(audit.data.coverage.robots_respected)} · JS rendering: {String(audit.data.coverage.javascript_rendering)}</div>
         </>
       ) : <div className="py-10 text-center text-xs text-muted">No audit available yet. Run one to create source-tracked findings and exports.</div>}
     </Section>

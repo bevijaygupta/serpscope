@@ -345,8 +345,8 @@ Clustering methods advertised by the API: `exact, normalized, token, semantic, i
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
 | POST | `/api/v1/audits/projects/{project_id}/public-audit/start` | Bearer (write) | Queue a `public_audit` job (202). The body is optional; `{ "start_url": "...", "name": "...", "config": {...} }` overrides the project domain and defaults. |
-| GET | `/api/v1/audits/projects/{project_id}/public-audit` | Bearer + project | Assemble the current source-tracked audit from stored evidence: `meta`, `coverage`, `robots`, `counts`, `findings`, `roadmap`, `source_registry`, `missing_data`, `sections`. Also works before the first audit. |
-| GET | `/api/v1/audits/projects/{project_id}/public-audit/export` | Bearer + project | `format=pptx\|pdf\|csv\|xlsx\|json`; `section=all\|findings\|roadmap`. PPTX is a real editable PowerPoint deck built with `python-pptx`. |
+| GET | `/api/v1/audits/projects/{project_id}/public-audit` | Bearer + project | Return the persisted public-audit report when one exists, otherwise assemble a source-tracked audit from stored evidence: `meta`, `coverage`, `robots`, `counts`, `findings`, `roadmap`, `source_registry`, `missing_data`, `sections`. Returning the persisted report stops a later manual crawl from silently changing the published numbers. Also works before the first audit. |
+| GET | `/api/v1/audits/projects/{project_id}/public-audit/export` | Bearer + project | `format=pptx\|pdf\|csv\|xlsx\|json`; `section=all\|findings\|roadmap`. `section=all&format=json` returns the complete audit JSON with every segment; other sections return flat rows. PPTX is a real editable PowerPoint deck built with `python-pptx`. |
 | GET | `/api/v1/audits/projects/{project_id}/public-audit/reports` | Bearer + project | Up to 50 persisted `public_audit` report records. |
 | GET | `/api/v1/public/case-studies/{project_id}` | Public | Read-only published audit. Returns 404 unless the project's `settings.public_audit` is `true`. |
 

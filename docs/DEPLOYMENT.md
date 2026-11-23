@@ -119,7 +119,7 @@ The audit code was verified locally against a live domain, but the new endpoints
 4. Queue the audit, poll `GET /api/v1/jobs/{job_id}` until `succeeded`, then check `GET /api/v1/audits/projects/2/public-audit`, all five export formats and `GET /api/v1/public/case-studies/2`.
 5. Confirm the landing page at `https://serpscope-serpscope.vercel.app`, `/robots.txt`, `/sitemap.xml`, `/llms.txt`, `/manifest.webmanifest`, `/favicon.svg`, `/og-preview.svg`, `/login` and `/overview`.
 
-Expected local figures (the hosted run may differ): 303 discovered URLs, 60 fetched with the narrow verification sample (hosted default is 250), 0 failures, 60 sitemap entries from 9 documents, six finding groups and a six-month roadmap. Do not present the sample as exhaustive. Until the deploy and publish steps are done, the landing case study correctly shows as unavailable.
+Local verification figures were 303 discovered URLs and 60 fetched from a deliberately narrow sample, with 60 sitemap entries from 9 documents and six finding groups. The completed hosted run (job 17, report 2, crawl 1) discovered 497 URLs, fetched 219, recorded 0 failures and 1 robots exclusion, and produced 12 finding groups plus a six-month roadmap. Its sitemap discovery timed out, so the hosted evidence states 0 sitemap entries rather than borrowing the local sample's 60. Neither figure is an exhaustive audit of the domain. Once the deploy and publish steps are done, the landing case study is available at `/api/v1/public/case-studies/2`.
 
 Notes:
 

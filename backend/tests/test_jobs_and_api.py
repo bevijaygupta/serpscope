@@ -7,6 +7,7 @@ from starlette.websockets import WebSocketDisconnect
 from app.core.security import hash_password
 from app.db.session import SessionLocal
 from app.models.auth import Membership, Organization, User
+from app.models.operations import Report
 from app.models.projects import Job, Project
 from app.services.jobs import HANDLERS, enqueue, is_cancelled, run_job
 
@@ -209,6 +210,14 @@ def test_public_audit_routes_and_exports_are_registered(client, db, auth_headers
     assert deck.content.startswith(b"PK")
     assert "attachment" in deck.headers["content-disposition"]
 
+    full_export = client.get(base + "/export?section=all&format=json", headers=auth_headers)
+    assert full_export.status_code == 200, full_export.text
+    exported = full_export.json()
+    assert exported["meta"]["method"] == "public_evidence_audit"
+    assert exported["findings"] == payload["findings"]
+    assert exported["roadmap"] == payload["roadmap"]
+    assert exported["coverage"] == payload["coverage"]
+
     case_study = client.get(f"/api/v1/public/case-studies/{project.id}")
     assert case_study.status_code == 200
     assert case_study.json()["meta"]["project_id"] == project.id
@@ -217,6 +226,28 @@ def test_public_audit_routes_and_exports_are_registered(client, db, auth_headers
     started = client.post(base + "/start", headers=auth_headers)
     assert started.status_code == 202, started.text
     assert started.json()["status"] == "queued"
+
+
+def test_public_audit_returns_persisted_report_not_latest_crawl(client, db, auth_headers, demo_project):
+    project = db.get(Project, demo_project["project_id"])
+    project.settings = {"public_audit": True}
+    stored = {
+        "meta": {"method": "public_evidence_audit", "crawl_id": 987, "domain": "stored.example"},
+        "coverage": {"fetched_urls": 7},
+        "findings": [], "roadmap": [], "sections": [], "missing_data": [],
+    }
+    report = Report(
+        project_id=project.id, title="Stored public audit", report_type="public_audit",
+        content=stored, missing_data=[], generated_by="public-audit",
+    )
+    db.add(report)
+    db.commit()
+
+    payload = client.get(f"/api/v1/audits/projects/{project.id}/public-audit", headers=auth_headers).json()
+    assert payload["meta"]["crawl_id"] == 987
+    assert payload["meta"]["report_id"] == report.id
+    public = client.get(f"/api/v1/public/case-studies/{project.id}").json()
+    assert public["meta"]["crawl_id"] == 987
 
 
 def test_bootstrap_reuses_existing_demo_organisation(db):

@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 ### Changed
 
 - Real end-to-end audit of `https://www.techmagnate.com/` recorded in the documentation: 303 discovered URLs, 60 fetched from a deliberately narrow sample, 0 failures, 60 sitemap entries from 9 documents, 6 finding groups and a 6-month roadmap. Demo metrics remain labelled synthetic; public-audit data is labelled as observed or derived public evidence.
+- Hosted public audit completed on the same domain (job 17, report 2, crawl 1): 497 discovered, 219 fetched, 0 failed, 1 excluded, 12 finding groups and 6 roadmap months. Sitemap discovery timed out in the hosted run, so the hosted evidence states 0 sitemap entries; the local sample's 60 sitemap entries are kept separate rather than blended.
 - Test counts updated to 39 fast / 40 full; documented sitemap limitations and hosted deploy steps now reflect the current code.
 
 ### Fixed
