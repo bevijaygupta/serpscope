@@ -4,12 +4,13 @@ from __future__ import annotations
 from fastapi import APIRouter
 from sqlalchemy import select
 
-from app.api.deps import DB, UserDep, check_write
+from app.api.deps import DB, UserDep, require_roles
 from app.api.v1._helpers import serialize
 from app.models.operations import DemoScenario
 from app.services.jobs import enqueue
 
 router = APIRouter(prefix="/demo", tags=["demo"])
+admin_only = require_roles("owner", "admin")
 
 SCENARIO_COLUMNS = ["id", "key", "title", "question", "context", "challenge", "steps", "modules", "expected_findings", "interpretation", "recommended_actions", "limitations", "interview_explanation", "dataset_info"]
 
@@ -38,7 +39,8 @@ def scenario(key: str, db: DB, user: UserDep):
 
 @router.post("/generate", status_code=202)
 def generate(payload: dict | None, db: DB, user: UserDep):
-    check_write(user)
+    # Demo generation/reset is global by design, so it is platform-admin only.
+    admin_only(user)
     payload = payload or {}
     size = int(payload.get("size", 1000))
     if size > 200000:
@@ -54,7 +56,8 @@ def generate(payload: dict | None, db: DB, user: UserDep):
 
 @router.post("/reset", status_code=202)
 def reset(payload: dict | None, db: DB, user: UserDep):
-    check_write(user)
+    # Demo generation/reset is global by design, so it is platform-admin only.
+    admin_only(user)
     payload = payload or {}
     job = enqueue(db, "reset_demo", "Reset demo data", payload, created_by=user.id)
     db.commit()

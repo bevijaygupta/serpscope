@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
     job_poll_seconds: float = 0.5
     run_jobs_in_api: bool = True
+    rate_limit_enabled: bool = True
     max_upload_mb: int = 50
     log_level: str = "INFO"
 

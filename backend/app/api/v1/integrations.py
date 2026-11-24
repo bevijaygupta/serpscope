@@ -4,10 +4,12 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from app.api.deps import DB, UserDep, check_write, get_project
+from app.api.deps import DB, UserDep, check_write, get_project, require_org
 from app.api.v1._helpers import serialize
 from app.core.crypto import encrypt
+from app.models.auth import Membership
 from app.models.operations import Integration
+from app.models.projects import Project
 from app.services.supplied_metrics import SIGNAL_LABELS, supplied_record_rows, supplied_signals
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
@@ -35,7 +37,12 @@ def providers():
 def list_integrations(db: DB, user: UserDep, project_id: int | None = None):
     query = select(Integration)
     if project_id:
+        get_project(db, project_id, user)
         query = query.where(Integration.project_id == project_id)
+    elif user.global_role not in {"owner", "admin"}:
+        orgs = db.scalars(select(Membership.organization_id).where(Membership.user_id == user.id)).all()
+        projects = db.scalars(select(Project.id).where(Project.organization_id.in_(orgs or [-1]))).all()
+        query = query.where(Integration.project_id.in_(projects or [-1]))
     rows = db.scalars(query.order_by(Integration.id).limit(500)).all()
     return {"items": [serialize(r, ["id", "project_id", "organization_id", "provider", "display_name", "status", "mode", "config", "last_sync_at", "notes"]) for r in rows]}
 
@@ -43,6 +50,14 @@ def list_integrations(db: DB, user: UserDep, project_id: int | None = None):
 @router.post("", status_code=201)
 def upsert_integration(payload: dict, db: DB, user: UserDep):
     check_write(user)
+    if payload.get("project_id") is None:
+        raise HTTPException(400, "project_id is required")
+    try:
+        project_id = int(payload["project_id"])
+    except (TypeError, ValueError):
+        raise HTTPException(400, "Invalid project_id")
+    project = get_project(db, project_id, user)
+    organization_id = project.organization_id
     provider = payload.get("provider")
     if provider not in {p["provider"] for p in PROVIDERS}:
         raise HTTPException(400, "Unknown provider")
@@ -51,12 +66,12 @@ def upsert_integration(payload: dict, db: DB, user: UserDep):
         raise HTTPException(400, "Unsupported mode for provider")
     existing = db.scalar(select(Integration).where(
         Integration.provider == provider,
-        Integration.project_id == payload.get("project_id"),
-        Integration.organization_id == payload.get("organization_id"),
+        Integration.project_id == project_id,
+        Integration.organization_id == organization_id,
     ))
     item = existing or Integration(
-        provider=provider, project_id=payload.get("project_id"),
-        organization_id=payload.get("organization_id"),
+        provider=provider, project_id=project_id,
+        organization_id=organization_id,
         display_name=payload.get("display_name", provider),
     )
     item.mode = mode
@@ -104,5 +119,11 @@ def supplied_records(db: DB, user: UserDep, project_id: int, signal: str, limit:
 def get_integration(integration_id: int, db: DB, user: UserDep):
     item = db.get(Integration, integration_id)
     if item is None:
+        raise HTTPException(404, "Integration not found")
+    if item.project_id is not None:
+        get_project(db, item.project_id, user)
+    elif item.organization_id is not None:
+        require_org(db, user, item.organization_id)
+    elif user.global_role not in {"owner", "admin"}:
         raise HTTPException(404, "Integration not found")
     return serialize(item, ["id", "provider", "display_name", "status", "mode", "config", "last_sync_at", "notes"])

@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from app.api.deps import DB, ProjectDep, UserDep, check_write
+from app.api.deps import DB, ProjectDep, UserDep, check_write, get_project
 from app.api.v1._helpers import paged, serialize
 from app.models.operations import Workflow, WorkflowRun
 from app.services.jobs import enqueue
@@ -71,6 +71,7 @@ def update_workflow(workflow_id: int, payload: dict, db: DB, user: UserDep):
     wf = db.get(Workflow, workflow_id)
     if wf is None:
         raise HTTPException(404, "Workflow not found")
+    get_project(db, wf.project_id, user)
     for key in ("name", "description", "trigger", "schedule", "steps", "enabled", "notification_email"):
         if key in payload:
             setattr(wf, key, payload[key])

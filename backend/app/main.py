@@ -1,10 +1,15 @@
 """SERPScope API entry point."""
 from __future__ import annotations
 
+import hashlib
+import hmac
 import logging
+import math
+import threading
+import time
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -57,6 +62,57 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# In-process, per-host abuse throttle. It never stores the client host itself:
+# only a short HMAC digest of (UTC day, route bucket, socket peer host) is kept.
+# The socket peer is read directly, never X-Forwarded-For, cookies, headers,
+# user identity, audited domain or request contents. This is safe for the single
+# Render web process declared in render.yaml; extra workers multiply the budget.
+RATE_LIMIT_WINDOW_SECONDS = 600
+RATE_LIMIT_BUCKET_LIMITS = {"login": 10, "presence": 60, "mutation": 120}
+_RATE_WINDOWS: dict[str, tuple[float, int]] = {}
+_RATE_LOCK = threading.Lock()
+_RATE_MAX_KEYS = 10_000
+
+
+def _rate_limit_key(bucket: str, peer: str | None, day: int) -> str:
+    material = f"{day}|{bucket}|{peer or ''}".encode("utf-8")
+    return hmac.new(settings.secret_key.encode("utf-8"), material, hashlib.sha256).hexdigest()[:32]
+
+
+@app.middleware("http")
+async def rate_limit_mutations(request: Request, call_next):
+    if not settings.rate_limit_enabled or request.method not in {"POST", "PATCH", "PUT", "DELETE"}:
+        return await call_next(request)
+    path = request.url.path
+    if path == "/api/v1/auth/login":
+        bucket = "login"
+    elif path == "/api/v1/presence/ping":
+        bucket = "presence"
+    else:
+        bucket = "mutation"
+    limit = RATE_LIMIT_BUCKET_LIMITS[bucket]
+    day = int(time.time() // 86_400)
+    key = _rate_limit_key(bucket, request.client.host if request.client else None, day)
+    now = time.monotonic()
+    with _RATE_LOCK:
+        if len(_RATE_WINDOWS) > _RATE_MAX_KEYS:
+            _RATE_WINDOWS.clear()
+        start, count = _RATE_WINDOWS.get(key, (now, 0))
+        if now - start >= RATE_LIMIT_WINDOW_SECONDS:
+            start, count = now, 0
+        count += 1
+        _RATE_WINDOWS[key] = (start, count)
+        retry_after = max(1, math.ceil(RATE_LIMIT_WINDOW_SECONDS - (now - start)))
+    if count > limit:
+        # No key, peer or path is echoed back; only a numeric retry hint.
+        return JSONResponse(
+            status_code=429,
+            content={"detail": "Too many requests"},
+            headers={"Retry-After": str(retry_after)},
+        )
+    return await call_next(request)
+
 
 ROUTERS = [
     auth, meta, projects, clients, imports, jobs, inventory, crawler, technical,

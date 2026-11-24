@@ -6,7 +6,7 @@ from pathlib import Path
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from sqlalchemy import func, select
 
-from app.api.deps import DB, ProjectDep, UserDep, check_write
+from app.api.deps import DB, ProjectDep, UserDep, check_write, get_project
 from app.api.v1._helpers import download, paged, serialize
 from app.core.config import settings
 from app.core.timeutil import iso, utcnow
@@ -130,13 +130,18 @@ def update_cluster(cluster_id: int, payload: dict, db: DB, user: UserDep):
     cluster = db.get(KeywordCluster, cluster_id)
     if cluster is None:
         raise HTTPException(404, "Cluster not found")
+    get_project(db, cluster.project_id, user)
     for key in ("name", "parent_topic", "intent", "review_status", "primary_keyword", "reasoning"):
         if key in payload:
             setattr(cluster, key, payload[key])
     if "split_keywords" in payload:
         removed = set(payload["split_keywords"])
         cluster.keywords = [k for k in (cluster.keywords or []) if k.get("keyword") not in removed]
-        db.query(Keyword).filter(Keyword.cluster_id == cluster_id, Keyword.keyword.in_(removed)).update({"cluster_id": None})
+        db.query(Keyword).filter(
+            Keyword.project_id == cluster.project_id,
+            Keyword.cluster_id == cluster_id,
+            Keyword.keyword.in_(removed),
+        ).update({"cluster_id": None})
     db.commit()
     return {"success": True}
 

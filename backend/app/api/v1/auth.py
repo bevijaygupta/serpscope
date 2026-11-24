@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from app.api.deps import DB, UserDep, current_user
 from app.core.security import create_access_token, hash_password, verify_password
-from app.models.auth import User
+from app.models.auth import Membership, User
 from app.schemas.common import LoginRequest, TokenResponse, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -41,5 +41,11 @@ def register(payload: LoginRequest, db: DB):
 
 @router.get("/users", response_model=list[UserResponse])
 def list_users(db: DB, user: UserDep):
-    rows = db.scalars(select(User).order_by(User.id).limit(1000)).all()
+    query = select(User)
+    if user.global_role not in {"owner", "admin"}:
+        orgs = db.scalars(select(Membership.organization_id).where(Membership.user_id == user.id)).all()
+        query = query.join(Membership, Membership.user_id == User.id).where(
+            Membership.organization_id.in_(orgs or [-1])
+        ).distinct()
+    rows = db.scalars(query.order_by(User.id).limit(1000)).all()
     return [UserResponse(id=r.id, email=r.email, full_name=r.full_name, global_role=r.global_role) for r in rows]

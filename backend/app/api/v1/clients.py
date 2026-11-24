@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from app.api.deps import DB, UserDep, check_write
+from app.api.deps import DB, UserDep, check_write, get_project, require_org
 from app.api.v1._helpers import audit, serialize
 from app.core.security import hash_password
 from app.models.auth import Membership, Organization, User
@@ -41,12 +41,14 @@ def create_organization(payload: dict, db: DB, user: UserDep):
 
 @router.get("/organizations/{org_id}/projects")
 def org_projects(org_id: int, db: DB, user: UserDep):
+    require_org(db, user, org_id)
     rows = db.scalars(select(Project).where(Project.organization_id == org_id).order_by(Project.id)).all()
     return {"items": [serialize(p, ["id", "name", "domain", "status", "is_demo"]) for p in rows]}
 
 
 @router.get("/organizations/{org_id}/members")
 def members(org_id: int, db: DB, user: UserDep):
+    require_org(db, user, org_id)
     rows = db.execute(
         select(User, Membership).join(Membership, Membership.user_id == User.id).where(Membership.organization_id == org_id)
     ).all()
@@ -55,17 +57,21 @@ def members(org_id: int, db: DB, user: UserDep):
 
 @router.post("/organizations/{org_id}/members", status_code=201)
 def add_member(org_id: int, payload: dict, db: DB, user: UserDep):
+    require_org(db, user, org_id)
     check_write(user)
+    platform_admin = user.global_role in {"owner", "admin"}
     email = str(payload.get("email", "")).strip().lower()
     target = db.scalar(select(User).where(User.email == email))
     if target is None:
+        # Tenant endpoints never mint platform roles, whatever the payload says.
         target = User(email=email, full_name=payload.get("full_name", ""),
                       hashed_password=hash_password(str(payload.get("password", "changeme123"))),
-                      global_role=payload.get("global_role", "viewer"))
+                      global_role="viewer")
         db.add(target)
         db.flush()
     role = payload.get("role", "viewer")
-    if role not in {"owner", "admin", "editor", "viewer"}:
+    allowed = {"owner", "admin", "editor", "viewer"} if platform_admin else {"editor", "viewer"}
+    if role not in allowed:
         raise HTTPException(400, "Invalid role")
     db.add(Membership(user_id=target.id, organization_id=org_id, role=role))
     audit(db, user, "member.add", email, organization_id=org_id, details={"role": role})
@@ -75,6 +81,7 @@ def add_member(org_id: int, payload: dict, db: DB, user: UserDep):
 
 @router.get("/projects/{project_id}/permissions")
 def project_permissions(project_id: int, db: DB, user: UserDep):
+    get_project(db, project_id, user)
     rows = db.execute(
         select(User, ProjectMember).join(ProjectMember, ProjectMember.user_id == User.id)
         .where(ProjectMember.project_id == project_id)
@@ -84,10 +91,12 @@ def project_permissions(project_id: int, db: DB, user: UserDep):
 
 @router.post("/projects/{project_id}/permissions", status_code=201)
 def set_permission(project_id: int, payload: dict, db: DB, user: UserDep):
+    get_project(db, project_id, user)
     check_write(user)
     uid = int(payload.get("user_id"))
     role = payload.get("role", "editor")
-    if role not in {"owner", "admin", "editor", "viewer"}:
+    allowed = {"owner", "admin", "editor", "viewer"} if user.global_role in {"owner", "admin"} else {"editor", "viewer"}
+    if role not in allowed:
         raise HTTPException(400, "Invalid role")
     existing = db.scalar(select(ProjectMember).where(
         ProjectMember.project_id == project_id, ProjectMember.user_id == uid

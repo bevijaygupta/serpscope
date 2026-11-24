@@ -9,8 +9,8 @@ from sqlalchemy import select
 from app.api.deps import DB, UserDep, check_write, get_project
 from app.api.v1._helpers import paged, serialize
 from app.core.security import decode_access_token
-from app.models.auth import User
-from app.models.projects import Job
+from app.models.auth import Membership, User
+from app.models.projects import Job, Project
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -22,7 +22,13 @@ def list_jobs(db: DB, user: UserDep, project_id: int | None = None, status_filte
               offset: int = 0, limit: int = 100):
     query = select(Job)
     if project_id:
+        get_project(db, project_id, user)
         query = query.where(Job.project_id == project_id)
+    elif user.global_role not in {"owner", "admin"}:
+        allowed = db.scalars(select(Project.id).join(
+            Membership, Membership.organization_id == Project.organization_id
+        ).where(Membership.user_id == user.id)).all()
+        query = query.where(Job.project_id.in_(allowed or [-1]))
     if status_filter:
         query = query.where(Job.status == status_filter)
     from app.api.v1._helpers import page_query
@@ -31,20 +37,30 @@ def list_jobs(db: DB, user: UserDep, project_id: int | None = None, status_filte
     return paged([serialize(j, COLUMNS) for j in items], total, offset, limit)
 
 
+def _authorize_job(db, user, job: Job) -> None:
+    if job.project_id is None:
+        if user.global_role not in {"owner", "admin"}:
+            raise HTTPException(404, "Job not found")
+        return
+    get_project(db, job.project_id, user)
+
+
 @router.get("/{job_id}")
 def get_job(job_id: int, db: DB, user: UserDep):
     job = db.get(Job, job_id)
     if job is None:
         raise HTTPException(404, "Job not found")
+    _authorize_job(db, user, job)
     return serialize(job, COLUMNS + ["payload", "cancel_requested"])
 
 
 @router.post("/{job_id}/cancel")
 def cancel_job(job_id: int, db: DB, user: UserDep):
-    check_write(user)
     job = db.get(Job, job_id)
     if job is None:
         raise HTTPException(404, "Job not found")
+    _authorize_job(db, user, job)
+    check_write(user)
     if job.status in {"succeeded", "failed", "cancelled"}:
         return {"success": False, "detail": f"Job already {job.status}"}
     job.cancel_requested = True

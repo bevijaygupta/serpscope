@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from app.api.deps import DB, ProjectDep, UserDep, check_write
+from app.api.deps import DB, ProjectDep, UserDep, check_write, get_project
 from app.api.v1._helpers import download, paged, serialize
 from app.models.analysis import Issue, IssueUrl
 from app.schemas.common import IssueUpdate
@@ -67,6 +67,7 @@ def update_issue(issue_id: int, payload: IssueUpdate, db: DB, user: UserDep):
     issue = db.get(Issue, issue_id)
     if issue is None:
         raise HTTPException(404, "Issue not found")
+    get_project(db, issue.project_id, user)
     data = payload.model_dump(exclude_unset=True)
     if data.get("status") and data["status"] not in VALID_STATUSES:
         raise HTTPException(400, f"Invalid status. Allowed: {VALID_STATUSES}")

@@ -5,7 +5,15 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy import select, text
 
-from app.api.deps import DB, ProjectDep, UserDep, check_write, paginate
+from app.api.deps import (
+    DB,
+    ProjectDep,
+    UserDep,
+    check_write,
+    get_project as authorize_project,
+    paginate,
+    require_org,
+)
 from app.api.v1._helpers import audit, paged, serialize
 from app.models.auth import AuditLog, Organization
 from app.models.inventory import Crawl, UrlRecord
@@ -34,12 +42,22 @@ def create_project(payload: ProjectCreate, db: DB, user: UserDep):
     check_write(user)
     org_id = payload.organization_id
     if org_id is None:
-        org = db.scalar(select(Organization).order_by(Organization.id))
-        if org is None:
-            org = Organization(name="Default Organisation", slug="default-organisation")
-            db.add(org)
-            db.flush()
-        org_id = org.id
+        from app.models.auth import Membership
+
+        org_id = db.scalar(
+            select(Membership.organization_id).where(Membership.user_id == user.id).order_by(Membership.id)
+        )
+        if org_id is None and user.global_role not in {"owner", "admin"}:
+            raise HTTPException(403, "No organisation membership")
+        if org_id is None:
+            org = db.scalar(select(Organization).order_by(Organization.id))
+            if org is None:
+                org = Organization(name="Default Organisation", slug="default-organisation")
+                db.add(org)
+                db.flush()
+            org_id = org.id
+    else:
+        require_org(db, user, org_id)
     project = Project(organization_id=org_id, name=payload.name, domain=payload.domain, description=payload.description)
     db.add(project)
     db.flush()
@@ -56,9 +74,7 @@ def get_project(project: ProjectDep):
 
 @router.patch("/{project_id}")
 def update_project(project_id: int, payload: dict, db: DB, user: UserDep):
-    project = db.get(Project, project_id)
-    if project is None:
-        raise HTTPException(404, "Project not found")
+    project = authorize_project(db, project_id, user)
     check_write(user)
     for key in ("name", "domain", "status", "description", "settings"):
         if key in payload:
@@ -84,8 +100,8 @@ def overview(project_id: int, db: DB, project: ProjectDep):
     return {
         "project": serialize(project, ["id", "name", "domain", "status", "is_demo"]),
         "cards": {
-            "active_projects": scalar("SELECT COUNT(*) FROM projects WHERE status='active'"),
-            "websites_monitored": scalar("SELECT COUNT(DISTINCT domain) FROM projects"),
+            "active_projects": scalar("SELECT COUNT(*) FROM projects WHERE status='active' AND organization_id=:p", {"p": project.organization_id}),
+            "websites_monitored": scalar("SELECT COUNT(DISTINCT domain) FROM projects WHERE organization_id=:p", {"p": project.organization_id}),
             "urls_crawled": scalar("SELECT COUNT(*) FROM url_records WHERE project_id=:p AND crawled IS TRUE", {"p": project_id}),
             "critical_issues": open_p,
             "high_priority_issues": open_p1,
@@ -93,7 +109,7 @@ def overview(project_id: int, db: DB, project: ProjectDep):
             "orphan_pages": scalar("SELECT COUNT(*) FROM orphan_records WHERE project_id=:p AND internal_inlinks=0", {"p": project_id}),
             "keyword_mappings_completed": scalar("SELECT COUNT(*) FROM keyword_mappings WHERE project_id=:p", {"p": project_id}),
             "content_opportunities": scalar("SELECT COUNT(*) FROM content_analyses WHERE project_id=:p AND score < 60", {"p": project_id}),
-            "active_jobs": scalar("SELECT COUNT(*) FROM jobs WHERE status IN ('queued','claimed','running')"),
+            "active_jobs": scalar("SELECT COUNT(*) FROM jobs WHERE status IN ('queued','claimed','running') AND organization_id=:p", {"p": project.organization_id}),
             "reports_generated": scalar("SELECT COUNT(*) FROM reports WHERE project_id=:p", {"p": project_id}),
         },
         "latest_crawl": {
@@ -128,6 +144,7 @@ def create_task(project_id: int, payload: dict, db: DB, user: UserDep, project: 
 
 @router.patch("/{project_id}/tasks/{task_id}")
 def update_task(project_id: int, task_id: int, payload: dict, db: DB, user: UserDep):
+    authorize_project(db, project_id, user)
     task = db.get(Task, task_id)
     if task is None or task.project_id != project_id:
         raise HTTPException(404, "Task not found")
@@ -148,6 +165,7 @@ def list_notes(project_id: int, db: DB, project: ProjectDep):
 
 @router.post("/{project_id}/meeting-notes", status_code=201)
 def add_note(project_id: int, payload: dict, db: DB, user: UserDep):
+    authorize_project(db, project_id, user)
     check_write(user)
     note = MeetingNote(project_id=project_id, title=payload.get("title", "Meeting"), notes=payload.get("notes", ""),
                        meeting_date=payload.get("meeting_date"))

@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from app.api.deps import DB, ProjectDep, UserDep, check_write
+from app.api.deps import DB, ProjectDep, UserDep, check_write, get_project
 from app.api.v1._helpers import download, paged, serialize
 from app.models.analysis import ContentAnalysis, ContentBrief
 from app.services.jobs import enqueue
@@ -55,6 +55,7 @@ def update_brief(brief_id: int, payload: dict, db: DB, user: UserDep):
     brief = db.get(ContentBrief, brief_id)
     if brief is None:
         raise HTTPException(404, "Brief not found")
+    get_project(db, brief.project_id, user)
     for key in ("approval_status", "suggested_title", "suggested_h1", "suggested_headings", "questions", "entities"):
         if key in payload:
             setattr(brief, key, payload[key])

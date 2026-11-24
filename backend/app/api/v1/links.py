@@ -4,7 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from app.api.deps import DB, ProjectDep, UserDep, check_write
+from app.api.deps import DB, ProjectDep, UserDep, check_write, get_project
 from app.api.v1._helpers import download, paged, serialize
 from app.models.analysis import LinkSuggestion
 from app.models.inventory import LinkEdge, UrlRecord
@@ -63,6 +63,7 @@ def update_suggestion(suggestion_id: int, payload: dict, db: DB, user: UserDep):
     item = db.get(LinkSuggestion, suggestion_id)
     if item is None:
         raise HTTPException(404, "Suggestion not found")
+    get_project(db, item.project_id, user)
     if payload.get("status") not in {"proposed", "approved", "rejected", "implemented"}:
         raise HTTPException(400, "Invalid status")
     item.status = payload["status"]

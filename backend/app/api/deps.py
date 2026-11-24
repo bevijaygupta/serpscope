@@ -64,6 +64,25 @@ def get_project(db: DB, project_id: int, user: UserDep) -> Project:
 ProjectDep = Annotated[Project, Depends(get_project)]
 
 
+def require_org(db: DB, user: UserDep, organization_id: int) -> Organization:
+    """Return the organisation only when the caller belongs to it.
+
+    Platform owner/admin remains the only global bypass; a tenant role in a
+    different organisation never grants access to another tenant's records.
+    """
+    org = db.get(Organization, organization_id)
+    if org is None:
+        raise HTTPException(404, "Organisation not found")
+    if user.global_role in {"owner", "admin"}:
+        return org
+    membership = db.scalar(select(Membership).where(
+        Membership.user_id == user.id, Membership.organization_id == organization_id
+    ))
+    if membership is None:
+        raise HTTPException(403, "No access to this organisation")
+    return org
+
+
 def paginate(page: int = Query(1, ge=1), page_size: int = Query(50, ge=1, le=500)) -> tuple[int, int]:
     return (page - 1) * page_size, page_size
 
