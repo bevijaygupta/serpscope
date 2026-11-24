@@ -137,7 +137,7 @@ function AuditHistoryPanel({ projectId, dataVersion }: { projectId: number; data
       </summary>
       <div className="mt-3 space-y-3">
         <ProvenanceNote>
-          Every public audit is appended as a stored snapshot. The health score below is {history.data?.metric_note || 'a SERPScope-derived public-evidence metric, not a vendor score'}.
+          Every public audit is appended as a stored snapshot. The health score below is {history.data?.metric_note || 'a SERPScope-derived public-evidence metric, not a vendor score'}
         </ProvenanceNote>
         {history.loading ? <Spinner /> : history.error ? <ErrorState message={history.error} retry={history.reload} /> : items.length ? (
           <div className="max-h-64 overflow-auto rounded-lg border border-edge">

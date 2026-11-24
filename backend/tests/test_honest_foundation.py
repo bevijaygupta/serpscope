@@ -45,6 +45,18 @@ def _audit_content(domain: str, generated_at: str, high: int, medium: int) -> di
     }
 
 
+def test_health_score_requires_minimum_public_evidence():
+    finding = {
+        "id": "missing_title", "title": "Missing title tags", "severity": "High",
+        "affected_count": 1,
+    }
+    assert health_score({"coverage": {"fetched_urls": 1}, "findings": [finding]}) is None
+    assert health_score({"coverage": {"fetched_urls": 9}, "findings": [finding]}) is None
+    assert health_score({"coverage": {"fetched_urls": 10}, "findings": [finding]}) == 90.0
+    assert health_score({"coverage": {"fetched_urls": 10}, "findings": []}) is None
+    assert "fewer than 10 fetched URLs" in HEALTH_SCORE_NOTE
+
+
 def test_audit_history_and_compare_use_stored_snapshots(client, db, auth_headers, demo_project):
     project = _real_project(db, demo_project)
     first = Report(

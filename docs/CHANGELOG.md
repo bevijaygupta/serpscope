@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Sitemap evidence is committed before progress callbacks, preventing SQLite write locks during the one-click job.
 - Audit view no longer fails before the first crawl, and the start endpoint accepts an optional body.
 - Scheduled workflows no longer crash with "can't subtract offset-naive and offset-aware datetimes"; the scheduler now ticks in both the standalone worker and the inline API worker.
+- The derived health score now returns "not enough evidence" below 10 fetched URLs, so a one-page smoke-test crawl is never shown as a misleading 0/100 site-wide score.
 
 ### Added (documentation set)
 

@@ -38,11 +38,13 @@ VERIFIED_OBSERVATION_KINDS = {
     "observed", "verified", "verified_import", "licensed_export", "manual_observation",
 }
 SEVERITY_WEIGHTS = {"Critical": 8, "High": 4, "Medium": 2, "Low": 1}
+MIN_HEALTH_SCORE_FETCHED_URLS = 10
 HEALTH_SCORE_NOTE = (
     "SERPScope-derived public-evidence health score: 100 × weighted pass rate. "
     "Each scored finding passes at 1 − min(affected URLs / fetched URLs, 1); "
     "weights are Critical 8, High 4, Medium 2, Low 1. "
     "Informational and positive evidence groups are excluded. "
+    f"Audits with fewer than {MIN_HEALTH_SCORE_FETCHED_URLS} fetched URLs return null ('not enough evidence'). "
     "This is not Ubersuggest's or any vendor's authority score."
 )
 
@@ -141,13 +143,14 @@ def ai_visibility_context(db: Session, project_id: int) -> dict:
 def health_score(audit: dict) -> float | None:
     """Derive a labelled health score from observed finding coverage.
 
-    This is deliberately not a vendor authority score. Audits with no fetched
-    URLs, or with only informational/positive evidence, return ``None`` so the
-    UI can say "not enough evidence" instead of inventing a number.
+    This is deliberately not a vendor authority score. Audits with too little
+    crawl coverage, or with only informational/positive evidence, return
+    ``None`` so the UI can say "not enough evidence" instead of inventing a
+    number. A one-URL smoke test must never be scored as a site-wide result.
     """
     coverage = audit.get("coverage") or {}
     fetched = int(coverage.get("fetched_urls") or 0)
-    if fetched <= 0:
+    if fetched < MIN_HEALTH_SCORE_FETCHED_URLS:
         return None
     weighted_pass = 0.0
     total_weight = 0.0
