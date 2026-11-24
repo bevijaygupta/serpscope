@@ -38,13 +38,14 @@ Implementation: `backend/app/api/deps.py`.
 | `current_user` | Resolves the bearer token to an active `User`; raises 401 otherwise |
 | `require_roles(*roles)` | Factory dependency: users with `global_role` in `{owner, admin}` are always allowed; otherwise the global role must be in the supplied roles (403 "Insufficient role") |
 | `get_project(db, project_id, user)` | Loads the project (404 if missing). Owners/admins get access to any project; all other users need a `Membership` row matching their user and the project's `organization_id`, otherwise 403 "No access to this project" |
+| `require_org(db, user, organization_id)` | Loads the organisation (404 if missing). Owners/admins bypass; other users need a `Membership` row for that organisation, otherwise 403 "No access to this organisation" |
 | `check_write(user)` | Allows `global_role` in `{owner, admin, editor}`; otherwise 403 "Write permission required". Called by mutating endpoints such as `/imports/upload`, `/imports/url-list` and `/crawler/start` |
 | Job WebSocket | `/api/v1/jobs/ws/{job_id}` accepts `Authorization: Bearer …` or a `token` query parameter, resolves the user with `decode_access_token()` and applies `get_project()` scope checks; closes with `4401`/`4404`/`4403` |
 | `paginate(page, page_size)` | Bounds list queries to `page_size` 1–500 |
 
 Role values are plain strings stored in `users.global_role`, `memberships.role` and `project_members.role`. There is no role enum or policy engine.
 
-**Known RBAC nuances:** organisation/project membership grants *read* access through `get_project`, but write access is decided solely by `global_role` via `check_write`. A user whose global role is `viewer` cannot write even if their membership role is `editor`. `require_roles` short-circuits for owners/admins regardless of the roles passed. `project_members` is stored but is not consulted by these helpers.
+**Known RBAC nuances:** organisation/project membership grants *read* access through `get_project`/`require_org`, and tenant-scoped mutations now call those helpers before changing data. Write access itself is still decided solely by `global_role` via `check_write`; a user whose global role is `viewer` cannot write even if their membership role is `editor`. `require_roles` short-circuits for owners/admins regardless of the roles passed. `project_members` is stored but is not consulted by these helpers. Demo generate/reset is global by design and is now restricted to platform `owner`/`admin`.
 
 ## 4. SSRF validation — `validate_target_url`
 
@@ -140,6 +141,10 @@ Implementation: `backend/app/core/crypto.py`, `backend/app/api/v1/integrations.p
 | Real health probe | `backend/app/main.py` | `/api/health` runs `SELECT 1` and returns HTTP 503 with a generic `degraded` status if the database is unreachable |
 | Edge security headers | `vercel.json` | HSTS, `nosniff`, `X-Frame-Options`, referrer/permissions policies and a CSP restricting scripts, connections, fonts, frames and object/base/form targets |
 | CI invariant checks | `.github/workflows/ci.yml` | CI verifies 23 modules, 17 docs, 24 screenshots and 12 interview scenarios |
+| Tenant-scoped reads and writes | `backend/app/api/deps.py`, `backend/app/api/v1/*.py` | `get_project`/`ProjectDep` and `require_org` guard project, organisation, job, integration, user, client and child-resource endpoints; project creation defaults to a caller's own membership; overview counters are scoped; platform owner/admin is the only global bypass |
+| In-process mutating-rate throttle | `backend/app/main.py`, `backend/app/core/config.py` | A 600-second fixed window keyed by an HMAC digest of UTC day, route bucket and socket peer host; login `10`, presence `60`, other mutations `120` per window; `429` plus numeric `Retry-After`; disabled by `RATE_LIMIT_ENABLED=false` in tests |
+
+The throttle reads only `request.client.host` (the socket peer) and reduces it with `HMAC-SHA256(SECRET_KEY, "day|bucket|peer")` to a 32-character digest. It never reads `X-Forwarded-For`, cookies, authorisation headers, referrer, query strings, request bodies, user IDs, path IDs or audited domains, and the `429` response contains no key, peer or path. It is correct for the single Render web process declared in `render.yaml`; horizontal scaling multiplies the effective budget unless an edge limiter is added.
 
 **CSP limitation:** the static landing page uses inline GTM/gtag snippets and JSON-LD, so `script-src` still contains `'unsafe-inline'`. Moving those snippets to nonce-based delivery would allow tightening this policy.
 
@@ -148,13 +153,13 @@ Implementation: `backend/app/core/crypto.py`, `backend/app/api/v1/integrations.p
 | Gap | Impact / recommendation |
 | --- | --- |
 | **No SSO / external IdP** | `POST /api/v1/auth/register` is open and creates `viewer` users; production should use SSO/admin provisioning and disable self-registration |
-| **No rate limiting / lockout** | Login and all API routes are unthrottled; add gateway-level rate limiting and failed-login backoff |
+| **Rate limiting is in-process only** | Mutating routes are throttled by socket peer (10 logins, 60 presence pings, 120 other mutations per 600 seconds), but there is no gateway/WAF limit, distributed store or account-level lockout. Behind a shared proxy, all visitors can share one bucket; multiple workers multiply the budget. Add edge rate limiting and failed-login backoff for real production. |
 | **No token revocation or refresh** | Tokens live 24 h and cannot be invalidated server-side; add a denylist or short-lived tokens with refresh |
 | **Shared `SECRET_KEY`** | Token signing and Fernet credential encryption derive from one secret; separate keys so rotation does not couple tokens and stored credentials |
 | **Token in `localStorage`** | Vulnerable to XSS token theft; prefer `HttpOnly`/`Secure` cookies or a BFF. An edge CSP is now present, but inline legacy snippets mean `script-src` still allows inline scripts |
 | **No CSRF token** | Mitigated today by bearer-token auth (not cookies), but re-evaluate if auth moves to cookies |
 | **SSRF is string-based** | No DNS resolution checks, egress firewall, or redirect-time network enforcement |
-| **RBAC is global-role-centric** | Membership roles do not grant write access; no per-action permission matrix beyond `check_write` |
+| **RBAC still relies on global write roles** | Tenant membership now gates reads and scoped writes, but write permission is still decided by `global_role`; `project_members` is not consulted. A per-action permission matrix is needed if tenant admins must delegate writes. |
 | **Baseline-only migrations** | Alembic `0001_initial_schema` and `create_all()` create fresh tables but do not alter existing ones; test and author incremental revisions before schema changes reach production |
 | **No Redis/Celery** | The queue is a single `jobs` table with conditional-update claiming; it is not a high-throughput broker, has no visibility timeout or automatic retry of orphaned `claimed` jobs |
 | **Single-writer SQLite by default** | Move to PostgreSQL and a managed connection pool for concurrent workers |

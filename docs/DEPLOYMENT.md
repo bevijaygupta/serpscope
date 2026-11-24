@@ -22,6 +22,7 @@ All settings are read from environment variables (or a `.env` file in the workin
 | `CORS_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | Comma-separated allowed origins (credentials enabled) |
 | `JOB_POLL_SECONDS` | `0.5` | Worker idle poll interval |
 | `RUN_JOBS_IN_API` | `true` | Start the inline worker daemon thread in the API process; set `false` when running the separate worker |
+| `RATE_LIMIT_ENABLED` | `true` | Enable the in-process fixed-window throttle on mutating API routes; the test suite disables it |
 | `MAX_UPLOAD_MB` | `50` | Per-file upload limit |
 | `LOG_LEVEL` | `INFO` | Root logging level used by `app.main` |
 
@@ -222,7 +223,8 @@ Before exposing the stack to untrusted users, address the remaining items in [SE
 - [x] Restrict `CORS_ORIGINS`, terminate TLS at the edge and add edge security headers/CSP.
 - [x] Remove the public static export mount and return a generic 500 response with server-side logging.
 - [ ] Disable open self-registration and add SSO/admin provisioning; remove the automatic demo-account bootstrap.
-- [ ] Add rate limiting and login backoff at the gateway.
+- [x] Add in-process rate limiting for mutating API routes (see `RATE_LIMIT_ENABLED` above).
+- [ ] Add gateway-level rate limiting and failed-login/account lockout; the in-process throttle is not a WAF.
 - [ ] Use PostgreSQL with a managed pool instead of default SQLite for multi-process/concurrent writes (Render already uses PostgreSQL).
 - [ ] Add a backup/restore runbook and test each incremental Alembic revision against production-like data.
 - [ ] Add network egress controls for the crawler (the code's SSRF check is string-based, not DNS-aware).
@@ -237,3 +239,13 @@ Commit `860ddf7` was pushed to `main`. Local checks: **64 backend tests passed**
 - Render required **Manual Deploy → Deploy latest commit** on `serpscope-api` (`render.yaml` unchanged, so no Blueprint sync). Deploy `dep-dc2nfa17lnhs73evo550` for `860ddf7` succeeded in **1m 18s**. Hosted `/api/health` returned `{"status":"ok","environment":"production","database":"postgresql"}` after the real database probe. `/api/v1/meta/data-kinds` showed the new `user_supplied` and `synthetic_verification` labels, and `/api/v1/exports/files/serpscope_public_audit_2.json` returned **404** because the public static mount was removed.
 - Hosted case study 2 still reported `public_evidence_only`, GSC `supplied=false`, `rows=0`, empty `sample`/`sources`, and AI visibility `not_sampled` with `observation_count=0`. Browser checks on the live landing page and `/case-studies` showed **zero console errors**, working API calls under the CSP, and source `dataLayer` events containing only `event`, `page_path`, `timestamp` and GTM's own event ID — no title, audited domain, identity or search-box value.
 - **Known caveat unchanged:** the default GA4 `page_view` tag inside container `GTM-NZ3DFL7C` still adds `dt` (document title) and `dl` (page location). That tag must be disabled or configured in the GTM UI; SERPScope's own source events remain clean.
+
+## 9. Live verification record — tenant scoping, throttling and book offer (2026-11-24, final)
+
+Commit `dc29ff5` was pushed to `main`. Local checks: **67 backend tests passed**, including three new tenant/rate-limit regression tests; `npm run typecheck` and `npm run build` were clean (`assets/index-nyAorvzx.js`, `assets/index-D7uPGQbf.css`). Invariant counts remain **23 modules, 17 docs, 24 screenshots and 12 interview scenarios**. Render required **Manual Deploy → Deploy latest commit** on `serpscope-api`; deploy `dep-dc2oolrrjlhs73dbrcm0` for `dc29ff5` succeeded in **1m 16s**. `render.yaml` was unchanged, so **no Blueprint sync was needed**.
+
+- Tenant scoping now uses `get_project()`/`ProjectDep` and the new `require_org()` helper. Project creation defaults to the caller's own membership and rejects a supplied `organization_id` outside it; overview counters are organisation/project scoped; client organisation projects/members, project permissions, jobs, integrations, `/auth/users`, and child PATCH endpoints verify membership. Platform `owner`/`admin` remains the only global bypass. The global demo generate/reset endpoints are now platform-admin-only.
+- The in-process throttler lives in `backend/app/main.py`: a 600-second fixed window keyed by an HMAC digest of UTC day, route bucket and the socket peer host. Buckets are login `10`, presence ping `60`, other mutations `120`; excess requests get `429` with a numeric `Retry-After`. It never reads or stores `X-Forwarded-For`, cookies, authorisation headers, referrer, user identity, audited domain, query, body or path IDs. Tests set `RATE_LIMIT_ENABLED=false`; a regression test verifies the generic `429` body and digest-only keys. This is safe only for the single Render web process declared in `render.yaml`, so it was not hammered against the shared public egress path.
+- Live checks after the deploy: `/api/health` returned `{"status":"ok","environment":"production","database":"postgresql"}`; the legacy alias returned `308` to the canonical root; a canonical `Origin` received `Access-Control-Allow-Origin: https://serpscopelive.vercel.app` while `https://evil.example` received no CORS header. Case study 2 still reports `meta.publication_scope=public_evidence_only`, `supplied_data.gsc.supplied=false` with zero rows, and `ai_visibility.status=not_sampled` with all four engines `not_sampled`. Browser console error counts were zero on `/` and `/case-studies/2`.
+- The book offer from commit `4365998` is live on `assets/index-nyAorvzx.js`. Its Google Play cover loads at **375×600**, both links point to `https://play.google.com/store/books/details?id=PNEwEgAAQBAJ`, and the copy states the review condition and that SERPScope collects neither email nor review text.
+- **Known caveat unchanged:** the default GA4 `page_view` tag in `GTM-NZ3DFL7C` still adds `dt` (document title) and `dl` (page location). SERPScope's own `dataLayer` events remain free of those fields; the tag still needs reconfiguration in the GTM UI.
