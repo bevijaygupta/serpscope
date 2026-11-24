@@ -6,8 +6,8 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse
+from sqlalchemy import text
 
 from app.api.v1 import (
     ai,
@@ -69,19 +69,37 @@ for router in ROUTERS:
 
 settings.export_path.mkdir(parents=True, exist_ok=True)
 settings.upload_path.mkdir(parents=True, exist_ok=True)
-app.mount("/api/v1/exports/files", StaticFiles(directory=str(settings.export_path)), name="exports")
+# Generated exports are returned directly by the authenticated download endpoints.
+# There is deliberately no public static mount over EXPORT_DIR: a filename guess
+# must never expose another tenant's generated file.
 
 
 @app.get("/api/health", tags=["meta"])
 def health():
     # Report only the dialect, never credentials or the connection string.
-    return {"status": "ok", "environment": settings.environment, "database": settings.database_url.split("://", 1)[0]}
+    report = {
+        "status": "ok",
+        "environment": settings.environment,
+        "database": settings.database_url.split("://", 1)[0],
+    }
+    try:
+        db = SessionLocal()
+        try:
+            db.execute(text("SELECT 1"))
+        finally:
+            db.close()
+    except Exception:  # noqa: BLE001 - degraded is reported without internals
+        logger.exception("Health check database probe failed")
+        return JSONResponse(status_code=503, content={**report, "status": "degraded", "probe": "unavailable"})
+    return report
 
 
 @app.exception_handler(Exception)
 async def unhandled_exception(request, exc):  # pragma: no cover - safety net
     logger.exception("Unhandled error on %s", request.url.path)
-    return JSONResponse(status_code=500, content={"detail": "Internal server error", "error": str(exc)[:300]})
+    # Exception text can contain SQL, paths or supplied values. Log it, never
+    # echo it back to an unauthenticated caller.
+    return JSONResponse(status_code=500, content={"detail": "Internal server error"})
 
 
 def _inline_worker() -> None:  # pragma: no cover - background loop

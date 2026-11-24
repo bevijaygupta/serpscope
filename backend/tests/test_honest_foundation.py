@@ -1,12 +1,15 @@
 """Tests for the honest-foundation features: history, imports, scheduling and views."""
 from __future__ import annotations
 
+import pytest
+from pydantic import ValidationError
 from sqlalchemy import select
 
+from app.core.config import Settings
 from app.models.operations import CaseStudyView, Report, Workflow
 from app.models.projects import Job, Project
 from app.services import workflows
-from app.services.public_audit import HEALTH_SCORE_NOTE, health_score
+from app.services.public_audit import HEALTH_SCORE_NOTE, health_score, sanitize_public_audit_config
 
 
 def _real_project(db, demo_project, domain: str = "honest.example") -> Project:
@@ -229,6 +232,63 @@ def test_scheduled_public_audit_step_queues_a_job(client, db, auth_headers, demo
     assert job.project_id == project.id
     assert job.payload["start_url"] == "https://schedule.example/"
     assert workflow.id not in [row.id for row in workflows.due_workflows(db)]
+
+
+def test_public_audit_config_cannot_override_provenance_or_ssrf_guards(
+    client, db, auth_headers, demo_project
+):
+    hostile_config = {
+        "allow_private": True, "auth_headers": {"Authorization": "Bearer secret"},
+        "mode": "synthetic", "javascript_rendering": True, "follow_external": True,
+        "respect_robots": False, "sitemap_discovery": False,
+        "max_urls": 100000, "max_depth": 50, "concurrency": 99,
+        "crawl_delay": 0, "timeout": 999,
+    }
+    config = sanitize_public_audit_config({"config": hostile_config})
+    assert config["allow_private"] is False
+    assert config["auth_headers"] == {}
+    assert config["mode"] == "live"
+    assert config["javascript_rendering"] is False
+    assert config["follow_external"] is False
+    assert config["respect_robots"] is True
+    assert config["sitemap_discovery"] is True
+    assert config["max_urls"] <= 500
+    assert config["max_depth"] <= 5
+    assert config["concurrency"] <= 4
+    assert config["crawl_delay"] >= 1.0
+    assert config["timeout"] <= 30
+
+    project = _real_project(db, demo_project, domain="hardening.example")
+    response = client.post(
+        f"/api/v1/audits/projects/{project.id}/public-audit/start",
+        headers=auth_headers,
+        json={"start_url": "https://hardening.example/", "config": hostile_config},
+    )
+    assert response.status_code == 202, response.text
+    job = db.get(Job, response.json()["job_id"])
+    queued_config = job.payload["config"]
+    assert queued_config["allow_private"] is False
+    assert queued_config["auth_headers"] == {}
+    assert queued_config["mode"] == "live"
+    assert queued_config["max_urls"] == config["max_urls"]
+
+
+def test_production_configuration_fails_fast_on_unsafe_values():
+    safe = {
+        "environment": "production",
+        "secret_key": "unique-deployment-secret-with-enough-entropy-2026",
+        "database_url": "postgresql+psycopg2://user:password@db.example.com/serpscope",
+        "cors_origins": "https://serpscopelive.vercel.app",
+    }
+    assert Settings(**safe).environment == "production"
+    for override in (
+        {"secret_key": "dev-only-secret-change-before-deployment"},
+        {"cors_origins": "http://localhost:5173"},
+        {"cors_origins": "*"},
+        {"database_url": "sqlite:///./data/serpscope.db"},
+    ):
+        with pytest.raises(ValidationError):
+            Settings(**{**safe, **override})
 
 
 def test_case_study_analytics_are_anonymous_and_public_only(client, db, auth_headers, demo_project):

@@ -119,7 +119,11 @@ def start_public_audit(db: DB, user: UserDep, project: ProjectDep, payload: dict
     body = payload or {}
     job = enqueue(
         db, "public_audit", body.get("name") or f"Public audit · {project.domain}",
-        {"start_url": body.get("start_url") or project.domain, "config": body.get("config") or {}, "name": body.get("name")},
+        {
+            "start_url": body.get("start_url") or project.domain,
+            "config": public_audit.sanitize_public_audit_config(body),
+            "name": body.get("name"),
+        },
         project_id=project.id, organization_id=project.organization_id, created_by=user.id,
     )
     db.commit()

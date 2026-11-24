@@ -69,3 +69,13 @@ jobs:
             if [ ! -s "$path" ]; then echo "Missing or empty: $path"; missing=1; fi
           done
           exit $missing
+      - name: Verify product invariants
+        shell: bash
+        run: |
+          set -e
+          modules=$(grep -c "^    id: '" frontend/src/lib/modules.ts)
+          docs=$(find docs -maxdepth 1 -type f -name '*.md' | wc -l | tr -d ' ')
+          screenshots=$(find screenshots -maxdepth 1 -type f -name '*.png' | wc -l | tr -d ' ')
+          scenarios=$(grep -c '^        "key":' backend/app/services/scenarios.py)
+          echo "modules=$modules docs=$docs screenshots=$screenshots scenarios=$scenarios"
+          [ "$modules" = "23" ] && [ "$docs" = "17" ] && [ "$screenshots" = "24" ] && [ "$scenarios" = "12" ]

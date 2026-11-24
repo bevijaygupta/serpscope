@@ -21,6 +21,38 @@ not-a-url,Bad row,1,1
 """
 
 
+def test_upload_rejects_live_crawl_provenance_label(client, auth_headers, demo_project):
+    response = client.post(
+        "/api/v1/imports/upload",
+        headers=auth_headers,
+        data={
+            "project_id": str(demo_project["project_id"]),
+            "source_type": "csv_urls",
+            "data_kind": "live_crawl",
+        },
+        files={"file": ("rows.csv", CSV, "text/csv")},
+    )
+    assert response.status_code == 400, response.text
+    assert "Unsupported data_kind" in response.text
+
+
+def test_inline_urls_accept_only_declared_labels(client, db, auth_headers, demo_project):
+    project_id = demo_project["project_id"]
+    rejected = client.post(
+        "/api/v1/imports/url-list", headers=auth_headers,
+        json={"project_id": project_id, "urls": ["https://demo.example.com/one/"], "data_kind": "observed"},
+    )
+    assert rejected.status_code == 400
+
+    accepted = client.post(
+        "/api/v1/imports/url-list", headers=auth_headers,
+        json={"project_id": project_id, "urls": ["https://demo.example.com/one/"], "data_kind": "user_supplied"},
+    )
+    assert accepted.status_code == 201, accepted.text
+    source = db.get(DataSource, accepted.json()["data_source_id"])
+    assert source.data_kind == "user_supplied"
+
+
 def test_parse_table_detects_columns_and_values():
     columns, rows = parse_table(CSV, "sample.csv")
     assert columns == ["URL", "Title", "Clicks", "Revenue"]

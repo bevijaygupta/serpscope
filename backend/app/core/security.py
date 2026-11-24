@@ -66,6 +66,11 @@ def decode_access_token(token: str) -> dict | None:
 
     try:
         header, body, signature = token.split(".")
+        header_data = json.loads(_unb64url(header))
+        # Pin the algorithm: accepting attacker-supplied "alg" values would let
+        # a token be forged with a different verification scheme.
+        if header_data.get("alg") != "HS256" or header_data.get("typ", "JWT") != "JWT":
+            return None
         expected = hmac.new(
             settings.secret_key.encode(), f"{header}.{body}".encode(), hashlib.sha256
         ).digest()

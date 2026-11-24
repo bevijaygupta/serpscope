@@ -10,7 +10,7 @@ from app.core.url_utils import validate_target_url
 from app.models.inventory import Crawl
 from app.models.projects import Project
 from app.services import competitor_discovery, content, domains, issues, links, orphans, public_audit
-from app.services.crawler import DEFAULT_CONFIG, CrawlConfig, CrawlEngine
+from app.services.crawler import CrawlConfig, CrawlEngine
 from app.services.jobs import is_cancelled, progress, register
 
 
@@ -27,21 +27,10 @@ def derived_result_counts(derived: dict) -> dict:
 def run_public_audit_job(db_session_factory, job_id: int, payload: dict, project_id: int | None, organization_id: int | None):
     if project_id is None:
         raise ValueError("Public audit requires a project")
-    config = dict(DEFAULT_CONFIG)
-    config.update({
-        "start_url": (payload.get("start_url") or "").strip(),
-        "max_urls": 250,
-        "max_depth": 3,
-        "concurrency": 2,
-        "crawl_delay": 1.0,
-        "timeout": 12,
-        "respect_robots": True,
-        "sitemap_discovery": True,
-        "follow_external": False,
-        "allow_private": False,
-        "mode": "live",
-    })
-    config.update(payload.get("config") or {})
+    # Defence in depth: the job sanitises the payload again even if it was
+    # enqueued directly, so an unsafe config can never become a published audit.
+    config = public_audit.sanitize_public_audit_config(payload)
+    config["start_url"] = (payload.get("start_url") or "").strip()
     if not config.get("start_url"):
         db = db_session_factory()
         try:

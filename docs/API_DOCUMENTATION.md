@@ -78,7 +78,7 @@ Some endpoints intentionally return only `{ "items": [...] }` (e.g. `/projects`,
 | Serialisation | `_helpers.serialize(row, columns)` returns only declared columns; missing values are `null`. |
 | Timestamps | ISO-8601 strings from `app.core.timeutil.iso()` / `utcnow()`. |
 | Provenance | Records include `data_kind` and often `source` / `sources` / `observed_at`. Values follow `/meta/data-kinds`. |
-| Errors | HTTP errors use FastAPI's `{ "detail": "..." }`; the global handler returns `{ "detail": "Internal server error", "error": "<first 300 chars>" }` with status 500. |
+| Errors | HTTP errors use FastAPI's `{ "detail": "..." }`; the global handler logs the traceback server-side and returns only `{ "detail": "Internal server error" }` with status 500. |
 | Writes | `POST` usually returns `201` and an id or `{ "success": true }`; job-triggering `POST`s return `202` with `{ "job_id": ..., "status": "queued" }`. |
 | Exports | `GET .../export?format=csv\|json\|xlsx` (reports support `pdf`; public audits also support `pptx`) returns a `FileResponse` with an attachment header. Column selection uses `columns=a,b,c` where supported. Cells are escaped against spreadsheet formula injection. |
 | Booleans in filters | `indexable` and `in_sitemap` on `/inventory/urls` are `0`/`1` integers constrained to `[0,1]`. `orphan` is a real boolean. |
@@ -395,11 +395,9 @@ curl -o audit.pptx 'http://127.0.0.1:8000/api/v1/audits/projects/2/public-audit/
   -H "Authorization: Bearer $TOKEN"
 ```
 
-### Static exports
+### Export availability
 
-| Method | Path | Auth | Purpose |
-| --- | --- | --- | --- |
-| GET | `/api/v1/exports/files/{filename}` | Public today | Static file mount over `EXPORT_DIR`. |
+Generated files are written under `EXPORT_DIR` only to be streamed by the authenticated export endpoints (for example `/api/v1/audits/projects/{project_id}/public-audit/export`). There is intentionally **no** public static file mount: `/api/v1/exports/files/...` returns 404 so a guessed filename cannot expose another project's export.
 
 ---
 

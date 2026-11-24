@@ -8,6 +8,7 @@ from sqlalchemy import select
 
 from app.api.deps import DB, UserDep, check_write, get_project
 from app.api.v1._helpers import audit, serialize
+from app.api.v1.meta import UPLOAD_DATA_KINDS
 from app.core.config import settings
 from app.core.timeutil import iso, utcnow
 from app.models.projects import DataSource
@@ -26,6 +27,14 @@ SOURCE_TYPES = {
 }
 
 
+def validated_data_kind(value: str | None) -> str:
+    """Reject labels that would let an upload masquerade as a live crawl."""
+    kind = (value or "imported").strip()
+    if kind not in UPLOAD_DATA_KINDS:
+        raise HTTPException(400, f"Unsupported data_kind. Allowed: {sorted(UPLOAD_DATA_KINDS)}")
+    return kind
+
+
 @router.post("/upload", status_code=202)
 async def upload_file(
     db: DB,
@@ -39,6 +48,7 @@ async def upload_file(
     project = get_project(db, project_id, user)
     if source_type not in SOURCE_TYPES:
         raise HTTPException(400, f"Unsupported source_type. Allowed: {sorted(SOURCE_TYPES)}")
+    data_kind = validated_data_kind(data_kind)
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in ALLOWED_EXTENSIONS:
         raise HTTPException(400, f"Unsupported file extension. Allowed: {sorted(ALLOWED_EXTENSIONS)}")
@@ -72,14 +82,15 @@ def import_url_list(payload: dict, db: DB, user: UserDep):
     urls = payload.get("urls") or []
     if not isinstance(urls, list) or len(urls) > 10000:
         raise HTTPException(400, "Provide a list of up to 10,000 URLs; use /upload for larger files")
+    data_kind = validated_data_kind(payload.get("data_kind"))
     accepted, rejected, errors = upsert_urls(
         db, project.id, urls, payload.get("source", "manual_list"),
-        payload.get("data_kind", "imported"), payload.get("normalization_rules"),
+        data_kind, payload.get("normalization_rules"),
     )
     source = DataSource(
         project_id=project.id, source_type=payload.get("source", "manual_list"),
         name=payload.get("name", "Inline URL list"), row_count=accepted,
-        rejected_count=rejected, data_kind=payload.get("data_kind", "imported"),
+        rejected_count=rejected, data_kind=data_kind,
         meta_info={"errors": errors},
     )
     db.add(source)

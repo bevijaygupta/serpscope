@@ -17,7 +17,7 @@ All commands run from the `backend/` directory:
 ```bash
 cd backend
 
-# Fast suite (39 tests in the current tree)
+# Fast suite (63 tests; the full suite has 64 including the slow 100k test)
 pytest -q -m "not slow"
 
 # Full suite, including the large-dataset acceptance test
@@ -63,12 +63,16 @@ SEO_LAB_SCALE_URLS=20000 pytest -q -m slow
 | File | What it verifies |
 | --- | --- |
 | `test_url_utils.py` | URL normalisation (tracking params preserved/stripped, `www`, case), SSRF rejection list (`localhost`, `127.0.0.1`, `169.254.169.254`, `file://`, embedded credentials, `javascript:`, empty, 5000 chars), `allow_private` override, canonical resolution, host/page classification and CSV formula neutralisation |
-| `test_jobs_and_api.py` | 401 for missing/invalid tokens and wrong passwords, `/api/health` public, `/auth/me` role, viewer scoping via memberships and 403 on writes/cross-org reads, pagination bounds (`limit=501` → 422), CSV BOM + attachment headers and XLSX bytes, job cancellation flow, terminal status and authenticated/project-scoped WebSocket progress |
-| `test_imports.py` | CSV/JSON/XLSX column/row parsing, namespaced sitemap `<loc>` parsing, batched deduplicated `upsert_urls` with rejected internal/empty URLs and source merging, `/imports/url-list` API metadata, sitemap entries stored separately from inventory |
+| `test_jobs_and_api.py` | 401 for missing/invalid tokens and wrong passwords, `/api/health` public and DB-probed, pinned JWT algorithm, no public export mount, `/auth/me` role, viewer scoping via memberships and 403 on writes/cross-org reads, pagination bounds (`limit=501` → 422), CSV BOM + attachment headers and XLSX bytes, job cancellation flow, terminal status and authenticated/project-scoped WebSocket progress, public case-study private-data exclusion |
+| `test_imports.py` | CSV/JSON/XLSX column/row parsing, namespaced sitemap `<loc>` parsing, batched deduplicated `upsert_urls` with rejected internal/empty URLs and source merging, `/imports/url-list` API metadata, provenance labels restricted at upload and inline-list boundaries, sitemap entries stored separately from inventory |
 | `test_exports.py` | CSV formula escaping, JSON nested sanitisation, XLSX (`PK` header) and PDF (`%PDF`) generation, `make_export` format dispatch |
 | `test_demo_and_issues.py` | Demo generator produces labelled synthetic data and planted issues, `detect_issues` emits evidence/explanations and `issue_urls`, high-value 404 ranking uses supplied revenue and includes score components |
 | `test_orphans_links_keywords.py` | Orphan classification/confidence and no mislabelled 404s, link-graph proposals with reasons/anchors, keyword intent/clustering/mapping/cannibalisation, link-count recomputation from `link_edges` |
 | `test_priority.py` | `clamp`/`log_scale` bounds, explainable score with components/weights summing to 1, low-confidence → `Review`, orphan component differentiation |
+| `test_honest_foundation.py` | Health-score evidence threshold, audit history/compare, AI observation provenance and `not_sampled`, scheduled public audits, hostile public-audit config clamping, production config fail-fast, anonymous case-study analytics, `not_supplied` signal explanations |
+| `test_supplied_metrics.py` | User-supplied GSC rows change only declared signal status; audits without supplied data keep every vendor gap explicit |
+| `test_public_evidence_derivation.py` | Derived result keys, external-link evidence when not followed, public-evidence keywords/competitors/gaps |
+| `test_presence.py` | Anonymous visitor token requirement and distinct-session counting without identity storage |
 | `test_crawler_safety.py` | Robots permission checked before each request and redirect hop, fail-closed robots fetch errors, disallowed URLs excluded, cancellation between batches and private-target rejection |
 | `test_scale_100k.py` | `@pytest.mark.slow` acceptance test: 100k Core-batched URL import speed (under 90s), count, bounded paginated API response and `has_more`/`page` correctness |
 
@@ -95,5 +99,6 @@ Manual smoke path for the UI:
 - Coverage is measured with `pytest-cov`; no minimum coverage threshold is configured, and `filterwarnings` suppresses `DeprecationWarning`, so some SQLAlchemy/FastAPI deprecations will not fail CI.
 - The test database is deleted at **import** time and cleaned before every test; the suite is designed for serial execution. Running tests in parallel with xdist would contend for the same SQLite file and the module-level cleanup.
 - One test temporarily mutates the global `HANDLERS` registry (`test_cancellable`) and removes it afterwards; a failure before cleanup can pollute later tests in the same process.
+- CI (`.github/workflows/ci.yml`) runs the backend suite, frontend typecheck/build, required-file checks and an invariant check that fails if the counts change from **23 modules / 17 docs / 24 screenshots / 12 interview scenarios**.
 - Tests do not cover SSO, rate limiting, token revocation, PostgreSQL-specific behaviour, real outbound crawling, Alembic revision upgrades, or the container/edge setup described in [DEPLOYMENT.md](DEPLOYMENT.md). Crawler compliance is tested against local mock servers/parser behaviour rather than public websites.
 - Security properties are tested at the unit level (SSRF inputs, CSV injection, 401/403 enforcement) rather than through a full penetration test; see the limitations in [SECURITY.md](SECURITY.md).

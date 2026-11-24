@@ -13,11 +13,11 @@ All settings are read from environment variables (or a `.env` file in the workin
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `APP_NAME` | `SERPScope` | Application label |
-| `ENVIRONMENT` | `development` | Reported by `/api/health` |
-| `SECRET_KEY` | `dev-only-secret-change-before-deployment` | HMAC token signing **and** Fernet key derivation for integration credentials — override in every non-local environment |
+| `ENVIRONMENT` | `development` | Reported by `/api/health`; `production` enables fail-fast config validation |
+| `SECRET_KEY` | `dev-only-secret-change-before-deployment` | HMAC token signing **and** Fernet key derivation for integration credentials — must be overridden with ≥32 characters in production |
 | `DATABASE_URL` | `sqlite:///./data/serpscope.db` | SQLAlchemy URL; PostgreSQL URLs are supported by config (driver must be installed separately) |
 | `UPLOAD_DIR` | `./data/uploads` | Uploaded imports, organised as `<project_id>/<timestamp>_<safe-name>` |
-| `EXPORT_DIR` | `./data/exports` | Generated exports, served at `/api/v1/exports/files` |
+| `EXPORT_DIR` | `./data/exports` | Temporary storage for files streamed by authenticated export endpoints; no public static mount |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `1440` | Bearer token lifetime (24 h) |
 | `CORS_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | Comma-separated allowed origins (credentials enabled) |
 | `JOB_POLL_SECONDS` | `0.5` | Worker idle poll interval |
@@ -25,7 +25,7 @@ All settings are read from environment variables (or a `.env` file in the workin
 | `MAX_UPLOAD_MB` | `50` | Per-file upload limit |
 | `LOG_LEVEL` | `INFO` | Root logging level used by `app.main` |
 
-The frontend calls `/api/v1` by default, but `VITE_API_URL` can override it at build time (`frontend/src/lib/api.ts`). The hosted setup keeps the default and uses a Vercel rewrite to forward `/api` (including `/api/health` and `/api/v1/exports/files`) to the Render API, so the browser sees one origin and CORS is avoided.
+The frontend calls `/api/v1` by default, but `VITE_API_URL` can override it at build time (`frontend/src/lib/api.ts`). The hosted setup keeps the default and uses a Vercel rewrite to forward `/api` (including `/api/health`) to the Render API, so the browser sees one origin and CORS is avoided. Vercel also applies HSTS, referrer/permissions policies and a content security policy to the frontend origin.
 
 ## 2. Local development (two or three processes)
 
@@ -172,7 +172,7 @@ flowchart LR
 
 | Service | Process | Notes |
 | --- | --- | --- |
-| `api` | `uvicorn app.main:app --host 0.0.0.0` | Mounts `/api/v1/exports/files` from `EXPORT_DIR`; exposes `/api/health`; should have `RUN_JOBS_IN_API=false` when a worker service is present |
+| `api` | `uvicorn app.main:app --host 0.0.0.0` | Streams generated files from `EXPORT_DIR` through authenticated endpoints; exposes a database-backed `/api/health`; should have `RUN_JOBS_IN_API=false` when a worker service is present |
 | `worker` | `python -m app.workers.runner` | Same image and environment as `api`; no inbound port; shares the database (and upload/export directories for file-based jobs) |
 | `frontend` (nginx) | Static SPA + reverse proxy | Serves the Vite `dist/` build, proxies `/api` and `/api/health` to `api`, so the browser only needs one origin |
 
@@ -216,13 +216,15 @@ MAX_UPLOAD_MB=50
 
 ## 7. Production hardening checklist
 
-Before exposing the stack publicly, address the items in [SECURITY.md](SECURITY.md#10-known-limitations--production-hardening-still-needed), in particular:
+Before exposing the stack to untrusted users, address the remaining items in [SECURITY.md](SECURITY.md#11-known-limitations--production-hardening-still-needed), in particular:
 
-- [ ] Replace the default `SECRET_KEY` and store it in a secrets manager; plan rotation for tokens and Fernet credentials.
+- [x] Replace the default `SECRET_KEY` (Render uses `generateValue: true`) and fail fast on weak values in production; plan rotation for tokens and Fernet credentials.
+- [x] Restrict `CORS_ORIGINS`, terminate TLS at the edge and add edge security headers/CSP.
+- [x] Remove the public static export mount and return a generic 500 response with server-side logging.
 - [ ] Disable open self-registration and add SSO/admin provisioning; remove the automatic demo-account bootstrap.
-- [ ] Restrict `CORS_ORIGINS`; terminate TLS at the edge; add rate limiting and login backoff.
-- [ ] Use PostgreSQL with a managed pool instead of default SQLite for multi-process/concurrent writes.
+- [ ] Add rate limiting and login backoff at the gateway.
+- [ ] Use PostgreSQL with a managed pool instead of default SQLite for multi-process/concurrent writes (Render already uses PostgreSQL).
 - [ ] Add a backup/restore runbook and test each incremental Alembic revision against production-like data.
 - [ ] Add network egress controls for the crawler (the code's SSRF check is string-based, not DNS-aware).
 - [ ] Keep uploads non-executable and non-web-served; patch openpyxl/lxml/httpx dependencies.
-- [ ] Replace the 300-character raw-error response with a generic 500 response and centralised logging.
+- [ ] Tighten CSP `script-src` by removing inline legacy snippets (nonce or external files).

@@ -72,7 +72,7 @@ flowchart TB
     HANDLERS --> DB
     INLINE --> DB
     SERVICES --> FILES
-    MAIN -->|StaticFiles /api/v1/exports/files| FILES
+    MAIN -->|health SELECT 1| DB
     HANDLERS -->|httpx| EXTERNAL
     URLU -.->|guards| EXTERNAL
 ```
@@ -81,7 +81,7 @@ flowchart TB
 
 - `app.main` includes **23 routers**, each registered under the `/api/v1` prefix. `/api/health` is intentionally outside that prefix and is unauthenticated.
 - The frontend does **not** talk to a separate BFF; axios calls `/api/v1` directly and the edge (Vite in development, nginx in the intended container setup) proxies to Uvicorn.
-- Exported files are written under `settings.export_path` and served through a `StaticFiles` mount at `/api/v1/exports/files`.
+- Exported files are written under `settings.export_path` only so authenticated endpoints can stream them with `FileResponse`; no public static mount exposes the directory. `/api/health` is unauthenticated but performs a real database probe and never reveals credentials.
 - The worker and the inline worker are alternative execution strategies; run **one or the other** in a given deployment.
 
 ## 3. Request lifecycle
@@ -91,7 +91,7 @@ flowchart TB
 3. **Authentication** — Most endpoints depend on `current_user` (`app/api/deps.py`), which uses `HTTPBearer(auto_error=False)`, decodes the HMAC-signed token via `decode_access_token`, loads the `User` by the `sub` claim and rejects missing, invalid, expired or inactive users with 401.
 4. **Authorisation** — Project-scoped endpoints take `ProjectDep = Depends(get_project)`: owners/admins may access any project; everyone else needs a `Membership` row for the project's organisation, otherwise 403. Mutating endpoints additionally call `check_write(user)` (roles `owner`, `admin`, `editor`). A few admin-only routes use `require_roles(*roles)`; note that owners/admins short-circuit that check.
 5. **Handler / service** — The route delegates to an `app.services.*` function that performs the database work through a SQLAlchemy `Session` yielded by `get_db()` (autoflush off, `expire_on_commit=False`). Sessions are closed in a `finally` block.
-6. **Response** — Pydantic models or serialised dictionaries are returned. An `Exception` handler logs the traceback and returns `500 {"detail": "Internal server error", "error": "..."}` with the error truncated to 300 characters.
+6. **Response** — Pydantic models or serialised dictionaries are returned. An `Exception` handler logs the traceback server-side and returns only `500 {"detail": "Internal server error"}`; internal values are never echoed to the caller.
 7. **Client state** — `AppContext` keeps `projects`, `projectId`, `jobs` and a `dataVersion` counter. A 4-second interval refreshes the jobs panel. `runAction()` polls `/jobs/{id}` every 900 ms (up to 900 ticks) when an action returns a `job_id`, then bumps `dataVersion` so the active module refetches. A 401 response clears the token and redirects to `/login`.
 
 ### Authentication endpoints

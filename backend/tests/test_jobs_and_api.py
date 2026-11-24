@@ -375,3 +375,18 @@ def test_synthetic_demo_project_is_never_published(db, demo_project):
     assert project.is_demo is True
     assert publish_case_study(db, project.id) is False
     assert not (project.settings or {}).get("public_audit")
+
+
+def test_token_header_algorithm_is_pinned():
+    from app.core.security import _b64url, create_access_token, decode_access_token
+
+    token = create_access_token("demo@serpscope.local")
+    header, body, signature = token.split(".")
+    forged_header = _b64url(b'{"alg":"none","typ":"JWT"}')
+    assert decode_access_token(f"{forged_header}.{body}.{signature}") is None
+    assert decode_access_token(token)["sub"] == "demo@serpscope.local"
+
+
+def test_generated_exports_have_no_public_static_mount(client):
+    assert client.get("/api/v1/exports/files/").status_code == 404
+    assert client.get("/api/v1/exports/files/serpscope_public_audit_1.json").status_code == 404

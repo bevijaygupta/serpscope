@@ -290,16 +290,16 @@ These are usable but intentionally incomplete. They must be described honestly i
 4. Implement `canonical_handling` semantics and crawler scheduling, or remove the unused keys.
 5. Add detectors for `excessive_depth` and `broken_external_link`.
 6. Add per-project write roles, role-management UI and role gating in the SPA.
-7. Validate `alg == "HS256"` explicitly; separate token-signing and credential-encryption keys; add token revocation/refresh and short-lived tokens.
+7. **Done:** `alg == "HS256"` and `typ == "JWT"` are now pinned before signature verification. Still open: separate token-signing and credential-encryption keys, token revocation/refresh and short-lived tokens.
 8. Replace the single-table queue with a durable broker or add visibility timeout, orphan recovery and retry policy.
-9. Add structured request logging, correlation IDs, job metrics and health dependencies.
+9. **Partly done:** `/api/health` now probes the database and reports `503 degraded` without credentials. Still open: structured request logging, correlation IDs and job metrics.
 10. Add frontend unit/component tests and end-to-end coverage for the 12 scenarios.
 11. Add real provider adapters with capability flags and read-only validation calls.
 12. Add incremental recrawl scheduling and deeper sitemap-index expansion beyond the current one level.
 13. Add redirect deployment as a gated, reviewable workflow rather than an automatic action.
 14. Exercise incremental Alembic revisions against production-like data and add a backup/restore runbook.
 15. Remove or guard the automatic demo-account bootstrap and open self-registration before any public deployment.
-16. Trigger **Manual Deploy → Deploy latest commit** in Render so the public-audit endpoints are live, then verify the hosted audit, exports and case study against project 2. Vercel deploys `main` automatically.
+16. **Done for the earlier release:** Render **Manual Deploy → Deploy latest commit** made the public-audit endpoints live and project 2 was verified. Every later backend commit still requires the same manual Render deploy; Vercel deploys `main` automatically.
 
 ---
 

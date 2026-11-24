@@ -12,7 +12,7 @@ Implementation: `backend/app/core/security.py`, `backend/app/api/deps.py`, `back
 | Signature key | `settings.secret_key` (environment variable `SECRET_KEY`) |
 | Payload | `sub` (user id as string), `iat`, `exp`, plus `role` added at login |
 | Lifetime | `access_token_expire_minutes` — default **1440 minutes (24 h)** |
-| Verification | `decode_access_token()` recomputes the HMAC with `hmac.compare_digest`, then checks `exp`; malformed tokens return `None`. The `alg` header is **not** explicitly checked, so a token signed with the same secret but a different declared algorithm would still verify |
+| Verification | `decode_access_token()` requires `alg == "HS256"` and `typ == "JWT"`, recomputes the HMAC with `hmac.compare_digest`, then checks `exp`; malformed or algorithm-tampered tokens return `None` |
 | Request enforcement | `current_user()` uses `HTTPBearer(auto_error=False)`, rejects missing/invalid/expired tokens with 401, loads the user from the database and rejects inactive users |
 | Transport | Frontend stores the token in `localStorage` (`serpscope-token`) and sends `Authorization: Bearer …` on every axios request; a 401 clears the token and redirects to `/login` |
 
@@ -58,7 +58,7 @@ Rejected inputs:
 - Hostnames `localhost`, `metadata`, `metadata.google.internal`, anything ending in `.localhost`, and literal IP addresses classified as private, loopback, link-local, reserved, multicast or unspecified (e.g. `127.0.0.1`, `169.254.169.254`).
 - Ports outside 1–65535.
 
-`allow_private=False` is the default. `start_crawl` exposes an `allow_private` config switch and the crawler has an `allow_private` setting; enabling it bypasses the private-address check for authorised internal testing.
+`allow_private=False` is the default. `start_crawl` exposes an `allow_private` config switch and the crawler has an `allow_private` setting; enabling it bypasses the private-address check for authorised internal testing. One-click **public audits** cannot use that switch: `sanitize_public_audit_config()` in `app/services/public_audit.py` forces `allow_private=False`, empty `auth_headers`, `mode="live"`, robots respect and a bounded crawl at both the API and job boundary.
 
 **Limitations:**
 
@@ -86,7 +86,8 @@ Implementation: `backend/app/api/v1/imports.py`, settings in `backend/app/core/c
 
 - **Extension allowlist:** `.csv`, `.tsv`, `.txt`, `.xml`, `.json`, `.xlsx` (case-insensitive suffix check; 400 otherwise).
 - **Size limit:** `MAX_BYTES = settings.max_upload_mb * 1024 * 1024`, default **50 MB**; the handler reads `MAX_BYTES + 1` bytes and returns 413 when exceeded. Empty uploads return 400.
-- **Source type allowlist:** `csv_urls`, `sitemap`, `sitemap_index`, `gsc`, `ga4`, `cms`, `screaming_frog`, `sitebulb`, `backlinks`, `keyword_csv`, `competitor_csv`, `analytics`.
+- **Source type allowlist:** `csv_urls`, `sitemap`, `sitemap_index`, `gsc`, `ga4`, `cms`, `screaming_frog`, `sitebulb`, `backlinks`, `keyword_csv`, `competitor_csv`, `analytics`, `rank_tracking`, `authority`, `lighthouse`, `crux`, `serp_features`, `paid_ads`, `gbp`, `historical_audit`.
+- **Data-kind allowlist:** `validated_data_kind()` rejects labels outside `UPLOAD_DATA_KINDS`. A file cannot be declared `live_crawl` (or `observed`), which would otherwise let an arbitrary upload masquerade as a first-party observation.
 - **Filename sanitisation:** only alphanumeric characters plus `.`, `_`, `-` are kept, truncated to 120 characters, prefixed with a millisecond timestamp, and written under `settings.upload_path/<project_id>/`.
 - **Inline alternative:** `POST /api/v1/imports/url-list` accepts at most 10,000 URLs per call (400 above that) and is intended for small lists.
 - Uploads are recorded with an `audit_logs` entry (`import.upload`) and enqueue an `import_file` job; uploaded files are **not** exposed via a static mount.
@@ -123,19 +124,34 @@ Implementation: `backend/app/core/crypto.py`, `backend/app/api/v1/integrations.p
 - All configuration comes from `Settings` (`pydantic-settings`) with `env_file=".env"` and `extra="ignore"`; secrets should be supplied as environment variables in deployment.
 - `SECRET_KEY` has the development default `dev-only-secret-change-before-deployment` and **must** be overridden (a long random value, e.g. generated with `secrets.token_urlsafe(48)`).
 - `CORS_ORIGINS` defaults to `http://localhost:5173,http://127.0.0.1:5173` with `allow_credentials=True`; restrict it to the real frontend origin in production. Methods and headers are currently wildcarded.
+- `Settings.validate_production_settings()` fails fast when `ENVIRONMENT=production` with the default/weak `SECRET_KEY`, localhost or wildcard `CORS_ORIGINS`, or a SQLite `DATABASE_URL`.
 - No third-party API keys, tokens or provider credentials are hardcoded in source. The demo account credentials are deliberately hardcoded for local/demo bootstrap only.
-- The global exception handler returns `{"detail": "Internal server error", "error": "<first 300 chars>"}`; the raw error string may include sensitive internal detail, so prefer a generic response in production.
+- The global exception handler logs the exception server-side and returns only `{"detail": "Internal server error"}`; raw SQL, paths and supplied values are never echoed to the caller.
 
-## 10. Known limitations / production hardening still needed
+## 10. Hardening implemented in this release
+
+| Control | Where | Behaviour |
+| --- | --- | --- |
+| Provenance-safe public audits | `backend/app/services/public_audit.py`, `backend/app/api/v1/audits.py`, `backend/app/services/public_audit_jobs.py` | Untrusted config is clamped to public-evidence limits at enqueue **and** at job execution; private hosts, auth headers, synthetic mode and JavaScript rendering cannot be enabled |
+| Upload provenance labels | `backend/app/api/v1/meta.py`, `backend/app/api/v1/imports.py` | Only declared upload kinds are accepted; `live_crawl`/`observed` are reserved for real crawler or reviewed observation paths |
+| Pinned token algorithm | `backend/app/core/security.py` | Explicit HS256/typ check before signature verification |
+| Production config guard | `backend/app/core/config.py` | Startup fails on weak secrets, localhost/wildcard CORS or SQLite in production |
+| No public export directory | `backend/app/main.py` | The `StaticFiles` mount over `EXPORT_DIR` was removed; downloads are streamed only by authenticated endpoints |
+| Real health probe | `backend/app/main.py` | `/api/health` runs `SELECT 1` and returns HTTP 503 with a generic `degraded` status if the database is unreachable |
+| Edge security headers | `vercel.json` | HSTS, `nosniff`, `X-Frame-Options`, referrer/permissions policies and a CSP restricting scripts, connections, fonts, frames and object/base/form targets |
+| CI invariant checks | `.github/workflows/ci.yml` | CI verifies 23 modules, 17 docs, 24 screenshots and 12 interview scenarios |
+
+**CSP limitation:** the static landing page uses inline GTM/gtag snippets and JSON-LD, so `script-src` still contains `'unsafe-inline'`. Moving those snippets to nonce-based delivery would allow tightening this policy.
+
+## 11. Known limitations / production hardening still needed
 
 | Gap | Impact / recommendation |
 | --- | --- |
 | **No SSO / external IdP** | `POST /api/v1/auth/register` is open and creates `viewer` users; production should use SSO/admin provisioning and disable self-registration |
 | **No rate limiting / lockout** | Login and all API routes are unthrottled; add gateway-level rate limiting and failed-login backoff |
 | **No token revocation or refresh** | Tokens live 24 h and cannot be invalidated server-side; add a denylist or short-lived tokens with refresh |
-| **JWT `alg` not validated** | Verification computes HMAC-SHA256 regardless of the declared header; add an explicit `alg == "HS256"` check or a vetted JWT library |
 | **Shared `SECRET_KEY`** | Token signing and Fernet credential encryption derive from one secret; separate keys so rotation does not couple tokens and stored credentials |
-| **Token in `localStorage`** | Vulnerable to XSS token theft; prefer `HttpOnly`/`Secure` cookies or a BFF, add CSP and sanitise any rendered HTML |
+| **Token in `localStorage`** | Vulnerable to XSS token theft; prefer `HttpOnly`/`Secure` cookies or a BFF. An edge CSP is now present, but inline legacy snippets mean `script-src` still allows inline scripts |
 | **No CSRF token** | Mitigated today by bearer-token auth (not cookies), but re-evaluate if auth moves to cookies |
 | **SSRF is string-based** | No DNS resolution checks, egress firewall, or redirect-time network enforcement |
 | **RBAC is global-role-centric** | Membership roles do not grant write access; no per-action permission matrix beyond `check_write` |
@@ -146,7 +162,7 @@ Implementation: `backend/app/core/crypto.py`, `backend/app/api/v1/integrations.p
 | **TLS / secret storage** | Terminate TLS at the edge, store `SECRET_KEY` in a secrets manager, and add key rotation for Fernet credentials |
 | **Demo bootstrap** | Remove or guard the automatic demo organisation/owner creation before exposing the service |
 
-## 11. Related documents
+## 12. Related documents
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) — request and job lifecycles, data-flow rules
 - [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md) — identity, audit, jobs and integrations tables

@@ -48,6 +48,54 @@ HEALTH_SCORE_NOTE = (
     "This is not Ubersuggest's or any vendor's authority score."
 )
 
+# Public audits are always public-evidence crawls. Callers may tune conservative
+# limits, but can never enable private hosts, authenticated fetches, JavaScript
+# rendering or a non-live mode and then auto-publish the result.
+PUBLIC_AUDIT_CONFIG_LIMITS = {
+    "max_urls": (1, 500, int),
+    "max_depth": (0, 5, int),
+    "concurrency": (1, 4, int),
+    "crawl_delay": (1.0, 10.0, float),
+    "timeout": (3, 30, int),
+}
+
+
+def _clamped_config_value(value: object, low: object, high: object, cast: type) -> object | None:
+    try:
+        parsed = cast(value)  # type: ignore[operator]
+    except (TypeError, ValueError):
+        return None
+    return min(max(parsed, low), high)  # type: ignore[arg-type]
+
+
+def sanitize_public_audit_config(payload: dict | None) -> dict:
+    """Return a provenance-safe crawl config even if the caller sends hostile values."""
+    body = payload if isinstance(payload, dict) else {}
+    requested = body.get("config") if isinstance(body.get("config"), dict) else {}
+    config = dict(crawler_service.DEFAULT_CONFIG)
+    config.update({
+        "max_urls": 250,
+        "max_depth": 3,
+        "concurrency": 2,
+        "crawl_delay": 1.0,
+        "timeout": 12,
+        "respect_robots": True,
+        "sitemap_discovery": True,
+        "follow_internal": True,
+        "follow_external": False,
+        "javascript_rendering": False,
+        "allow_private": False,
+        "auth_headers": {},
+        "mode": "live",
+    })
+    for key, (low, high, cast) in PUBLIC_AUDIT_CONFIG_LIMITS.items():
+        if key not in requested:
+            continue
+        clamped = _clamped_config_value(requested[key], low, high, cast)
+        if clamped is not None:
+            config[key] = clamped
+    return config
+
 
 def _pct(value: float, total: float) -> float:
     return round(100.0 * value / total, 1) if total else 0.0

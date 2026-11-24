@@ -90,7 +90,7 @@ curl http://127.0.0.1:8000/api/health
 
 Interactive docs: `http://127.0.0.1:8000/docs` (OpenAPI JSON at `/openapi.json`, ReDoc at `/redoc`). These are FastAPI defaults; no custom auth is applied to them.
 
-At startup the app calls `init_db()`, creates `data/uploads` and `data/exports`, mounts static exports at `/api/v1/exports/files`, and — when `RUN_JOBS_IN_API=true` — starts a daemon thread that claims and runs queued jobs.
+At startup the app calls `init_db()`, creates `data/uploads` and `data/exports`, verifies the database with a `SELECT 1` health probe, and — when `RUN_JOBS_IN_API=true` — starts a daemon thread that claims and runs queued jobs. Generated exports are streamed directly by the authenticated export endpoints; there is no public static mount.
 
 ---
 
