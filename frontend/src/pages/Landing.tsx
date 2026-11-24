@@ -1,7 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
-  Activity, ArrowRight, BarChart3, CheckCircle2, Database, FileText, Globe2,
+  Activity, ArrowRight, BarChart3, BookOpen, CheckCircle2, Database, FileText, Globe2,
   KeyRound, Linkedin, Presentation, Search, ShieldCheck, Sparkles, Workflow,
 } from 'lucide-react';
 import { errorMessage, get, login, post, unwrapList, waitForJob, type Job } from '../lib/api';
@@ -46,6 +46,9 @@ function normalizeTarget(raw: string) {
   if (!url.hostname.includes('.') || /\s/.test(url.hostname)) throw new Error('Enter a valid domain such as example.com.');
   return `${url.protocol}//${url.hostname}/`;
 }
+
+const BOOK_URL = 'https://play.google.com/store/books/details?id=PNEwEgAAQBAJ';
+const BOOK_COVER = 'https://play.google.com/books/publisher/content/images/frontcover/PNEwEgAAQBAJ?fife=w400-h600-pc0xffffff-pd';
 
 const FEATURES = [
   {
@@ -198,6 +201,7 @@ export function Landing() {
             <Link to="/case-studies" className="hover:text-ink">Case studies</Link>
             <a href="#proof" className="hover:text-ink">Real audit</a>
             <a href="#faq" className="hover:text-ink">FAQ</a>
+            <a href="#free-book" className="hover:text-ink">Free book</a>
             <a href="https://github.com/bevijaygupta/serpscope" target="_blank" rel="noreferrer" className="hover:text-ink">Source</a>
           </nav>
           <div className="ml-auto flex items-center gap-3 md:ml-0">
@@ -420,6 +424,39 @@ export function Landing() {
                   <p className="mt-3 text-sm leading-7 text-muted">{item.a}</p>
                 </details>
               ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="free-book" className="border-b border-edge py-16 scroll-mt-24">
+          <div className="mx-auto max-w-7xl px-5">
+            <div className="panel grid gap-8 p-6 sm:p-8 md:grid-cols-[180px_1fr] md:items-center">
+              <a href={BOOK_URL} target="_blank" rel="noreferrer" className="mx-auto block w-40 overflow-hidden rounded-xl border border-edge bg-canvas/60 shadow-lg md:mx-0 md:w-full" aria-label="View The Complete SEO Professional on Google Play">
+                <img
+                  src={BOOK_COVER}
+                  alt="Cover of The Complete SEO Professional by Vijay Kumar Gupta"
+                  className="h-auto w-full object-cover"
+                  loading="lazy"
+                  decoding="async"
+                  referrerPolicy="no-referrer"
+                />
+              </a>
+              <div>
+                <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-accent">
+                  <BookOpen className="h-3.5 w-3.5" /> Free for SERPScope visitors
+                </div>
+                <h2 className="mt-4 text-2xl font-bold text-white sm:text-3xl">The Complete SEO Professional</h2>
+                <p className="mt-1 text-xs uppercase tracking-widest text-muted">Vijay Kumar Gupta · Google Play Books</p>
+                <p className="mt-4 text-sm leading-7 text-slate-300">
+                  Visited SERPScope? Post an honest review of the book on Google Play and it is free for you. It follows the same source-conscious approach as this tool: collect evidence, label every claim, and never present invented metrics as client results.
+                </p>
+                <a href={BOOK_URL} target="_blank" rel="noreferrer" className="btn btn-primary mt-5 px-5 py-2.5 text-xs">
+                  View the book and post your review <ArrowRight className="h-3.5 w-3.5" />
+                </a>
+                <p className="mt-3 text-[10px] leading-5 text-muted">
+                  Offer: a free copy after you post a review on the Google Play listing. SERPScope does not collect your email or review text.
+                </p>
+              </div>
             </div>
           </div>
         </section>
