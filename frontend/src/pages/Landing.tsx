@@ -435,6 +435,8 @@ export function Landing() {
                 <img
                   src={BOOK_COVER}
                   alt="Cover of The Complete SEO Professional by Vijay Kumar Gupta"
+                  width={400}
+                  height={600}
                   className="h-auto w-full object-cover"
                   loading="lazy"
                   decoding="async"
