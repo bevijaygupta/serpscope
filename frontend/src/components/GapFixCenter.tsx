@@ -218,12 +218,26 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
     .slice(0, 6), [competitorRows]);
 
   const copyDraft = async (item: FixItem) => {
+    let copied = false;
     try {
       await navigator.clipboard.writeText(item.draft);
-      setCopiedKey(item.key);
+      copied = true;
     } catch {
-      setCopiedKey('');
+      // Fall back for browsers that deny clipboard access without window focus.
+      try {
+        const area = document.createElement('textarea');
+        area.value = item.draft;
+        area.style.position = 'fixed';
+        area.style.opacity = '0';
+        document.body.appendChild(area);
+        area.select();
+        copied = document.execCommand('copy');
+        area.remove();
+      } catch {
+        copied = false;
+      }
     }
+    setCopiedKey(copied ? item.key : '');
   };
 
   const signalRows = useMemo(() => {
