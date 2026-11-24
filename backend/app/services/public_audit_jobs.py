@@ -14,6 +14,15 @@ from app.services.crawler import DEFAULT_CONFIG, CrawlConfig, CrawlEngine
 from app.services.jobs import is_cancelled, progress, register
 
 
+def derived_result_counts(derived: dict) -> dict:
+    """Job-result counts use one ``derived_`` prefix, never a doubled one."""
+    return {
+        (key if key.startswith("derived_") else f"derived_{key}"): value
+        for key, value in derived.items()
+        if key != "error"
+    }
+
+
 @register("public_audit")
 def run_public_audit_job(db_session_factory, job_id: int, payload: dict, project_id: int | None, organization_id: int | None):
     if project_id is None:
@@ -109,7 +118,7 @@ def run_public_audit_job(db_session_factory, job_id: int, payload: dict, project
             "fetched_urls": stats.get("crawled", 0),
             "findings": len(audit["findings"]),
             "roadmap_months": len(audit["roadmap"]),
-            **{f"derived_{key}": value for key, value in derived.items() if key != "error"},
+            **derived_result_counts(derived),
         }
     finally:
         db.close()

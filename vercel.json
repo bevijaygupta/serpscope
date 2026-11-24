@@ -5,6 +5,17 @@
   "outputDirectory": "frontend/dist",
   "redirects": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "^(serpscope-six|serpscope-serpscope|serpscope-3zidgh2ls-serpscope)\\.vercel\\.app$"
+        }
+      ],
+      "destination": "https://serpscope.vercel.app",
+      "permanent": true
+    },
+    {
       "source": "/:path*",
       "has": [
         {

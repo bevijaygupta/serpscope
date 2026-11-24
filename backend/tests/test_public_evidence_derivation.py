@@ -9,6 +9,24 @@ from app.models.projects import Job, Project
 from app.services.competitor_discovery import derive_public_evidence
 from app.services.crawler import CrawlConfig, CrawlEngine
 from app.services.public_audit import build_public_audit
+from app.services.public_audit_jobs import derived_result_counts
+
+
+def test_derived_result_counts_do_not_double_prefix():
+    counts = derived_result_counts({
+        "competitors": 2,
+        "derived_keywords": 30,
+        "keyword_gaps": 3,
+        "derived_mappings": 40,
+        "error": "ignored",
+    })
+    assert counts == {
+        "derived_competitors": 2,
+        "derived_keywords": 30,
+        "derived_keyword_gaps": 3,
+        "derived_mappings": 40,
+    }
+    assert not any(key.startswith("derived_derived_") for key in counts)
 
 
 class FakeResponse:
