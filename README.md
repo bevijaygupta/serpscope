@@ -96,6 +96,16 @@ Defined in `frontend/src/lib/modules.ts` and routed through `frontend/src/pages/
 | `GET /api/v1/audits/projects/{project_id}/public-audit/export?format=pptx\|pdf\|csv\|xlsx\|json&section=all\|findings\|roadmap` | Download the evidence pack; PowerPoint is a real editable `.pptx`. |
 | `GET /api/v1/public/case-studies/{project_id}` | Read-only published audit; requires `settings.public_audit=true`. |
 
+### One-field flow and Gap & Fix Center
+
+The landing page needs only a website URL. It normalises the host, logs in as the demo owner, finds or creates the project, queues the public audit, waits for the job and opens `/overview` with every section populated. The Overview now includes the **Gap & Fix Center**, which turns the same public evidence into:
+
+- a Ubersuggest-style signal-coverage matrix (traffic, queries, volume/difficulty, ranks, backlinks/authority, top pages, site errors, competitor gaps, internal links, AI readiness and more) with explicit `Not supplied`, `Observed` and `Derived proxy` statuses;
+- a priority queue combining audit findings, technical issue groups, competitor topic gaps and mapped content opportunities, with filters, affected-URL samples, replacement suggestions, confidence, limitations and deep links into the relevant modules;
+- competitor topic evidence, keyword/page mappings, a missing-data register, source/confidence registry and a JSON gap-pack export.
+
+No traffic, rank, volume, backlink-authority or AI-citation outcome is invented: vendor-only signals are shown as missing, with a description of how to supply them later. On the hosted Techmagnate audit this view shows **15 coverage rows**, **145 queued fixes**, **15 competitor gaps** and **386 keyword mappings**.
+
 A real end-to-end verification against **https://www.techmagnate.com/** (project 2 on the hosted demo) fetched **60 URLs** from **303 discovered URLs** with a deliberately narrow `max_urls=60`, `max_depth=2` sample; **0 fetches failed**, **60 sitemap entries** from **9 sitemap documents** were stored, and all fetched URLs returned HTTP 200. The default in-app job uses `max_urls=250`, `max_depth=3`, `concurrency=2`, `crawl_delay=1.0` and `respect_robots=true`.
 
 Observed finding groups in that sample:
