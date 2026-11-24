@@ -24,4 +24,4 @@ Allow: /
 User-agent: CCBot
 Allow: /
 
-Sitemap: https://serpscope.vercel.app/sitemap.xml
+Sitemap: https://serpscopelive.vercel.app/sitemap.xml

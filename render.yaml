@@ -36,7 +36,7 @@ services:
       - key: RUN_JOBS_IN_API
         value: "true"
       - key: CORS_ORIGINS
-        value: "https://serpscope.vercel.app"
+        value: "https://serpscopelive.vercel.app"
       - key: UPLOAD_DIR
         value: /tmp/serpscope/uploads
       - key: EXPORT_DIR

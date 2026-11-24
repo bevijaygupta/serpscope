@@ -29,7 +29,7 @@ This is an honest status report. It distinguishes what is implemented, what is o
 | Containers | Partial | Dockerfiles, nginx config, Compose file and CI workflow exist, but the Docker CLI is unavailable in this environment, so the Compose stack has not been built. |
 | Production hardening | Pending / partial | RBAC, token handling, SSRF enforcement, observability, distributed queuing and real integrations still need work before this can be treated as a production multi-tenant service. |
 
-**Verdict:** the requested portfolio deliverable is present, runnable from source, and hosted as a public demo at `https://serpscope.vercel.app`. It is honest about synthetic data and unimplemented integrations. It is not production-hardened and must not be marketed as having live vendor coverage.
+**Verdict:** the requested portfolio deliverable is present, runnable from source, and hosted as a public demo at `https://serpscopelive.vercel.app`. It is honest about synthetic data and unimplemented integrations. It is not production-hardened and must not be marketed as having live vendor coverage.
 
 ---
 
@@ -373,4 +373,4 @@ Suggested talking points are expanded in `docs/INTERVIEW_DEMONSTRATIONS.md` and 
 | Partial | Containers (not built), live integrations, JS rendering, one-level sitemap-index expansion, crawler option coverage, DNS-aware SSRF, some issue detectors, global-role RBAC, token hardening, queue topology, pagination consistency, observability, frontend tests, incremental migrations, AI-search/forecasting depth |
 | Pending | Render **Manual Deploy → Deploy latest commit** for the audit endpoints plus hosted audit/export/case-study verification; production hardening, real vendor adapters, per-project RBAC, distributed queue, egress enforcement, full Alembic evolution/backup runbook, long-lived free-tier database (expires after 30 days) |
 
-The deliverable is ready for source-run demonstrations, interviews, the hosted synthetic-data demo at `https://serpscope.vercel.app`, and a real public-evidence audit with a stated sample size and missing-data list. It is not ready to be marketed as a production multi-tenant SaaS without the pending hardening work, but hosted audit verification is complete and the full evidence pack is available in `evidence/techmagnate_public_audit_hosted_2026-11-23/`.
+The deliverable is ready for source-run demonstrations, interviews, the hosted synthetic-data demo at `https://serpscopelive.vercel.app`, and a real public-evidence audit with a stated sample size and missing-data list. It is not ready to be marketed as a production multi-tenant SaaS without the pending hardening work, but hosted audit verification is complete and the full evidence pack is available in `evidence/techmagnate_public_audit_hosted_2026-11-23/`.
