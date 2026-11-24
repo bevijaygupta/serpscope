@@ -102,7 +102,10 @@ The landing page needs only a website URL. It normalises the host, logs in as th
 
 - a Ubersuggest-style signal-coverage matrix (traffic, queries, volume/difficulty, ranks, backlinks/authority, top pages, site errors, competitor gaps, internal links, AI readiness and more) with explicit `Not supplied`, `Observed` and `Derived proxy` statuses;
 - a priority queue combining audit findings, technical issue groups, competitor topic gaps and mapped content opportunities, with filters, affected-URL samples, replacement suggestions, confidence, limitations and deep links into the relevant modules;
-- competitor topic evidence, keyword/page mappings, a missing-data register, source/confidence registry and a JSON gap-pack export.
+- a derived **public-evidence health score** (0–100, per-category breakdown, disclosed formula) that is explicitly labelled as a transparent proxy, **not** Ubersuggest's or any vendor's score;
+- effort estimates (`Easy` / `Medium` / `Hard` / `Review`) with a quick-win filter for easy, high-severity fixes, plus rule-based copy drafts for title, meta, H1 and structured-data issues with a one-click Copy action;
+- an observed-host benchmark that ranks external hostnames by outbound links found in the public crawl, clearly labelled as outbound evidence rather than backlinks, authority or market share;
+- competitor topic evidence, keyword/page mappings, a missing-data register, source/confidence registry and a JSON gap-pack export that now includes `health_score` and `competitor_benchmark`.
 
 No traffic, rank, volume, backlink-authority or AI-citation outcome is invented: vendor-only signals are shown as missing, with a description of how to supply them later. On the hosted Techmagnate audit this view shows **15 coverage rows**, **145 queued fixes**, **15 competitor gaps** and **386 keyword mappings**.
 

@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Download, Search, ShieldAlert, Sparkles } from 'lucide-react';
+import { ArrowUpRight, Copy, Download, Gauge, Search, ShieldAlert, Sparkles, Zap } from 'lucide-react';
 import { errorMessage, get, unwrapList } from '../lib/api';
-import { num } from '../lib/format';
+import { num, titleCase } from '../lib/format';
 import type { PublicAuditData } from '../pages/CustomPages';
 import { Badge, ProvenanceNote, Section, Spinner } from './ui';
 
@@ -23,6 +23,8 @@ type FixItem = {
   limitation: string;
   module: string;
   kind: FixKind;
+  effort: string;
+  draft: string;
   score: number;
 };
 
@@ -74,6 +76,85 @@ function severityWeight(severity: string) {
   return 1;
 }
 
+function effortTone(effort: string) {
+  if (effort === 'Easy') return 'good';
+  if (effort === 'Medium') return 'warn';
+  if (effort === 'Hard') return 'bad';
+  return 'neutral';
+}
+
+function estimateEffort(code: string, title: string, problem = '') {
+  const c = `${code} ${title} ${problem}`.toLowerCase();
+  if (/missing[ _-]?(title|h1|description|meta)|duplicate[ _-]?(title|description|meta)|thin content|anchor|alt text/.test(c)) return 'Easy';
+  if (/404|redirect|canonical|broken|internal link|sitemap|orphan|pagination|index/.test(c)) return 'Medium';
+  if (/slow|performance|schema|structured|aeo|answer|visibility|render/.test(c)) return 'Hard';
+  return 'Review';
+}
+
+function topicFromUrl(url: string) {
+  try {
+    const parsed = new URL(url);
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    const last = parts[parts.length - 1] || parsed.hostname;
+    return titleCase(decodeURIComponent(last).replace(/[-_+]/g, ' ').replace(/\.[a-z0-9]+$/i, ''));
+  } catch {
+    return 'This page';
+  }
+}
+
+function brandFromDomain(domain: string) {
+  try {
+    return titleCase(new URL(domain).hostname.replace(/^www\./, '').split('.')[0]);
+  } catch {
+    return 'Your brand';
+  }
+}
+
+function draftCopy(code: string, samples: string[], domain: string) {
+  const id = code.toLowerCase();
+  const topic = topicFromUrl(samples[0] || domain);
+  const brand = brandFromDomain(domain);
+  if (id.includes('title') && !id.includes('meta')) return `Title draft per URL: ${topic} | ${brand}`;
+  if (id.includes('description') || id.includes('meta')) return `Meta description draft per URL: ${topic} explained — practical guidance, services and next steps from ${brand}. Review before publishing.`;
+  if (id.includes('h1') || id.includes('heading')) return `H1 draft per URL: ${topic}`;
+  if (id.includes('schema') || id.includes('structured')) return `Structured-data draft: add verified Organization and WebSite JSON-LD for ${brand}. Do not invent ratings, reviews or prices.`;
+  return '';
+}
+
+function publicEvidenceScore(audit: PublicAuditData) {
+  const fetched = Math.max(1, audit.coverage.fetched_urls || 1);
+  const severityPoints: Record<string, number> = { critical: 4, high: 4, p0: 4, medium: 2, p1: 2, p2: 2, low: 1, p3: 1 };
+  const categories: Record<string, { earned: number; possible: number }> = {};
+  let earned = 0;
+  let possible = 0;
+  for (const finding of audit.findings) {
+    const weight = severityPoints[str(finding.severity).toLowerCase()] ?? 1;
+    const exposure = Math.max(0, 1 - Math.min(1, Number(finding.affected_count ?? 0) / fetched));
+    const category = str(finding.category) || 'other';
+    categories[category] ??= { earned: 0, possible: 0 };
+    categories[category].earned += weight * exposure;
+    categories[category].possible += weight;
+    earned += weight * exposure;
+    possible += weight;
+  }
+  const rows = Object.entries(categories).map(([category, value]) => ({
+    category: titleCase(category.replace(/[-_]/g, ' ')),
+    score: value.possible ? Math.round((value.earned / value.possible) * 100) : 100,
+    rules: value.possible,
+  })).sort((a, b) => a.score - b.score);
+  const score = possible ? Math.round((earned / possible) * 100) : 100;
+  return {
+    score,
+    rows,
+    formula: `Derived from ${audit.findings.length} public findings. Each rule passes at 1 − min(affected URLs / fetched URLs, 1), weighted High=4, Medium=2, Low=1. This is not Ubersuggest's health score.`,
+  };
+}
+
+function outboundLinkCount(row: Row) {
+  const match = str(row.notes).match(/([\d,]+)\s+outbound links/i);
+  return match ? Number(match[1].replace(/,/g, '')) : 0;
+}
+
 function matchesSeverity(item: FixItem, filter: string) {
   const s = item.severity.toLowerCase();
   if (filter === 'high') return ['high', 'critical', 'p0'].includes(s);
@@ -114,6 +195,8 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
   const [query, setQuery] = useState('');
   const [severity, setSeverity] = useState('all');
   const [kind, setKind] = useState('all');
+  const [effort, setEffort] = useState('all');
+  const [copiedKey, setCopiedKey] = useState('');
 
   const issues = useJson<Row>(`/technical/issues?project_id=${projectId}&limit=100`, [projectId, dataVersion]);
   const competitors = useJson<Row>(`/competitors?project_id=${projectId}&limit=100`, [projectId, dataVersion]);
@@ -127,6 +210,21 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
   const keywordRows = useMemo(() => keywords.data ? unwrapList<Row>(keywords.data).items : [], [keywords.data]);
   const mappingRows = useMemo(() => mappings.data ? unwrapList<Row>(mappings.data).items : [], [mappings.data]);
   const evidenceLoading = issues.loading || competitors.loading || gaps.loading || keywords.loading || mappings.loading;
+  const score = useMemo(() => audit ? publicEvidenceScore(audit) : null, [audit]);
+  const benchmark = useMemo(() => competitorRows
+    .map((row) => ({ domain: str(row.domain) || str(row.name), links: outboundLinkCount(row) }))
+    .filter((row) => row.domain)
+    .sort((a, b) => b.links - a.links)
+    .slice(0, 6), [competitorRows]);
+
+  const copyDraft = async (item: FixItem) => {
+    try {
+      await navigator.clipboard.writeText(item.draft);
+      setCopiedKey(item.key);
+    } catch {
+      setCopiedKey('');
+    }
+  };
 
   const signalRows = useMemo(() => {
     if (!audit) return [];
@@ -173,10 +271,16 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
         fix: 'Pages are ranked by crawl evidence. Add analytics to rank them by business impact.',
       },
       {
+        signal: 'Overall SEO health score', suite: 'Derived public-evidence score, not a vendor score',
+        ours: `${score?.score ?? 100}/100 — weighted pass rate across ${audit.findings.length} observed finding groups`,
+        status: 'Derived proxy',
+        fix: 'Fix the highest-severity, highest-exposure rules, then rerun the audit to recompute the same transparent formula.',
+      },
+      {
         signal: 'Site audit errors and warnings', suite: 'Prioritised crawl issues',
         ours: `${num(audit.findings.length)} audit findings, ${num(issueRows.length)} issue groups with priority scores`,
         status: 'Observed + derived',
-        fix: 'Open the priority fix queue below for evidence, affected URLs and the exact recommended change.',
+        fix: 'Open the priority fix queue below for evidence, affected URLs, effort estimates and copy drafts.',
       },
       {
         signal: 'Competitor keyword gaps', suite: 'Keywords competitors rank for',
@@ -227,52 +331,60 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
         fix: 'Re-run scheduled audits and retain snapshots. Future movements must never be presented as measured history.',
       },
     ];
-  }, [audit, issueRows, competitorRows, gapRows, keywordRows, mappingRows]);
+  }, [audit, issueRows, competitorRows, gapRows, keywordRows, mappingRows, score]);
 
   const fixQueue = useMemo<FixItem[]>(() => {
     const items: FixItem[] = [];
 
     arr<Row>(audit?.findings ?? []).forEach((finding) => {
       const evidence = obj(finding.evidence);
+      const samples = arr<string>(evidence.sample_urls);
+      const code = str(finding.id);
       items.push({
-        key: `finding-${str(finding.id)}`,
-        title: str(finding.title) || str(finding.id),
+        key: `finding-${code}`,
+        title: str(finding.title) || code,
         severity: str(finding.severity),
         affected: Number(finding.affected_count ?? 0),
         problem: str(finding.observation),
         fix: str(finding.recommended_action) || 'Review the source evidence and apply the rule recommendation.',
-        samples: arr<string>(evidence.sample_urls),
+        samples,
         replacements: [],
         source: arr<string>(finding.source),
         confidence: str(finding.confidence),
         limitation: str(finding.limitation),
-        module: moduleFor(str(finding.category), str(finding.id)),
+        module: moduleFor(str(finding.category), code),
         kind: 'error',
+        effort: estimateEffort(code, str(finding.title), str(finding.observation)),
+        draft: draftCopy(code, samples, audit?.meta.domain ?? ''),
         score: severityWeight(str(finding.severity)) * 10000 + Number(finding.affected_count ?? 0),
       });
     });
 
     issueRows.forEach((issue) => {
       const evidence = obj(issue.evidence);
+      const samples = arr<string>(evidence.sample_urls);
+      const code = str(issue.code);
       const replacements = arr<Row>(evidence.replacements).map((r) => ({
         url: str(r.url), title: str(r.title), similarity: Number(r.similarity ?? 0),
       }));
       items.push({
         key: `issue-${str(issue.id)}`,
-        title: str(issue.name) || str(issue.code),
+        title: str(issue.name) || code,
         severity: str(issue.severity) || str(issue.priority),
         affected: Number(issue.affected_count ?? 0),
-        problem: `${str(issue.code)} · priority ${str(issue.priority)} · score ${str(issue.priority_score)}. ${str(issue.priority_explanation).slice(0, 240)}`,
+        problem: `${code} · priority ${str(issue.priority)} · score ${str(issue.priority_score)}. ${str(issue.priority_explanation).slice(0, 240)}`,
         fix: replacements.length
           ? `Suggested replacement pages: ${replacements.slice(0, 3).map((r) => r.url).join(' · ')}`
-          : `Review ${str(issue.code)} evidence and apply the documented technical rule.`,
-        samples: arr<string>(evidence.sample_urls),
+          : `Review ${code} evidence and apply the documented technical rule.`,
+        samples,
         replacements,
         source: [str(evidence.detection_rule) || 'rule engine', str(evidence.data_kind) || 'derived'],
         confidence: 'verified_from_public_evidence',
         limitation: `Business impact: ${str(issue.business_impact) || 'unknown'}. Priority is a transparent rule score, not a revenue estimate.`,
-        module: moduleFor(str(issue.category), str(issue.code)),
+        module: moduleFor(str(issue.category), code),
         kind: 'error',
+        effort: estimateEffort(code, str(issue.name), str(issue.priority_explanation)),
+        draft: draftCopy(code, samples, audit?.meta.domain ?? ''),
         score: severityWeight(str(issue.severity) || str(issue.priority)) * 10000 + Number(issue.affected_count ?? 0),
       });
     });
@@ -295,6 +407,8 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
         limitation: 'Anchor and link evidence only; no competitor rank, traffic or market share is claimed.',
         module: 'competitor',
         kind: 'gap',
+        effort: 'Medium',
+        draft: '',
         score: severityWeight(str(row.priority) || 'P2') * 10000 + Number(evidence.link_count ?? 0),
       });
     });
@@ -316,6 +430,8 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
         limitation: 'Volume, difficulty, CPC and rank are not supplied.',
         module: 'mapping',
         kind: 'opportunity',
+        effort: 'Easy',
+        draft: `Content brief starter: ${str(row.primary_keyword)} — validate intent, then outline against the observed public page evidence.`,
         score: 20000,
       });
     });
@@ -328,10 +444,15 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
     return fixQueue.filter((item) => {
       if (!matchesSeverity(item, severity)) return false;
       if (kind !== 'all' && item.kind !== kind) return false;
+      if (effort === 'quick') {
+        if (item.effort !== 'Easy' || !['high', 'critical', 'p0'].includes(item.severity.toLowerCase())) return false;
+      } else if (effort !== 'all' && item.effort !== effort) return false;
       if (!needle) return true;
-      return `${item.title} ${item.problem} ${item.fix} ${item.kind} ${item.samples.join(' ')}`.toLowerCase().includes(needle);
+      return `${item.title} ${item.problem} ${item.fix} ${item.kind} ${item.effort} ${item.samples.join(' ')}`.toLowerCase().includes(needle);
     });
-  }, [fixQueue, query, severity, kind]);
+  }, [fixQueue, query, severity, kind, effort]);
+
+  const quickWins = useMemo(() => fixQueue.filter((item) => item.effort === 'Easy' && ['high', 'critical', 'p0'].includes(item.severity.toLowerCase())).length, [fixQueue]);
 
   const exportPack = () => downloadJson(`serpscope-gap-and-fix-${projectId}.json`, {
     generated_at: new Date().toISOString(),
@@ -339,6 +460,8 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
     domain: audit?.meta.domain ?? '',
     source: 'public evidence audit only; no GSC, GA4, rank or traffic data claimed',
     signal_coverage: signalRows,
+    health_score: score,
+    competitor_benchmark: benchmark,
     priority_fix_queue: fixQueue,
     competitor_topic_gaps: gapRows,
     derived_keywords_sample: keywordRows,
@@ -367,6 +490,53 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
         </div>
       ) : null}
 
+      {score ? (
+        <div className="mt-5 rounded-xl border border-edge bg-canvas/40 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-3xl">
+              <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-white"><Gauge className="h-4 w-4 text-sky-400" /> Overall SEO health score <Badge tone="warn">Derived from public evidence</Badge></h3>
+              <p className="mt-1 text-[11px] leading-5 text-muted">{score.formula}</p>
+            </div>
+            <div className="text-right">
+              <div className="text-3xl font-bold text-white">{score.score}<span className="text-sm text-muted">/100</span></div>
+              <div className="text-[10px] text-muted">transparent proxy · not an Ubersuggest score</div>
+            </div>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {score.rows.map((row) => (
+              <div key={row.category} className="rounded-lg border border-edge bg-panel/40 px-3 py-2">
+                <div className="flex items-center justify-between gap-2 text-[11px]">
+                  <span className="truncate text-slate-300">{row.category}</span>
+                  <Badge tone={row.score >= 80 ? 'good' : row.score >= 50 ? 'warn' : 'bad'}>{row.score}/100</Badge>
+                </div>
+                <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/5">
+                  <div className={`h-full rounded-full ${row.score >= 80 ? 'bg-success' : row.score >= 50 ? 'bg-warning' : 'bg-danger'}`} style={{ width: `${row.score}%` }} />
+                </div>
+                <div className="mt-1 text-[10px] text-muted">{row.rules} weighted rule{row.rules === 1 ? '' : 's'}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mt-5 rounded-xl border border-edge bg-canvas/40 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-white"><ArrowUpRight className="h-4 w-4 text-accent" /> Observed-host benchmark <Badge tone="neutral">Outbound links only</Badge></h3>
+            <p className="mt-1 max-w-3xl text-[11px] leading-5 text-muted">External hostnames found in this site&apos;s public outbound links, ranked by observed link count. This is not a backlink, authority or market-share benchmark.</p>
+          </div>
+          <Link to="/competitor" className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent hover:underline">Open Competitors <ArrowUpRight className="h-3 w-3" /></Link>
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {benchmark.length ? benchmark.map((row, index) => (
+            <div key={row.domain} className="flex items-center justify-between gap-2 rounded-lg border border-edge bg-panel/40 px-3 py-2 text-[11px]">
+              <span className="truncate text-slate-300"><span className="mr-1 text-muted">#{index + 1}</span>{row.domain}</span>
+              <Badge tone="good">{num(row.links)} links</Badge>
+            </div>
+          )) : <div className="text-[11px] text-muted">No external hostnames were observed in outbound links.</div>}
+        </div>
+      </div>
+
       <div className="mt-5 overflow-x-auto rounded-xl border border-edge">
         <table className="w-full min-w-[980px] text-left text-xs">
           <thead className="bg-white/5 text-[10px] uppercase tracking-wider text-muted">
@@ -390,8 +560,8 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
 
       <div className="mt-7 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h3 className="flex items-center gap-2 text-sm font-semibold text-white"><ShieldAlert className="h-4 w-4 text-rose-400" /> Where this site is lagging — priority fix queue</h3>
-          <p className="mt-1 text-[11px] text-muted">{num(fixQueue.length)} items — errors, competitor gaps and content opportunities ranked by rule severity and observed evidence. Business impact is unknown unless private data is supplied.</p>
+          <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-white"><ShieldAlert className="h-4 w-4 text-rose-400" /> Where this site is lagging — priority fix queue <Badge tone="good"><Zap className="h-3 w-3" /> {num(quickWins)} quick wins</Badge></h3>
+          <p className="mt-1 text-[11px] text-muted">{num(fixQueue.length)} items — errors, competitor gaps and content opportunities ranked by rule severity and observed evidence. Effort is a rule estimate; business impact is unknown unless private data is supplied.</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <label className="flex items-center gap-2 rounded-lg border border-edge bg-canvas/60 px-3 py-2 text-xs text-muted">
@@ -410,6 +580,14 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
             <option value="gap">Competitor gaps</option>
             <option value="opportunity">Opportunities</option>
           </select>
+          <select aria-label="Filter by estimated effort" className="rounded-lg border border-edge bg-canvas/60 px-2.5 py-2 text-xs text-ink outline-none" value={effort} onChange={(e) => setEffort(e.target.value)}>
+            <option value="all">All effort</option>
+            <option value="quick">Quick wins (easy + high)</option>
+            <option value="Easy">Easy</option>
+            <option value="Medium">Medium</option>
+            <option value="Hard">Hard</option>
+            <option value="Review">Review</option>
+          </select>
         </div>
       </div>
 
@@ -419,6 +597,7 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
             <summary className="flex cursor-pointer list-none flex-wrap items-center gap-2">
               <Badge tone={severityTone(item.severity)}>{item.severity || 'info'}</Badge>
               <Badge tone={item.kind === 'error' ? 'bad' : item.kind === 'gap' ? 'warn' : 'good'}>{item.kind}</Badge>
+              <Badge tone={effortTone(item.effort)}>{item.effort} effort</Badge>
               <span className="text-xs font-semibold text-ink">{item.title}</span>
               <span className="text-[10px] text-muted">{num(item.affected)} affected</span>
               <span className="ml-auto text-[10px] text-accent">Open evidence ↓</span>
@@ -439,6 +618,17 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
               <div>
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-accent">How to fix it</div>
                 <p className="mt-1 text-xs leading-6 text-ink">{item.fix}</p>
+                {item.draft ? (
+                  <div className="mt-3 rounded-lg border border-accent/20 bg-accent/5 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <div className="text-[10px] font-semibold uppercase tracking-wider text-accent">Rule-based copy draft · review before publishing</div>
+                      <button className="btn btn-ghost text-[10px]" onClick={() => { void copyDraft(item); }}>
+                        <Copy className="h-3 w-3" /> {copiedKey === item.key ? 'Copied' : 'Copy'}
+                      </button>
+                    </div>
+                    <p className="mt-1 text-[11px] leading-5 text-ink">{item.draft}</p>
+                  </div>
+                ) : null}
                 {item.replacements.length ? (
                   <ul className="mt-2 space-y-1">
                     {item.replacements.slice(0, 3).map((r) => (
