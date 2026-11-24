@@ -41,7 +41,7 @@ Flow details:
 6. `POST /auth/register` creates a local-development account with global role `viewer`. It is not an invitation/SSO flow.
 7. Token lifetime defaults to 1,440 minutes (`ACCESS_TOKEN_EXPIRE_MINUTES`). There is no refresh-token endpoint; log in again after expiry.
 
-**Public endpoints:** `POST /auth/login`, `POST /auth/register`, all `/meta/*` endpoints, `GET /api/health`, the docs/OpenAPI routes, the static export mount and `GET /public/case-studies/{project_id}` (only when the project has `settings.public_audit=true`). Everything else expects a bearer token. The progress WebSocket `/api/v1/jobs/ws/{job_id}` also requires authentication via a `Bearer` header or a `token` query parameter, and applies the same project-scope check as REST job endpoints (close codes `4401`/`4403`/`4404` for unauthenticated, forbidden and missing jobs).
+**Public endpoints:** `POST /auth/login`, `POST /auth/register`, all `/meta/*` endpoints, `GET /api/health`, `POST /presence/ping`, `GET /presence/count`, the docs/OpenAPI routes, the static export mount and `GET /public/case-studies/{project_id}` (only when the project has `settings.public_audit=true`). Everything else expects a bearer token. The progress WebSocket `/api/v1/jobs/ws/{job_id}` also requires authentication via a `Bearer` header or a `token` query parameter, and applies the same project-scope check as REST job endpoints (close codes `4401`/`4403`/`4404` for unauthenticated, forbidden and missing jobs).
 
 ---
 
@@ -99,6 +99,15 @@ Some endpoints intentionally return only `{ "items": [...] }` (e.g. `/projects`,
 | GET | `/api/v1/meta/data-kinds` | Public | Provenance vocabulary (`live_crawl`, `imported`, `simulated`, `synthetic`, `derived`, `estimated`, `model_suggestion`). |
 | GET | `/api/v1/meta/export-columns` | Public | Declared columns per export type. |
 | GET | `/api/v1/meta/methodologies` | Public | Crawler, orphans, keyword mapping, priority and forecast summaries. |
+
+### Presence (`presence.py`)
+
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/v1/presence/ping` | Public | Refresh one anonymous browser-tab session with `{ "session_id": "<random per-tab token>" }` and return `{ active, ttl_seconds, note }`. The server stores only a SHA-256 hash of the token for 60 seconds. Invalid tokens return 400. |
+| GET | `/api/v1/presence/count` | Public | Read the current anonymous active-session count, TTL and no-PII note. |
+
+This is an in-process, single-instance **on-site presence counter**, not GA4 Realtime. It stores no IP address, cookie, referrer, user identity or Google identifier, and the count resets when the API restarts or redeploys.
 
 ### Auth (`auth.py`)
 
@@ -368,6 +377,7 @@ The queued job defaults to `max_urls=250`, `max_depth=3`, `concurrency=2`, `craw
 - **AI observation provenance:** only rows with `data_kind` in `observed`, `verified`, `verified_import`, `licensed_export` or `manual_observation` count as evidence. Synthetic/unverified rows stay stored and visible but are excluded from claims and reported as `unverified_row_count`. Published case studies always force `not_sampled`.
 - **Scheduled audits:** add a `public_audit` step to a workflow (with `trigger: "scheduled"` and `schedule: hourly|daily|weekly|monthly`). The step queues a normal public-audit job; it does not call a vendor API. The scheduler tick is enqueued by both the standalone worker and the inline API worker.
 - **Case-study analytics:** page views are anonymous counts only. No IP address, cookie, referrer or user identity is stored, and the count is never presented as traffic to the audited website.
+- **GTM interaction events:** the website loads container `GTM-NZ3DFL7C` and pushes `serpscope_page_view`, `serpscope_search_submit`, `serpscope_audit_started`, `serpscope_audit_completed`, `serpscope_audit_failed`, `serpscope_export`, `serpscope_ai_import`, `serpscope_case_study_view`, `serpscope_tab_view` and `serpscope_login_success` to `dataLayer`. Events carry only route paths and fixed interaction labels — never an audited domain, email, search-box value, user identity or document title. Tag/trigger configuration inside the GTM container is performed in the GTM UI, not in this repository. DNT and a local opt-out flag suppress events.
 
 ```bash
 TOKEN=$(curl -s -X POST http://127.0.0.1:8000/api/v1/auth/login \

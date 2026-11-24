@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Public SEO landing page and static assets (`robots.txt`, `sitemap.xml`, `llms.txt`, `manifest.webmanifest`, `favicon.svg`, `og-preview.svg`), plus Overview and Crawler entry points for the public audit.
 - Regression tests for audit route registration, PPTX generation and the SQLite crawl-progress path.
 - Honest foundation: stored audit history with before/after comparison and a labelled SERPScope-derived health score; verified AI-observation CSV/JSON import; scheduled `public_audit` workflow step; anonymous, non-PII case-study view analytics; and explicit vendor "Not supplied"/"Supplied"/"Synthetic" status explanations.
+- GTM container `GTM-NZ3DFL7C` with a `gtag()`/`dataLayer` shim and privacy-safe `serpscope_*` events for page views, landing search, audit lifecycle, exports, AI imports, case-study views, module tabs and login. Events carry only route paths and fixed labels, never audited domains, emails, search-box values or user identity; DNT/local opt-out suppresses them.
+- Anonymous on-site presence endpoints (`POST /api/v1/presence/ping`, `GET /api/v1/presence/count`) and a live visitor badge in the public and workspace headers. The backend stores only a SHA-256 hash of a random per-tab token for 60 seconds; no IP, cookie, referrer or Google identifier is used, and counts reset on API restart. This is explicitly not GA4 Realtime.
 
 ### Changed
 
