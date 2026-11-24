@@ -347,8 +347,8 @@ function LiveEvidenceTables({ projectId, crawlId, dataVersion }: { projectId: nu
   if (crawlId) specs.push({
     title: 'Raw crawl observations',
     description: 'Uninterpreted HTTP status, headers, excerpts and timing from the public crawl.',
-    path: `/crawler/runs/${crawlId}/observations?limit=100`,
-    exportPath: `/crawler/runs/${crawlId}/export`,
+    path: `/crawler/runs/${crawlId}/observations?project_id=${projectId}&limit=100`,
+    exportPath: `/crawler/runs/${crawlId}/export?project_id=${projectId}`,
   });
 
   return (
@@ -611,7 +611,7 @@ function CrawlerPage() {
     setObservations([]);
     setLoadingObs(true);
     try {
-      const data = await get<unknown>(`/crawler/runs/${row.id}/observations?limit=100`);
+      const data = await get<unknown>(`/crawler/runs/${row.id}/observations?project_id=${projectId}&limit=100`);
       setObservations(unwrapList<Row>(data).items);
     } catch { setObservations([]); }
     finally { setLoadingObs(false); }
