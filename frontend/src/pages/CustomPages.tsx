@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Activity, BarChart3, CheckCircle2, Clock3, Database, Download, FileStack,
   FolderPlus, Globe2, Play, Presentation, RefreshCw, Rocket, Search,
@@ -8,6 +8,7 @@ import {
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ActionModal } from '../components/ActionModal';
 import { DataTable, type Row } from '../components/DataTable';
+import { GapFixCenter } from '../components/GapFixCenter';
 import { Badge, Drawer, ErrorState, JsonBlock, KeyValue, PageHeader, ProvenanceNote, Section, Spinner } from '../components/ui';
 import { downloadFile, errorMessage, get, post, unwrapList, unwrapNamedLists, waitForJob, type Job } from '../lib/api';
 import { compactJson, humanKey, num, titleCase } from '../lib/format';
@@ -34,7 +35,7 @@ function useRemote<T>(path: string | null, deps: unknown[] = []) {
   return { data, error, loading, reload: load };
 }
 
-type PublicAuditData = {
+export type PublicAuditData = {
   meta: {
     project_id: number; project_name: string; domain: string; is_demo: boolean;
     generated_at: string; method: string; crawl_id: number | null;
@@ -372,10 +373,17 @@ type OverviewData = {
 
 function OverviewPage() {
   const { projectId, jobs, runAction, dataVersion } = useApp();
+  const location = useLocation();
   const overview = useRemote<OverviewData>(projectId ? `/projects/${projectId}/overview` : null, [projectId, dataVersion]);
   const issues = useRemote<{ items: Row[] }>(projectId ? `/technical/issues?project_id=${projectId}&limit=6` : null, [projectId, dataVersion]);
   const audit = useRemote<PublicAuditData>(projectId ? `/audits/projects/${projectId}/public-audit` : null, [projectId, dataVersion]);
   const data = overview.data;
+
+  useEffect(() => {
+    if (location.hash !== '#gap-fix-center' || !data || !projectId) return;
+    const target = document.getElementById('gap-fix-center');
+    if (target) requestAnimationFrame(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+  }, [location.hash, data, projectId]);
 
   const cards = [
     { key: 'urls_crawled', label: 'URLs in inventory', icon: Database, tone: 'sky' as const },
@@ -489,6 +497,14 @@ function OverviewPage() {
 
           <div className="mt-5">
             <PublicAuditPanel />
+          </div>
+
+          <div id="gap-fix-center" className="mt-5 scroll-mt-20">
+            <GapFixCenter
+              projectId={projectId as number}
+              audit={audit.data?.meta.project_id === projectId ? audit.data : null}
+              dataVersion={dataVersion}
+            />
           </div>
 
           <div className="mt-5">

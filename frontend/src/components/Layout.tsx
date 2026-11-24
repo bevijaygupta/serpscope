@@ -102,7 +102,7 @@ function EvidenceRibbon() {
         </span>
       ))}
       <span className="min-w-0 flex-1 truncate text-[10px] text-muted" title={audit.meta.domain}>{audit.meta.domain}</span>
-      <Link to="/overview" className="text-[11px] font-semibold text-accent hover:underline">Full audit →</Link>
+      <Link to="/overview#gap-fix-center" className="text-[11px] font-semibold text-accent hover:underline">Gap &amp; Fix Center →</Link>
     </div>
   );
 }
