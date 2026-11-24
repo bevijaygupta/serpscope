@@ -268,7 +268,7 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
         signal: 'Search queries, impressions, CTR, position', suite: 'GSC query and landing-page report',
         ours: hasSignal('gsc') ? `${num(signalRowsCount('gsc'))} user-supplied Search Console rows${signalPeriod('gsc') ? ` · latest ${signalPeriod('gsc')}` : ''}` : 'Not supplied — no GSC queries, clicks or average positions',
         status: hasSignal('gsc') ? 'Supplied' : 'Not supplied',
-        fix: 'Review the verbatim rows in Integrations. No query is claimed unless a row was supplied.',
+        fix: 'Open Search Overview on the Overview page to read supplied query and page rows in one place; the full verbatim ledger and its data-kind labels remain in Integrations.',
       },
       {
         signal: 'Keyword volume, difficulty and CPC', suite: 'Provider estimates for every keyword',

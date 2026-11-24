@@ -131,6 +131,12 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 The Gap & Fix Center reads `supplied_data` to change matrix rows such as GA4, GSC, ranks, backlinks, performance, local and history to `Supplied`, and exposes the same object in its JSON gap-pack export. Existing persisted audit reports stay authoritative for crawl findings, but `GET /api/v1/audits/projects/{id}/public-audit`, all audit exports and the public case-study endpoint refresh supplied-data status, missing-data statements, source registry, data kinds and report sections at read time — a new crawl is not required after an import. The derived public-evidence health score still uses only crawl findings; supplied data improves context, not a fabricated score.
 
+### Google Search Overview
+
+The authenticated **Overview → Google Search Overview** is the single interpretive surface for Search Console data. It reads `supplied-signals` for the current status and `supplied-records?signal=gsc` for the verbatim rows, then displays only the cells the user supplied: dimension, period, original metrics and data-kind label. It performs no client-side totals, averages, CTR calculation, ranking, forecasting or trend inference, and it never calls a Search Console API or GTM event. With no stored rows it stays `Not supplied` and points to Integrations; after an import it shows the labelled rows and links back to the full ledger in Integrations.
+
+Published case studies use the same panel in `public` mode: they read only the already-sanitised `supplied_data` from `/api/v1/public/case-studies/{id}`, force **Private data excluded** and never request `supplied-records`. A private export therefore cannot leak onto a public page even if one exists in the project.
+
 ---
 
 ## Recognised CSV columns

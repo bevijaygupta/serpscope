@@ -9,6 +9,7 @@ import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxi
 import { ActionModal } from '../components/ActionModal';
 import { DataTable, type Row } from '../components/DataTable';
 import { GapFixCenter } from '../components/GapFixCenter';
+import { SearchOverview } from '../components/SearchOverview';
 import { Badge, Drawer, ErrorState, JsonBlock, KeyValue, PageHeader, ProvenanceNote, Section, Spinner } from '../components/ui';
 import { downloadFile, errorMessage, get, post, unwrapList, unwrapNamedLists, uploadFile, waitForJob, type Job } from '../lib/api';
 import { trackEvent } from '../lib/analytics';
@@ -627,6 +628,15 @@ function OverviewPage() {
 
           <div className="mt-5">
             <PublicAuditPanel />
+          </div>
+
+          <div className="mt-5">
+            <SearchOverview
+              projectId={projectId}
+              dataVersion={dataVersion}
+              audit={audit.data?.meta.project_id === projectId ? audit.data : null}
+              mode="workspace"
+            />
           </div>
 
           <div id="gap-fix-center" className="mt-5 scroll-mt-20">

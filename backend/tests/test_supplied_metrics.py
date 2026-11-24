@@ -57,9 +57,25 @@ def test_imported_gsc_export_changes_signal_status_without_inventing_other_data(
         params={"project_id": project_id}, headers=auth_headers,
     )
     assert response.status_code == 200, response.text
-    item = next(row for row in response.json()["items"] if row["signal"] == "gsc")
+    payload = response.json()
+    assert set(payload["status_explanations"]) >= {"not_supplied", "supplied", "synthetic"}
+    item = next(row for row in payload["items"] if row["signal"] == "gsc")
     assert item["supplied"] is True
     assert item["rows"] == 2
+    assert set(item["sample"][0]) == {"dimension", "period", "metrics"}
+
+    records_response = client.get(
+        "/api/v1/integrations/supplied-records",
+        params={"project_id": project_id, "signal": "gsc"}, headers=auth_headers,
+    )
+    assert records_response.status_code == 200, records_response.text
+    records = records_response.json()["items"]
+    assert len(records) == 2
+    assert all(set(row) >= {"dimension", "period", "metrics", "data_kind"} for row in records)
+    assert {row["metrics"]["Top queries"] for row in records} == {
+        "seo audit course", "technical seo checklist",
+    }
+    assert all(row["metrics"]["Clicks"] in {"12", "7"} for row in records)
 
     stored_response = client.get(
         f"/api/v1/audits/projects/{project_id}/public-audit",
@@ -74,8 +90,9 @@ def test_imported_gsc_export_changes_signal_status_without_inventing_other_data(
     assert any("verbatim rows from gsc" in line for section in stored_payload["sections"] for line in section["lines"])
 
 
-def test_audit_without_supplied_data_keeps_every_vendor_gap_explicit(db, demo_project):
-    audit = build_public_audit(db, demo_project["project_id"])
+def test_audit_without_supplied_data_keeps_every_vendor_gap_explicit(db, demo_project, client, auth_headers):
+    project_id = demo_project["project_id"]
+    audit = build_public_audit(db, project_id)
     joined = " ".join(audit["missing_data"])
     assert "No Search Console queries" in joined
     assert "No GA4 sessions" in joined
@@ -83,3 +100,19 @@ def test_audit_without_supplied_data_keeps_every_vendor_gap_explicit(db, demo_pr
     assert "No Lighthouse, CrUX" in joined
     assert "No GBP, NAP" in joined
     assert "No SERP-feature or paid-ads" in joined
+
+    # The Search Overview reads these exact honest states; it never fills the gap itself.
+    response = client.get(
+        "/api/v1/integrations/supplied-signals",
+        params={"project_id": project_id}, headers=auth_headers,
+    )
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert set(payload["status_explanations"]) >= {"not_supplied", "supplied", "synthetic"}
+    gsc = next(row for row in payload["items"] if row["signal"] == "gsc")
+    assert gsc["supplied"] is False
+    assert gsc["rows"] == 0
+    assert gsc["sample"] == []
+    assert audit["supplied_data"]["gsc"]["supplied"] is False
+    assert audit["supplied_data"]["gsc"]["rows"] == 0
+    assert audit["supplied_data"]["gsc"]["sample"] == []

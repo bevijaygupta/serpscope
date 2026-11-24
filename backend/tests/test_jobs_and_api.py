@@ -355,7 +355,11 @@ def test_auto_published_case_study_excludes_private_data_and_says_not_sampled(cl
 
     public = client.get(f"/api/v1/public/case-studies/{project.id}").json()
     assert public["meta"]["publication_scope"] == "public_evidence_only"
+    assert "private_data_policy" in public["meta"]
     assert public["supplied_data"]["gsc"]["supplied"] is False
+    assert public["supplied_data"]["gsc"]["rows"] == 0
+    assert public["supplied_data"]["gsc"]["sample"] == []
+    assert public["supplied_data"]["gsc"]["sources"] == []
     assert "99999" not in str(public)
     assert "private-observation" not in str(public)
     assert public["ai_visibility"]["status"] == "not_sampled"

@@ -343,6 +343,8 @@ Clustering methods advertised by the API: `exact, normalized, token, semantic, i
 | GET | `/api/v1/integrations/supplied-signals` | Bearer + `project_id` | Per-signal supply status plus `status_explanations` for "Not supplied", "Supplied" and "Synthetic". Statuses are earned by uploaded rows; no provider API is called. |
 | GET | `/api/v1/integrations/supplied-records` | Bearer + `project_id`, `signal` | Verbatim uploaded rows for a signal. |
 
+The UI's **Google Search Overview** combines these two authenticated endpoints into one read-only panel. It never computes or invents a Search Console metric; a project without rows remains `Not supplied`, and a supplied project shows only the verbatim cells plus their `data_kind`. Public case studies use the sanitised `supplied_data` object already present in the case-study response and never call `supplied-records`.
+
 ### Demo (`demo.py`)
 
 | Method | Path | Auth | Purpose |
@@ -368,7 +370,7 @@ Clustering methods advertised by the API: `exact, normalized, token, semantic, i
 | GET | `/api/v1/public/case-studies/{project_id}` | Public | Read-only, public-evidence-only audit. Returns 404 unless the project's `settings.public_audit` is `true` and the project is not the synthetic demo. User-supplied exports and manual AI observations are excluded. Includes an `analytics.view_count` derived from anonymous views. |
 | POST | `/api/v1/public/case-studies/{project_id}/view` | Public | Record one anonymous page view (201). Stores project, report, path and source only — no IP, cookie, referrer or user identity. |
 
-The queued job defaults to `max_urls=250`, `max_depth=3`, `concurrency=2`, `crawl_delay=1.0`, `timeout=12`, `respect_robots=true`, `sitemap_discovery=true`, `follow_external=false`, `allow_private=false` and `mode=live`. It runs crawl → orphan/link graph → issue/content/AEO rules → report persistence → automatic case-study publication for real domains. No Search Console, GA4, ranking or AI-visibility API is called; those gaps are listed in `missing_data`. The audit now includes an `ai_visibility` object: with no verified observations its status is `not_sampled`, never a claim of zero mentions or zero citations.
+The queued job defaults to `max_urls=250`, `max_depth=3`, `concurrency=2`, `crawl_delay=1.0`, `timeout=12`, `respect_robots=true`, `sitemap_discovery=true`, `follow_external=false`, `allow_private=false` and `mode=live`. It runs crawl → orphan/link graph → issue/content/AEO rules → report persistence → automatic case-study publication for real domains. No Search Console, GA4, ranking or AI-visibility API is called; those gaps are listed in `missing_data`. The audit now includes an `ai_visibility` object: with no verified observations its status is `not_sampled`, never a claim of zero mentions or zero citations. Public case-study responses also include `meta.publication_scope`, `meta.private_data_policy` and a zeroed `supplied_data` object so the public Google Search Overview can show **Private data excluded** without disclosing uploaded rows.
 
 ### Honest-foundation additions
 

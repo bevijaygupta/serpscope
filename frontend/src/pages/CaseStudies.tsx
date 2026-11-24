@@ -6,6 +6,7 @@ import {
 import { get, post, errorMessage } from '../lib/api';
 import { trackEvent } from '../lib/analytics';
 import { LiveVisitors } from '../components/LiveVisitors';
+import { SearchOverview } from '../components/SearchOverview';
 
 const BASE_URL = 'https://serpscopelive.vercel.app';
 const numViews = (value: number | undefined) => new Intl.NumberFormat('en').format(value ?? 0);
@@ -52,6 +53,11 @@ type CaseStudyDetail = {
   }[];
   roadmap: { month: number; theme: string; objective: string; deliverables: string[] }[];
   source_registry: { source: string; type: string; confidence: string; used_for: string[] }[];
+  supplied_data?: Record<string, {
+    label: string; supplied: boolean; rows: number; sources: string[];
+    latest_period: string;
+    sample: { dimension: string; period: string; metrics: Record<string, string> }[];
+  }>;
   missing_data: string[];
   analytics?: { view_count: number; note: string };
 };
@@ -352,6 +358,10 @@ export function CaseStudyDetail() {
                 ))}
               </div>
             </section>
+
+            <div className="mt-8">
+              <SearchOverview mode="public" audit={audit} />
+            </div>
 
             <section className="mt-8 grid gap-5 lg:grid-cols-2">
               <div className="panel p-5">

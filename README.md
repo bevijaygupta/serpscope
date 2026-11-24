@@ -107,6 +107,8 @@ The landing page needs only a website URL. It normalises the host, logs in as th
 - an observed-host benchmark that ranks external hostnames by outbound links found in the public crawl, clearly labelled as outbound evidence rather than backlinks, authority or market share;
 - competitor topic evidence, keyword/page mappings, a missing-data register, source/confidence registry and a JSON gap-pack export that now includes `health_score`, `competitor_benchmark` and `supplied_data`.
 
+The Overview also carries a **Google Search Overview** — the single place to read supplied query, page, impression, click, CTR and position rows. It shows `Not supplied` until a declared Search Console export exists, then displays only verbatim, labelled cells; no total, average, CTR, rank or trend is calculated from them. Public case studies show the same panel as **Private data excluded** and never fetch private rows.
+
 No traffic, rank, volume, backlink-authority or AI-citation outcome is invented: vendor-only signals stay `Not supplied` until a real labelled export is uploaded. Uploaded rows are stored verbatim in `supplied_metrics`, exposed at `GET /api/v1/integrations/supplied-signals` and `GET /api/v1/integrations/supplied-records`, and echoed in the audit's `source_registry`, `missing_data`, report sections and PPT note. On the hosted Techmagnate audit this view shows **16 coverage rows**, **145 queued fixes**, **15 competitor gaps** and **386 keyword mappings**.
 
 A real end-to-end verification against **https://www.techmagnate.com/** (project 2 on the hosted demo) fetched **60 URLs** from **303 discovered URLs** with a deliberately narrow `max_urls=60`, `max_depth=2` sample; **0 fetches failed**, **60 sitemap entries** from **9 sitemap documents** were stored, and all fetched URLs returned HTTP 200. The default in-app job uses `max_urls=250`, `max_depth=3`, `concurrency=2`, `crawl_delay=1.0` and `respect_robots=true`.
@@ -125,7 +127,7 @@ The audit now maintains a dynamic missing-data register for 12 vendor/private si
 
 ### User-supplied data (no vendor APIs)
 
-**Integrations → Upload a declared export** accepts GSC, GA4, keyword, rank, backlink, authority, Lighthouse, CrUX, SERP, paid-ads, GBP/local and historical-audit files. Every row is stored verbatim in `supplied_metrics` with its `source_type`, `data_kind`, file name and original columns; no field is inferred, averaged or backfilled. The Integrations page shows signal coverage, the original rows and recent imports, and the Gap Center marks a signal `Supplied` only when backed by stored rows.
+**Integrations → Upload a declared export** accepts GSC, GA4, keyword, rank, backlink, authority, Lighthouse, CrUX, SERP, paid-ads, GBP/local and historical-audit files. Every row is stored verbatim in `supplied_metrics` with its `source_type`, `data_kind`, file name and original columns; no field is inferred, averaged or backfilled. The Integrations page shows signal coverage, the original rows and recent imports, the Gap Center marks a signal `Supplied` only when backed by stored rows, and the Overview's Google Search Overview becomes the one interpretive GSC view. Public case studies never disclose these rows.
 
 | API | Purpose |
 | --- | --- |
