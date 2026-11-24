@@ -133,7 +133,7 @@ The audit now maintains a dynamic missing-data register for 12 vendor/private si
 | `GET /api/v1/integrations/supplied-signals?project_id={id}` | Row counts, source types, latest periods and samples for all 12 signals. |
 | `GET /api/v1/integrations/supplied-records?project_id={id}&signal=gsc` | Verbatim rows for one signal. |
 
-For a demo or verification upload choose `data_kind=synthetic_verification`; never present it as real client data. OAuth/API-key provider modes remain declarations only.
+Existing published audits are not silently re-crawled: their crawl findings stay authoritative, while the audit API, exports and case-study endpoint refresh supplied-data status, gaps, source registry and report sections at read time. For a demo or verification upload choose `data_kind=synthetic_verification`; never present it as real client data. OAuth/API-key provider modes remain declarations only.
 
 ---
 

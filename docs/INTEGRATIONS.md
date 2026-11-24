@@ -129,7 +129,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 - `data_kinds` entries such as `user_supplied:gsc`;
 - report sections and PPT notes that name the datasets actually supplied.
 
-The Gap & Fix Center reads `supplied_data` to change matrix rows such as GA4, GSC, ranks, backlinks, performance, local and history to `Supplied`, and exposes the same object in its JSON gap-pack export. The derived public-evidence health score still uses only crawl findings; supplied data improves context, not a fabricated score.
+The Gap & Fix Center reads `supplied_data` to change matrix rows such as GA4, GSC, ranks, backlinks, performance, local and history to `Supplied`, and exposes the same object in its JSON gap-pack export. Existing persisted audit reports stay authoritative for crawl findings, but `GET /api/v1/audits/projects/{id}/public-audit`, all audit exports and the public case-study endpoint refresh supplied-data status, missing-data statements, source registry, data kinds and report sections at read time — a new crawl is not required after an import. The derived public-evidence health score still uses only crawl findings; supplied data improves context, not a fabricated score.
 
 ---
 

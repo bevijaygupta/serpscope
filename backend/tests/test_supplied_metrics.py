@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from app.db.session import SessionLocal
+from app.models.operations import Report
 from app.services.import_jobs import run_import
 from app.services.public_audit import build_public_audit
 from app.services.supplied_metrics import supplied_signals
@@ -18,6 +19,18 @@ def test_imported_gsc_export_changes_signal_status_without_inventing_other_data(
         "technical seo checklist,7,210,3.3%,11.2,2026-11-01\n",
         encoding="utf-8",
     )
+    stored_audit = build_public_audit(db, project_id)
+    db.add(Report(
+        project_id=project_id,
+        title="Public audit before import",
+        report_type="public_audit",
+        content=stored_audit,
+        missing_data=[],
+        generated_by="public-audit",
+    ))
+    db.commit()
+    assert "No Search Console queries" in " ".join(stored_audit["missing_data"])
+
     result = run_import(
         SessionLocal, 0,
         {"file_path": str(csv_file), "source_type": "gsc", "name": "gsc-sample.csv",
@@ -47,6 +60,18 @@ def test_imported_gsc_export_changes_signal_status_without_inventing_other_data(
     item = next(row for row in response.json()["items"] if row["signal"] == "gsc")
     assert item["supplied"] is True
     assert item["rows"] == 2
+
+    stored_response = client.get(
+        f"/api/v1/audits/projects/{project_id}/public-audit",
+        headers=auth_headers,
+    )
+    assert stored_response.status_code == 200, stored_response.text
+    stored_payload = stored_response.json()
+    assert stored_payload["supplied_data"]["gsc"]["supplied"] is True
+    assert "No Search Console queries" not in " ".join(stored_payload["missing_data"])
+    assert any(source["type"] == "user_supplied_export" for source in stored_payload["source_registry"])
+    assert "user_supplied:gsc" in stored_payload["meta"]["data_kinds"]
+    assert any("verbatim rows from gsc" in line for section in stored_payload["sections"] for line in section["lines"])
 
 
 def test_audit_without_supplied_data_keeps_every_vendor_gap_explicit(db, demo_project):

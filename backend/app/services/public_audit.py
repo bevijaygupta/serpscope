@@ -370,6 +370,105 @@ def build_roadmap(audit: dict) -> list[dict]:
     return months
 
 
+BASE_SOURCE_REGISTRY: list[dict] = [
+    {"source": "robots.txt", "type": "public_document", "confidence": "verified", "used_for": ["crawler permissions", "AI agent policy", "sitemap discovery"]},
+    {"source": "sitemap files", "type": "public_document", "confidence": "verified", "used_for": ["URL universe", "orphan reconciliation"]},
+    {"source": "crawl observations", "type": "observed_http", "confidence": "verified", "used_for": ["status", "headers", "on-page HTML", "timing"]},
+    {"source": "observed outbound links", "type": "observed_public_evidence", "confidence": "verified", "used_for": ["candidate competitor domains", "anchor-text topic evidence"]},
+    {"source": "derived keyword candidates", "type": "derived_from_observed_html", "confidence": "explained", "used_for": ["title/H1/anchor topic inventory", "keyword-to-page suggestions"]},
+    {"source": "rule engine", "type": "derived", "confidence": "explained", "used_for": ["issues", "priority", "roadmap"]},
+]
+
+
+def supplied_audit_context(
+    db: Session, project_id: int, existing_registry: list | None = None
+) -> tuple[dict, list[str], list[dict]]:
+    """Return current supplied-data status, gaps and a fresh source registry.
+
+    This is deliberately separate from crawl interpretation: a persisted audit
+    can keep its original crawl findings while these live user-supplied fields
+    are refreshed after an import.
+    """
+    raw_signals = supplied_signals(db, project_id)
+    supplied_data = {
+        key: {
+            "label": SIGNAL_LABELS[key],
+            "supplied": bool(value["supplied"]),
+            "rows": int(value["rows"]),
+            "sources": value["sources"],
+            "latest_period": value["latest_period"],
+            "sample": value["sample"],
+        }
+        for key, value in raw_signals.items()
+    }
+
+    def has_signal(*keys: str) -> bool:
+        return any(supplied_data[key]["supplied"] for key in keys)
+
+    missing_data: list[str] = []
+    if not has_signal("gsc"):
+        missing_data.append("No Search Console queries, impressions, clicks or average positions were supplied.")
+    if not has_signal("ga4"):
+        missing_data.append("No GA4 sessions, conversions or revenue were supplied.")
+    if not has_signal("keywords"):
+        missing_data.append("No keyword volume, difficulty or CPC dataset was supplied.")
+    if not has_signal("rank"):
+        missing_data.append("No rank tracking positions or history were supplied.")
+    if not has_signal("backlinks", "authority"):
+        missing_data.append("No inbound backlink or domain-authority dataset was supplied.")
+    if not has_signal("performance", "crux"):
+        missing_data.append("No Lighthouse, CrUX or Core Web Vitals dataset was supplied.")
+    if not has_signal("local"):
+        missing_data.append("No GBP, NAP or local-visibility dataset was supplied.")
+    if not has_signal("serp", "paid"):
+        missing_data.append("No SERP-feature or paid-ads dataset was supplied.")
+    if not has_signal("historical"):
+        missing_data.append("No retained audit history was supplied; only the current crawl is observed.")
+    missing_data.extend([
+        "No JavaScript-rendered DOM was captured; client-only content may be missing.",
+        "No authenticated, staging or private pages were crawled.",
+        "AI answer visibility is not sampled; only manually observed evidence can be reported.",
+        "Competitor domains are link-observed candidates only; third-party rankings, traffic and market share were not supplied unless a provider export was uploaded.",
+    ])
+
+    public_entries = [
+        dict(entry) for entry in (existing_registry or [])
+        if isinstance(entry, dict) and entry.get("type") not in {"user_supplied_export", "not_supplied"}
+    ]
+    if not public_entries:
+        public_entries = [dict(entry) for entry in BASE_SOURCE_REGISTRY]
+    for key, value in supplied_data.items():
+        if value["supplied"]:
+            public_entries.append({
+                "source": f"user-supplied: {key}",
+                "type": "user_supplied_export",
+                "confidence": "user_declared",
+                "used_for": [f"{value['rows']} verbatim rows from {', '.join(value['sources'])}"],
+            })
+    if not has_signal(*supplied_data):
+        public_entries.append({"source": "Search Console / GA4", "type": "not_supplied", "confidence": "none", "used_for": ["not used; no private data claimed"]})
+    return supplied_data, missing_data, public_entries
+
+
+def apply_supplied_data(db: Session, project_id: int, audit: dict) -> dict:
+    """Refresh only user-supplied fields on a stored or freshly built audit."""
+    result = dict(audit)
+    supplied_data, missing_data, source_registry = supplied_audit_context(
+        db, project_id, result.get("source_registry")
+    )
+    result["supplied_data"] = supplied_data
+    result["missing_data"] = missing_data
+    result["source_registry"] = source_registry
+    meta = dict(result.get("meta") or {})
+    kinds = [kind for kind in meta.get("data_kinds", []) if not str(kind).startswith("user_supplied:")]
+    kinds.extend(f"user_supplied:{key}" for key, value in supplied_data.items() if value["supplied"])
+    meta["data_kinds"] = kinds
+    result["meta"] = meta
+    if all(key in result for key in ("meta", "coverage", "counts", "findings", "roadmap")):
+        result["sections"] = _report_sections(result)
+    return result
+
+
 def build_public_audit(db: Session, project_id: int, crawl_id: int | None = None) -> dict:
     project = db.get(Project, project_id)
     if project is None:
@@ -417,66 +516,7 @@ def build_public_audit(db: Session, project_id: int, crawl_id: int | None = None
         )) or 0,
     }
 
-    raw_signals = supplied_signals(db, project_id)
-    supplied_data = {
-        key: {
-            "label": SIGNAL_LABELS[key],
-            "supplied": bool(value["supplied"]),
-            "rows": int(value["rows"]),
-            "sources": value["sources"],
-            "latest_period": value["latest_period"],
-            "sample": value["sample"],
-        }
-        for key, value in raw_signals.items()
-    }
-
-    def has_signal(*keys: str) -> bool:
-        return any(supplied_data[key]["supplied"] for key in keys)
-
-    missing_data: list[str] = []
-    if not has_signal("gsc"):
-        missing_data.append("No Search Console queries, impressions, clicks or average positions were supplied.")
-    if not has_signal("ga4"):
-        missing_data.append("No GA4 sessions, conversions or revenue were supplied.")
-    if not has_signal("keywords"):
-        missing_data.append("No keyword volume, difficulty or CPC dataset was supplied.")
-    if not has_signal("rank"):
-        missing_data.append("No rank tracking positions or history were supplied.")
-    if not has_signal("backlinks", "authority"):
-        missing_data.append("No inbound backlink or domain-authority dataset was supplied.")
-    if not has_signal("performance", "crux"):
-        missing_data.append("No Lighthouse, CrUX or Core Web Vitals dataset was supplied.")
-    if not has_signal("local"):
-        missing_data.append("No GBP, NAP or local-visibility dataset was supplied.")
-    if not has_signal("serp", "paid"):
-        missing_data.append("No SERP-feature or paid-ads dataset was supplied.")
-    if not has_signal("historical"):
-        missing_data.append("No retained audit history was supplied; only the current crawl is observed.")
-    missing_data.extend([
-        "No JavaScript-rendered DOM was captured; client-only content may be missing.",
-        "No authenticated, staging or private pages were crawled.",
-        "AI answer visibility is not sampled; only manually observed evidence can be reported.",
-        "Competitor domains are link-observed candidates only; third-party rankings, traffic and market share were not supplied unless a provider export was uploaded.",
-    ])
-
-    source_registry = [
-        {"source": "robots.txt", "type": "public_document", "confidence": "verified", "used_for": ["crawler permissions", "AI agent policy", "sitemap discovery"]},
-        {"source": "sitemap files", "type": "public_document", "confidence": "verified", "used_for": ["URL universe", "orphan reconciliation"]},
-        {"source": "crawl observations", "type": "observed_http", "confidence": "verified", "used_for": ["status", "headers", "on-page HTML", "timing"]},
-        {"source": "observed outbound links", "type": "observed_public_evidence", "confidence": "verified", "used_for": ["candidate competitor domains", "anchor-text topic evidence"]},
-        {"source": "derived keyword candidates", "type": "derived_from_observed_html", "confidence": "explained", "used_for": ["title/H1/anchor topic inventory", "keyword-to-page suggestions"]},
-        {"source": "rule engine", "type": "derived", "confidence": "explained", "used_for": ["issues", "priority", "roadmap"]},
-    ]
-    for key, value in supplied_data.items():
-        if value["supplied"]:
-            source_registry.append({
-                "source": f"user-supplied: {key}",
-                "type": "user_supplied_export",
-                "confidence": "user_declared",
-                "used_for": [f"{value['rows']} verbatim rows from {', '.join(value['sources'])}"],
-            })
-    if not has_signal(*[key for key in supplied_data]):
-        source_registry.append({"source": "Search Console / GA4", "type": "not_supplied", "confidence": "none", "used_for": ["not used; no private data claimed"]})
+    supplied_data, missing_data, source_registry = supplied_audit_context(db, project_id)
 
     audit: dict = {
         "meta": {

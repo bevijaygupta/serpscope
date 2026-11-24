@@ -47,8 +47,11 @@ def _audit_for_project(db, project_id: int) -> dict:
         audit = dict(report.content)
         audit["meta"] = dict(audit["meta"])
         audit["meta"]["report_id"] = report.id
-        return audit
-    return public_audit.build_public_audit(db, project_id)
+    else:
+        audit = public_audit.build_public_audit(db, project_id)
+    # Crawl findings remain the persisted evidence pack; supplied-data status,
+    # source registry, gaps and report sections must reflect current imports.
+    return public_audit.apply_supplied_data(db, project_id, audit)
 
 
 @router.post("/projects/{project_id}/public-audit/start", status_code=202)
