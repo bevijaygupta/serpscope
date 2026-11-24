@@ -7,7 +7,8 @@ from starlette.websockets import WebSocketDisconnect
 from app.core.security import hash_password
 from app.db.session import SessionLocal
 from app.models.auth import Membership, Organization, User
-from app.models.operations import Report
+from app.models.enterprise import AiVisibilityRecord
+from app.models.operations import Report, SuppliedMetric
 from app.models.projects import Job, Project
 from app.services.jobs import HANDLERS, enqueue, is_cancelled, run_job
 
@@ -19,6 +20,21 @@ def _viewer_headers(client: TestClient, db, email: str = "viewer@serpscope.local
     response = client.post("/api/v1/auth/login", json={"email": email, "password": "viewer1234"})
     assert response.status_code == 200, response.text
     return {"Authorization": f"Bearer {response.json()['access_token']}"}
+
+
+def _published_project(db, demo_project) -> Project:
+    """Real project for public case-study tests; the synthetic demo is excluded."""
+    source = db.get(Project, demo_project["project_id"])
+    project = Project(
+        organization_id=source.organization_id,
+        name="Published audit project",
+        domain="published.example",
+        is_demo=False,
+        settings={"public_audit": True},
+    )
+    db.add(project)
+    db.commit()
+    return project
 
 
 def test_authentication_is_required_and_invalid_tokens_are_rejected(client, demo_project):
@@ -189,9 +205,7 @@ def test_job_cancellation_is_recorded_and_honoured_by_worker(client, auth_header
 
 
 def test_public_audit_routes_and_exports_are_registered(client, db, auth_headers, demo_project):
-    project = db.get(Project, demo_project["project_id"])
-    project.settings = {"public_audit": True}
-    db.commit()
+    project = _published_project(db, demo_project)
     base = f"/api/v1/audits/projects/{project.id}/public-audit"
 
     audit = client.get(base, headers=auth_headers)
@@ -234,8 +248,7 @@ def test_public_audit_routes_and_exports_are_registered(client, db, auth_headers
 
 
 def test_public_audit_returns_persisted_report_not_latest_crawl(client, db, auth_headers, demo_project):
-    project = db.get(Project, demo_project["project_id"])
-    project.settings = {"public_audit": True}
+    project = _published_project(db, demo_project)
     stored = {
         "meta": {"method": "public_evidence_audit", "crawl_id": 987, "domain": "stored.example"},
         "coverage": {"fetched_urls": 7},
@@ -270,3 +283,91 @@ def test_bootstrap_reuses_existing_demo_organisation(db):
     assert db.query(Organization).filter(Organization.slug == "demo-organisation").count() == 1
     assert db.query(User).filter(User.email == "demo@serpscope.local").count() == 1
     assert db.query(Membership).count() == 1
+
+
+def test_auto_published_case_study_excludes_private_data_and_says_not_sampled(client, db, auth_headers, demo_project):
+    from app.services.public_audit import publish_case_study
+
+    project = _published_project(db, demo_project)
+    assert publish_case_study(db, project.id) is True
+    assert project.settings["public_audit"] is True
+    assert project.settings["public_case_study"] is True
+
+    db.add(SuppliedMetric(
+        project_id=project.id, source="verification", signal="gsc", data_kind="imported",
+        dimension="private-brand-query", metrics={"clicks": "99999"},
+    ))
+    db.add(AiVisibilityRecord(
+        project_id=project.id, question="best seo tool", answer_engine="Google AI Overviews",
+        observed_at="2026-11-24T00:00:00Z", brand_mentioned=True, cited_url="https://example.com/private-observation",
+        source="manual-observation", data_kind="observed",
+    ))
+    db.add(Report(
+        project_id=project.id,
+        title="Stored public audit",
+        report_type="public_audit",
+        content={
+            "meta": {
+                "project_id": project.id, "project_name": project.name, "domain": project.domain,
+                "is_demo": False, "generated_at": "2026-11-24T00:00:00Z",
+                "method": "public_evidence_audit", "crawl_id": 55, "data_kinds": ["live_crawl"],
+            },
+            "coverage": {
+                "discovered_urls": 20, "fetched_urls": 12, "failed_urls": 0, "sitemap_entries": 5,
+                "inventory_urls": 12, "crawled_inventory_urls": 12, "robots_respected": True,
+                "javascript_rendering": False, "sitemap": {},
+            },
+            "counts": {
+                "status_codes": {"200": 12}, "page_types": {}, "indexable": 12, "non_indexable": 0,
+                "redirects": 0, "schema_pages": 1, "average_content_score": 80.0,
+            },
+            "findings": [{
+                "id": "missing_title", "title": "Missing title tags", "severity": "High",
+                "category": "content", "affected_count": 2, "observation": "Two pages have no title.",
+                "recommended_action": "Add descriptive titles.", "source": ["rule"],
+                "confidence": "derived_from_observations", "limitation": "Public HTML only.",
+            }],
+            "roadmap": [{
+                "month": 1, "theme": "Baseline", "objective": "Establish evidence.",
+                "deliverables": ["Audit"], "owner": "SEO lead",
+                "without_access": "Public crawl only.", "with_access": "Add labelled exports.",
+            }],
+            "sections": [], "missing_data": [], "source_registry": [],
+        },
+        missing_data=[],
+        generated_by="public-audit",
+    ))
+    db.commit()
+
+    private = client.get(
+        f"/api/v1/audits/projects/{project.id}/public-audit", headers=auth_headers
+    ).json()
+    assert private["supplied_data"]["gsc"]["supplied"] is True
+    assert private["ai_visibility"]["status"] == "observations_recorded"
+    assert private["ai_visibility"]["brand_mentions_observed"] == 1
+
+    index = client.get("/api/v1/public/case-studies").json()
+    assert index["count"] >= 1
+    assert any(row["project_id"] == project.id for row in index["items"])
+    sitemap = client.get("/api/v1/public/case-studies/sitemap.xml")
+    assert sitemap.status_code == 200
+    assert f"/case-studies/{project.id}" in sitemap.text
+
+    public = client.get(f"/api/v1/public/case-studies/{project.id}").json()
+    assert public["meta"]["publication_scope"] == "public_evidence_only"
+    assert public["supplied_data"]["gsc"]["supplied"] is False
+    assert "99999" not in str(public)
+    assert "private-observation" not in str(public)
+    assert public["ai_visibility"]["status"] == "not_sampled"
+    assert public["ai_visibility"]["observation_count"] == 0
+    assert "not 'not mentioned'" in public["ai_visibility"]["notice"]
+    assert all(row["status"] == "not_sampled" for row in public["ai_visibility"]["engines"])
+
+
+def test_synthetic_demo_project_is_never_published(db, demo_project):
+    from app.services.public_audit import publish_case_study
+
+    project = db.get(Project, demo_project["project_id"])
+    assert project.is_demo is True
+    assert publish_case_study(db, project.id) is False
+    assert not (project.settings or {}).get("public_audit")

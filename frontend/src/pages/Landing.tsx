@@ -18,6 +18,15 @@ type PublicAudit = {
 
 type InstantProject = { id: number; name: string; domain: string; is_demo?: boolean };
 
+type CaseStudySummary = {
+  project_id: number;
+  domain: string;
+  generated_at: string;
+  fetched_urls: number;
+  findings: number;
+  case_study_path: string;
+};
+
 function hostKey(value: string) {
   try {
     return new URL(value).hostname.toLowerCase().replace(/^www\./, '');
@@ -63,7 +72,7 @@ const STEPS = [
   ['01', 'Enter one URL', 'That is all you type. SERPScope normalises it, signs in to the public demo and finds or creates the project.'],
   ['02', 'Crawl and discover', 'The crawler reads robots.txt, sitemaps and public pages, then derives candidate competitors from observed outbound links.'],
   ['03', 'Fill every section', 'Issues, orphans, links, content, keywords, mappings, competitors and gaps are rebuilt from the same crawl.'],
-  ['04', 'Export and review', 'Download the complete audit, raw crawl observations, CSV/XLSX/PDF and the six-month PPT roadmap.'],
+  ['04', 'Publish and export', 'The public case study is published automatically. Download the complete audit, raw observations, CSV/XLSX/PDF and six-month PPT roadmap.'],
 ];
 
 const FAQ = [
@@ -77,7 +86,11 @@ const FAQ = [
   },
   {
     q: 'Does it guarantee AI search visibility?',
-    a: 'No. SERPScope measures readiness from crawl evidence and records only manually observed AI answers. It does not claim inclusion, ranking or citation in ChatGPT, Claude, Perplexity or Google AI Overviews.',
+    a: 'No. SERPScope measures readiness from crawl evidence and records only manually observed AI answers. An empty observation log means “not sampled”, never “not mentioned”. It does not claim inclusion, ranking or citation in ChatGPT, Claude, Perplexity or Google AI Overviews.',
+  },
+  {
+    q: 'Is my audit published as a case study?',
+    a: 'Every successful real-domain audit is published automatically as a public case study with crawl evidence, findings, roadmap and data gaps. Private GSC/GA4 uploads and manual AI observations are excluded from the published page.',
   },
   {
     q: 'Is the demo data real?',
@@ -89,6 +102,7 @@ export function Landing() {
   const navigate = useNavigate();
   const { refreshProjects, setProjectId, bumpData } = useApp();
   const [caseStudy, setCaseStudy] = useState<PublicAudit | null>(null);
+  const [caseStudies, setCaseStudies] = useState<CaseStudySummary[]>([]);
   const [caseError, setCaseError] = useState('');
   const [target, setTarget] = useState('');
   const [running, setRunning] = useState(false);
@@ -98,9 +112,24 @@ export function Landing() {
 
   useEffect(() => {
     document.title = 'SERPScope — Public SEO Audit, PPT & 6-Month Roadmap';
-    get<PublicAudit>('/public/case-studies/2')
-      .then(setCaseStudy)
-      .catch(() => setCaseError('Published case study is temporarily unavailable. The live demo still generates the same audit pack.'));
+    let cancelled = false;
+    get<{ items: CaseStudySummary[] }>('/public/case-studies')
+      .then((payload) => {
+        if (cancelled) return;
+        const items = payload.items || [];
+        setCaseStudies(items);
+        const latest = items[0];
+        if (!latest) {
+          setCaseError('No published case study yet. Your first public audit will be published automatically.');
+          return;
+        }
+        return get<PublicAudit>(`/public/case-studies/${latest.project_id}`)
+          .then((detail) => { if (!cancelled) setCaseStudy(detail); });
+      })
+      .catch(() => {
+        if (!cancelled) setCaseError('Published case studies are temporarily unavailable. The live demo still generates the same audit pack.');
+      });
+    return () => { cancelled = true; };
   }, []);
 
   const auditSite = async (event: FormEvent) => {
@@ -161,6 +190,7 @@ export function Landing() {
           </Link>
           <nav className="ml-auto hidden items-center gap-6 text-xs font-medium text-muted md:flex">
             <a href="#how-it-works" className="hover:text-ink">How it works</a>
+            <Link to="/case-studies" className="hover:text-ink">Case studies</Link>
             <a href="#proof" className="hover:text-ink">Real audit</a>
             <a href="#faq" className="hover:text-ink">FAQ</a>
             <a href="https://github.com/bevijaygupta/serpscope" target="_blank" rel="noreferrer" className="hover:text-ink">Source</a>
@@ -223,7 +253,7 @@ export function Landing() {
             <div className="panel relative p-5 shadow-2xl">
               <div className="mb-4 flex items-center justify-between">
                 <div>
-                  <div className="text-[10px] font-semibold uppercase tracking-widest text-muted">Live evidence preview</div>
+                  <div className="text-[10px] font-semibold uppercase tracking-widest text-muted">Latest published case study</div>
                   <div className="mt-1 text-sm font-semibold text-white">{caseStudy?.meta.domain || 'Public audit pipeline'}</div>
                 </div>
                 <span className="rounded-full border border-success/30 bg-success/10 px-2.5 py-1 text-[10px] font-semibold text-success">LIVE CRAWL</span>
@@ -331,8 +361,11 @@ export function Landing() {
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-edge bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-widest text-muted"><Globe2 className="h-3 w-3" /> Real domain · public evidence</div>
               <h2 className="text-2xl font-bold text-white sm:text-3xl">What people can find on a real site audit</h2>
               <p className="mt-4 text-sm leading-7 text-muted">
-                The published Techmagnate audit was produced from robots.txt, sitemap files and a robots-respecting crawl. It contains no Search Console or Analytics claims. Open the demo, switch to the Techmagnate project and regenerate it to inspect every raw observation.
+                {caseStudy
+                  ? `The published ${caseStudy.meta.domain} audit was produced from robots.txt, sitemap files and a robots-respecting crawl. It contains no Search Console or Analytics claims. Every successful public audit is published automatically; open ${caseStudies.length} case studies to inspect the full evidence packs.`
+                  : 'Every successful public audit is published from robots.txt, sitemap files and a robots-respecting crawl with no Search Console or Analytics claims.'}
               </p>
+              <Link to="/case-studies" className="mt-4 inline-flex items-center gap-1 text-xs font-semibold text-accent hover:underline">Browse all published case studies <ArrowRight className="h-3.5 w-3.5" /></Link>
               {caseStudy ? (
                 <div className="mt-6 space-y-3">
                   {caseStudy.findings.slice(0, 6).map((finding) => (

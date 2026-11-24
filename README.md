@@ -69,7 +69,7 @@ Defined in `frontend/src/lib/modules.ts` and routed through `frontend/src/pages/
 
 | Module | What it does |
 | --- | --- |
-| **AI Search / AEO** | Answer-readiness audit rules plus manually recorded visibility observations. No synthesized citations. |
+| **AI Search / AEO** | Answer-readiness audit rules plus manually recorded visibility observations. `not_sampled` is used when no observation exists; no synthesized citations or “zero visibility” claim. |
 | **Analytics / Reporting** | Imports, summary metrics and reports that explicitly list missing data. |
 | **Forecasting** | Editable assumptions with formulas, three scenarios and sensitivity analysis — labelled estimates, not guarantees. |
 
@@ -229,8 +229,9 @@ This project is a **demonstration of engineering and SEO process**, not a produc
 3. **No live vendor API calls are made.** The integration registry lists providers and modes, but only file import is implemented. Declared vendor exports are stored verbatim and can change a Gap Center signal to `Supplied`; OAuth/API-key modes remain declarations, not working connections. See [INTEGRATIONS.md](docs/INTEGRATIONS.md).
 4. **The demo generator does not crawl.** It invents URLs under `demo.example.com`. The separate public-audit job can fetch authorised public URLs with robots/delay/SSRF protections; its output is labelled `live_crawl`, `public_sitemap`, `robots.txt` and `derived_rules`, and it states what it could not observe.
 5. **Forecasts are arithmetic on user-supplied assumptions** with a relative CTR curve. They are not ranking, traffic or revenue guarantees.
-6. **AI-search readiness is rule-based; visibility is manual observation only.** No answer-engine sampling or provider API is called, and no inclusion outcome is promised.
-7. **Exports retain provenance columns** (`data_kind`, `source`, `observed_at` where applicable) so a screenshot or CSV cannot quietly become "real data".
+6. **AI-search readiness is rule-based; visibility is manual observation only.** No answer-engine sampling or provider API is called, and no inclusion outcome is promised. With no verified observations the status is `not_sampled`; an empty log is never presented as "no mentions" or "no citations".
+7. **Every successful real-domain audit is published automatically** at `/case-studies/{project_id}` with an index, dynamic sitemap and JSON-LD. Published pages use public crawl evidence only; user-supplied exports and manual AI observations are excluded.
+8. **Exports retain provenance columns** (`data_kind`, `source`, `observed_at` where applicable) so a screenshot or CSV cannot quietly become "real data".
 
 The API exposes the vocabulary at `GET /api/v1/meta/data-kinds`, methodologies at `GET /api/v1/meta/methodologies` and export schemas at `GET /api/v1/meta/export-columns`.
 

@@ -1,10 +1,11 @@
 """Public-evidence site audit, six-month roadmap and presentation exports."""
 from __future__ import annotations
 
+import html
 import json
 
 from fastapi import APIRouter, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from sqlalchemy import select
 
 from app.api.deps import DB, ProjectDep, UserDep, check_write
@@ -27,6 +28,53 @@ ROADMAP_COLUMNS = [
     "month", "theme", "objective", "actions", "deliverables", "owner",
     "success_checks", "without_access", "with_access",
 ]
+CASE_STUDY_BASE_URL = "https://serpscopelive.vercel.app"
+
+
+def _published_case_studies(db) -> list[dict]:
+    """List successful public audits that are safe to publish."""
+    projects = db.scalars(select(Project).where(Project.is_demo.is_(False))).all()
+    items: list[dict] = []
+    for project in projects:
+        if not (project.settings or {}).get("public_audit"):
+            continue
+        report = db.scalars(
+            select(Report).where(
+                Report.project_id == project.id,
+                Report.report_type == "public_audit",
+            ).order_by(Report.id.desc()).limit(1)
+        ).first()
+        if report is None or not isinstance(report.content, dict) or not report.content.get("meta"):
+            continue
+        content = report.content
+        meta = content.get("meta") or {}
+        coverage = content.get("coverage") or {}
+        findings = content.get("findings") or []
+        items.append({
+            "project_id": project.id,
+            "report_id": report.id,
+            "name": project.name,
+            "domain": project.domain,
+            "generated_at": meta.get("generated_at"),
+            "fetched_urls": coverage.get("fetched_urls", 0),
+            "sitemap_entries": coverage.get("sitemap_entries", 0),
+            "findings": len(findings),
+            "roadmap_months": len(content.get("roadmap") or []),
+            "roadmap_themes": [row.get("theme") for row in (content.get("roadmap") or []) if isinstance(row, dict)],
+            "top_findings": [
+                {
+                    "title": row.get("title"),
+                    "severity": row.get("severity"),
+                    "affected_count": row.get("affected_count", 0),
+                }
+                for row in findings[:3] if isinstance(row, dict)
+            ],
+            "ai_visibility_status": (content.get("ai_visibility") or {}).get("status", "not_sampled"),
+            "case_study_path": f"/case-studies/{project.id}",
+            "case_study_url": f"{CASE_STUDY_BASE_URL}/case-studies/{project.id}",
+        })
+    items.sort(key=lambda row: str(row.get("generated_at") or ""), reverse=True)
+    return items
 
 
 def _audit_for_project(db, project_id: int) -> dict:
@@ -131,10 +179,52 @@ def list_public_reports(db: DB, project: ProjectDep):
     return {"items": [serialize(r, ["id", "title", "generated_by", "created_at", "missing_data"]) for r in rows]}
 
 
+@public_router.get("/case-studies")
+def published_case_studies(db: DB):
+    """Index every successful public audit for discovery and internal linking."""
+    items = _published_case_studies(db)
+    return {
+        "count": len(items),
+        "source": "public_evidence_only",
+        "note": "Every real public audit is published automatically after its job succeeds. Private uploads are excluded.",
+        "items": items,
+    }
+
+
+@public_router.get("/case-studies/sitemap.xml")
+def published_case_studies_sitemap(db: DB):
+    """Dynamic sitemap of published case studies."""
+    urls = [
+        (f"{CASE_STUDY_BASE_URL}/case-studies", None),
+        *[
+            (row["case_study_url"], str(row.get("generated_at") or "")[:10] or None)
+            for row in _published_case_studies(db)
+        ],
+    ]
+    entries = []
+    for url, lastmod in urls:
+        modified = f"<lastmod>{html.escape(lastmod)}</lastmod>" if lastmod else ""
+        entries.append(
+            "<url>"
+            f"<loc>{html.escape(url)}</loc>{modified}"
+            "<changefreq>weekly</changefreq>"
+            "<priority>0.8</priority>"
+            "</url>"
+        )
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        + "".join(entries)
+        + "</urlset>"
+    )
+    return Response(content=xml, media_type="application/xml")
+
+
 @public_router.get("/case-studies/{project_id}")
 def published_case_study(project_id: int, db: DB):
-    """Read-only audit for projects explicitly marked public in project settings."""
+    """Read-only, public-evidence-only audit for a published project."""
     project = db.get(Project, project_id)
-    if project is None or not (project.settings or {}).get("public_audit"):
+    if project is None or project.is_demo or not (project.settings or {}).get("public_audit"):
         raise HTTPException(404, "Published audit not found")
-    return _audit_for_project(db, project_id)
+    audit = _audit_for_project(db, project_id)
+    return public_audit.public_case_study_view(audit)

@@ -25,3 +25,4 @@ User-agent: CCBot
 Allow: /
 
 Sitemap: https://serpscopelive.vercel.app/sitemap.xml
+Sitemap: https://serpscope-api.onrender.com/api/v1/public/case-studies/sitemap.xml

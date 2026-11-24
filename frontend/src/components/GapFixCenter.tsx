@@ -138,7 +138,9 @@ function publicEvidenceScore(audit: PublicAuditData) {
     possible += weight;
   }
   const rows = Object.entries(categories).map(([category, value]) => ({
-    category: titleCase(category.replace(/[-_]/g, ' ')),
+    category: category.toLowerCase() === 'aeo'
+      ? 'AEO readiness'
+      : titleCase(category.replace(/[-_]/g, ' ')),
     score: value.possible ? Math.round((value.earned / value.possible) * 100) : 100,
     rules: value.possible,
   })).sort((a, b) => a.score - b.score);
@@ -146,7 +148,7 @@ function publicEvidenceScore(audit: PublicAuditData) {
   return {
     score,
     rows,
-    formula: `Derived from ${audit.findings.length} public findings. Each rule passes at 1 − min(affected URLs / fetched URLs, 1), weighted High=4, Medium=2, Low=1. This is not Ubersuggest's health score.`,
+    formula: `Derived from ${audit.findings.length} public findings. Each rule passes at 1 − min(affected URLs / fetched URLs, 1), weighted High=4, Medium=2, Low=1. AEO rows measure readiness, not live AI visibility. This is not Ubersuggest's health score.`,
   };
 }
 
@@ -216,6 +218,7 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
   const signalPeriod = (...keys: string[]) => keys.map((key) => suppliedData[key]?.latest_period).filter(Boolean).join(', ');
   const suppliedEntries = Object.entries(suppliedData);
   const suppliedCount = suppliedEntries.filter(([, value]) => value.supplied).length;
+  const aiVisibility = audit?.ai_visibility;
   const score = useMemo(() => audit ? publicEvidenceScore(audit) : null, [audit]);
   const benchmark = useMemo(() => competitorRows
     .map((row) => ({ domain: str(row.domain) || str(row.name), links: outboundLinkCount(row) }))
@@ -249,6 +252,9 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
   const signalRows = useMemo(() => {
     if (!audit) return [];
     const derived = audit.derived_evidence;
+    const visibility = audit.ai_visibility;
+    const overview = visibility?.engines?.find((row) => row.engine.toLowerCase().includes('overview'));
+    const sampled = Boolean(visibility?.observation_count);
     const schemaMissing = arr<Row>(audit.findings).find((f) => f.id === 'missing_schema')?.affected_count ?? 0;
     const aiRules = Object.keys(obj(audit.robots.ai_rules)).length;
     return [
@@ -317,6 +323,24 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
         ours: `${num(aiRules)} AI crawler rules parsed; ${num(audit.counts.schema_pages)} pages with schema, ${num(schemaMissing)} commercial pages without it`,
         status: 'Unique evidence',
         fix: 'Readiness is measured from robots.txt and HTML rules, never claimed as ChatGPT or Perplexity visibility.',
+      },
+      {
+        signal: 'Live AI citations', suite: 'ChatGPT / Perplexity / Claude cited URLs',
+        ours: sampled ? `${num(visibility?.cited_urls_recorded ?? 0)} cited-url observation(s) recorded` : 'Not sampled — no live answer-engine fetch is performed',
+        status: sampled ? 'Observed' : 'Not sampled',
+        fix: 'Record a real answer with engine, question, timestamp and cited URL. No citation is inferred from crawl evidence.',
+      },
+      {
+        signal: 'Google AI Overview presence', suite: 'AI Overview observation',
+        ours: overview?.status === 'not_sampled' || !overview ? 'Not sampled — no Google AI Overview fetch is performed' : `${num(overview.observations)} observation(s), ${num(overview.brand_mentions_observed)} mentioned`,
+        status: overview?.status === 'not_sampled' || !overview ? 'Not sampled' : 'Observed',
+        fix: 'Add a verified observation for the exact query, locale and date. An empty log means not sampled, not absent.',
+      },
+      {
+        signal: 'AI brand mentions', suite: 'Answer-engine mention tracking',
+        ours: sampled ? `${num(visibility?.brand_mentions_observed ?? 0)} mention(s) in ${num(visibility?.observation_count ?? 0)} recorded observation(s)` : 'Not sampled — mention tracking needs a verified export or observation',
+        status: sampled ? 'Observed' : 'Not sampled',
+        fix: 'Upload a licensed AI visibility export or record verified observations. Never treat an empty log as zero visibility.',
       },
       {
         signal: 'Content ideas and topic clusters', suite: 'Blog and content ideas',
@@ -561,6 +585,32 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="mt-5 rounded-xl border border-edge bg-canvas/40 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-white"><Sparkles className="h-4 w-4 text-violet-400" /> AI citations, Overviews and mentions <Badge tone={aiVisibility?.observation_count ? 'good' : 'warn'}>{aiVisibility?.status === 'observations_recorded' ? 'Observed' : 'Not sampled'}</Badge></h3>
+            <p className="mt-1 max-w-3xl text-[11px] leading-5 text-muted">{aiVisibility?.notice || 'No live answer-engine sampling is performed. An empty log means not sampled, not absent.'}</p>
+          </div>
+          <Link to="/ai" className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent hover:underline">Record a verified observation <ArrowUpRight className="h-3 w-3" /></Link>
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+          {(aiVisibility?.engines ?? []).map((row) => (
+            <div key={row.engine} className="rounded-lg border border-edge bg-panel/40 px-3 py-2">
+              <div className="flex items-center justify-between gap-2 text-[11px]">
+                <span className="truncate text-slate-300">{row.engine}</span>
+                <Badge tone={row.status === 'not_sampled' ? 'neutral' : 'good'}>{row.status === 'not_sampled' ? 'Not sampled' : 'Observed'}</Badge>
+              </div>
+              <div className="mt-1 text-[10px] text-muted">
+                {row.status === 'not_sampled'
+                  ? 'No live check recorded'
+                  : `${num(row.observations)} observation(s) · ${num(row.brand_mentions_observed)} mentioned · ${num(row.cited_urls_recorded)} cited`}
+              </div>
+            </div>
+          ))}
+        </div>
+        {aiVisibility?.publication_note ? <p className="mt-3 text-[10px] text-muted">{aiVisibility.publication_note}</p> : null}
       </div>
 
       <div className="mt-5 rounded-xl border border-edge bg-canvas/40 p-4">

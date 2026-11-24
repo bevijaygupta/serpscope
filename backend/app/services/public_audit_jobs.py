@@ -111,10 +111,12 @@ def run_public_audit_job(db_session_factory, job_id: int, payload: dict, project
         progress(job_id, 90, 100, "Assembling audit, roadmap and report")
         audit = public_audit.build_public_audit(db, project_id, crawl_id)
         report_id = public_audit.persist_report(db, project_id, audit)
+        case_study_published = public_audit.publish_case_study(db, project_id)
         progress(job_id, 100, 100, "Public audit completed")
         return {
             "crawl_id": crawl_id,
             "report_id": report_id,
+            "case_study_published": case_study_published,
             "fetched_urls": stats.get("crawled", 0),
             "findings": len(audit["findings"]),
             "roadmap_months": len(audit["roadmap"]),

@@ -8,6 +8,7 @@ AI-visibility metrics.
 from __future__ import annotations
 
 from collections import Counter
+from copy import deepcopy
 from typing import Any
 from urllib.parse import urlsplit
 
@@ -16,7 +17,7 @@ from sqlalchemy.orm import Session
 
 from app.core.timeutil import iso, utcnow
 from app.models.analysis import ContentAnalysis, Issue, LinkSuggestion, OrphanRecord
-from app.models.enterprise import AiReadinessItem, Competitor, KeywordGap
+from app.models.enterprise import AiReadinessItem, AiVisibilityRecord, Competitor, KeywordGap
 from app.models.inventory import Crawl, CrawlObservation, SitemapEntry, UrlRecord
 from app.models.keywords import Keyword, KeywordMapping
 from app.models.operations import Report
@@ -25,6 +26,12 @@ from app.services import crawler as crawler_service
 from app.services.supplied_metrics import SIGNAL_LABELS, supplied_signals
 
 SEVERITY_ORDER = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3, "Info": 4, "Positive": 5}
+
+AI_VISIBILITY_ENGINES = ("Google AI Overviews", "ChatGPT", "Perplexity", "Claude")
+AI_VISIBILITY_NOTICE = (
+    "No live AI Overview, ChatGPT, Claude or Perplexity answers are sampled. "
+    "An empty observation log means 'not sampled', not 'not mentioned'."
+)
 
 
 def _pct(value: float, total: float) -> float:
@@ -63,6 +70,113 @@ def _ai_rules_summary(robots: dict) -> dict:
             policy = "declared_without_path_rule"
         summary[agent] = {"policy": policy, "allow": allow[:5], "disallow": disallow[:5]}
     return summary
+
+
+def ai_visibility_context(db: Session, project_id: int) -> dict:
+    """Describe AI-answer evidence without treating absence as non-visibility.
+
+    The product has no live answer-engine sampler. Only manually recorded,
+    source-labelled observations may become claims, so an empty log is reported
+    as `not_sampled` rather than as zero mentions or zero citations.
+    """
+    rows = db.scalars(
+        select(AiVisibilityRecord)
+        .where(AiVisibilityRecord.project_id == project_id)
+        .order_by(AiVisibilityRecord.id.desc())
+    ).all()
+    buckets: dict[str, list[AiVisibilityRecord]] = {}
+    for row in rows:
+        engine = str(row.answer_engine or "Unspecified").strip() or "Unspecified"
+        buckets.setdefault(engine, []).append(row)
+    extra = sorted(name for name in buckets if name not in AI_VISIBILITY_ENGINES)
+    engines = []
+    for engine in [*AI_VISIBILITY_ENGINES, *extra]:
+        items = buckets.get(engine, [])
+        dates = [str(item.observed_at) for item in items if item.observed_at]
+        engines.append({
+            "engine": engine,
+            "status": "not_sampled" if not items else "observations_recorded",
+            "observations": len(items),
+            "brand_mentions_observed": sum(1 for item in items if item.brand_mentioned),
+            "cited_urls_recorded": sum(1 for item in items if bool(str(item.cited_url or "").strip())),
+            "latest_observed_at": max(dates) if dates else None,
+        })
+    all_dates = [str(row.observed_at) for row in rows if row.observed_at]
+    return {
+        "method": "manual_observation_only",
+        "status": "not_sampled" if not rows else "observations_recorded",
+        "notice": AI_VISIBILITY_NOTICE,
+        "engines": engines,
+        "observation_count": len(rows),
+        "brand_mentions_observed": sum(1 for row in rows if row.brand_mentioned),
+        "cited_urls_recorded": sum(1 for row in rows if bool(str(row.cited_url or "").strip())),
+        "latest_observed_at": max(all_dates) if all_dates else None,
+    }
+
+
+def public_case_study_view(audit: dict) -> dict:
+    """Return the public-evidence-only version of an audit for publication."""
+    result = deepcopy(audit)
+    meta = dict(result.get("meta") or {})
+    meta["data_kinds"] = [
+        kind for kind in meta.get("data_kinds", [])
+        if not str(kind).startswith("user_supplied:")
+    ]
+    meta["publication_scope"] = "public_evidence_only"
+    meta["private_data_policy"] = (
+        "User-supplied exports and manual observations are excluded from published case studies."
+    )
+    result["meta"] = meta
+
+    result["supplied_data"] = {
+        key: {
+            **value,
+            "supplied": False,
+            "rows": 0,
+            "sources": [],
+            "sample": [],
+            "latest_period": "",
+        }
+        for key, value in (result.get("supplied_data") or {}).items()
+    }
+    result["source_registry"] = [
+        entry for entry in (result.get("source_registry") or [])
+        if isinstance(entry, dict) and entry.get("type") not in {"user_supplied_export", "not_supplied"}
+    ]
+    generic_gaps = [
+        line for line in (result.get("missing_data") or [])
+        if line.startswith(("No JavaScript-rendered DOM", "No authenticated", "AI answer", "Competitor domains"))
+    ]
+    result["missing_data"] = [
+        "This published case study contains public crawl evidence only; private or user-supplied datasets are excluded.",
+        AI_VISIBILITY_NOTICE,
+        *generic_gaps,
+    ]
+    result["ai_visibility"] = {
+        "method": "manual_observation_only",
+        "status": "not_sampled",
+        "notice": AI_VISIBILITY_NOTICE,
+        "engines": [
+            {
+                "engine": engine,
+                "status": "not_sampled",
+                "observations": 0,
+                "brand_mentions_observed": 0,
+                "cited_urls_recorded": 0,
+                "latest_observed_at": None,
+            }
+            for engine in AI_VISIBILITY_ENGINES
+        ],
+        "observation_count": 0,
+        "brand_mentions_observed": 0,
+        "cited_urls_recorded": 0,
+        "latest_observed_at": None,
+        "publication_note": "Manual AI observations are not published; absence here is not evidence of no mentions.",
+    }
+    for section in result.get("sections") or []:
+        if str(section.get("heading", "")).startswith("5."):
+            section["lines"] = [meta["private_data_policy"]]
+    return result
 
 
 def _findings(db: Session, project_id: int, crawl: Crawl | None, audit: dict) -> list[dict]:
@@ -427,7 +541,7 @@ def supplied_audit_context(
     missing_data.extend([
         "No JavaScript-rendered DOM was captured; client-only content may be missing.",
         "No authenticated, staging or private pages were crawled.",
-        "AI answer visibility is not sampled; only manually observed evidence can be reported.",
+        AI_VISIBILITY_NOTICE,
         "Competitor domains are link-observed candidates only; third-party rankings, traffic and market share were not supplied unless a provider export was uploaded.",
     ])
 
@@ -456,6 +570,7 @@ def apply_supplied_data(db: Session, project_id: int, audit: dict) -> dict:
     supplied_data, missing_data, source_registry = supplied_audit_context(
         db, project_id, result.get("source_registry")
     )
+    result["ai_visibility"] = ai_visibility_context(db, project_id)
     result["supplied_data"] = supplied_data
     result["missing_data"] = missing_data
     result["source_registry"] = source_registry
@@ -564,6 +679,7 @@ def build_public_audit(db: Session, project_id: int, crawl_id: int | None = None
             "method": "Observed outbound links, page titles, H1s and URL paths from the public crawl. No search volume, difficulty, rank or traffic is claimed.",
             "candidate_definition": "A competitor is an external hostname linked by a crawled page; it is a candidate for review, not a verified market-share claim.",
         },
+        "ai_visibility": ai_visibility_context(db, project_id),
         "supplied_data": supplied_data,
         "source_registry": source_registry,
         "missing_data": missing_data,
@@ -638,7 +754,13 @@ def _report_sections(audit: dict) -> list[dict]:
         },
         {
             "heading": "7. What this audit does not claim",
-            "lines": audit["missing_data"],
+            "lines": [
+                "AI visibility status: "
+                + str((audit.get("ai_visibility") or {}).get("status") or "not_sampled")
+                + " — "
+                + str((audit.get("ai_visibility") or {}).get("notice") or AI_VISIBILITY_NOTICE),
+                *audit["missing_data"],
+            ],
         },
     ]
 
@@ -687,7 +809,7 @@ def to_ppt_slides(audit: dict) -> list[dict]:
         })
     slides.append({
         "title": "Limits and data gaps",
-        "bullets": audit["missing_data"][:6],
+        "bullets": [str((audit.get("ai_visibility") or {}).get("notice") or AI_VISIBILITY_NOTICE), *audit["missing_data"][:6]],
         "note": "No traffic, revenue, ranking or AI-visibility outcome is claimed without a declared source.",
     })
     return slides
@@ -735,3 +857,16 @@ def persist_report(db: Session, project_id: int, audit: dict, generated_by: str 
     db.add(report)
     db.commit()
     return report.id
+
+
+def publish_case_study(db: Session, project_id: int) -> bool:
+    """Publish a successful real-domain audit; never publish the synthetic demo."""
+    project = db.get(Project, project_id)
+    if project is None or project.is_demo:
+        return False
+    settings = dict(project.settings or {})
+    settings["public_audit"] = True
+    settings["public_case_study"] = True
+    project.settings = settings
+    db.commit()
+    return True

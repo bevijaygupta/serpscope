@@ -58,6 +58,16 @@ export type PublicAuditData = {
     competitors: number; keywords: number; keyword_gaps: number; keyword_mappings: number;
     method: string; candidate_definition: string;
   };
+  ai_visibility?: {
+    method: string; status: string; notice: string; observation_count: number;
+    brand_mentions_observed: number; cited_urls_recorded: number;
+    latest_observed_at: string | null; publication_note?: string;
+    engines: {
+      engine: string; status: string; observations: number;
+      brand_mentions_observed: number; cited_urls_recorded: number;
+      latest_observed_at: string | null;
+    }[];
+  };
   supplied_data?: Record<string, {
     label: string; supplied: boolean; rows: number; sources: string[]; latest_period: string;
     sample: { dimension: string; period: string; metrics: Record<string, string> }[];

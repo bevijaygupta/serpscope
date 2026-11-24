@@ -10,6 +10,8 @@
 - Findings carry a source, confidence label and explicit limitation.
 - Deliverables: PPTX, PDF, CSV, XLSX, JSON, six-month roadmap and evidence registry.
 - Missing private data is listed rather than invented: no GSC, GA4, ranking, revenue or AI-visibility outcomes are claimed without a declared source.
+- Every successful real-domain audit is published as a public case study at /case-studies/{project_id}; private uploads are excluded.
+- AI Overview, ChatGPT, Perplexity and Claude visibility is `not_sampled` until a verified observation is recorded. An empty log never means "not mentioned".
 
 ## Positioning
 
@@ -22,6 +24,8 @@
 
 - Home: https://serpscopelive.vercel.app/
 - Login / demo: https://serpscopelive.vercel.app/login
+- Published case studies: https://serpscopelive.vercel.app/case-studies
+- Case-study sitemap: https://serpscope-api.onrender.com/api/v1/public/case-studies/sitemap.xml
 - Source: https://github.com/bevijaygupta/serpscope
 
 ## Documentation
