@@ -18,7 +18,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for how these tables are used and [DEPLOY
 
 > **Caution:** `create_all()` only creates missing tables. It does not add columns or change types on an existing database. For schema evolution you must currently migrate manually or recreate the database.
 
-There are **41 tables** across eight model modules.
+There are **42 tables** across eight model modules.
 
 ## 2. Identity and access (`app/models/auth.py`)
 
@@ -102,6 +102,7 @@ Explicit indexes: `ix_kw_project_norm` and `ix_mapping_project_primary`.
 | `workflows` | Workflow definitions | `id`, `project_id` (indexed), `name`, `description`, `trigger` (indexed), `schedule`, `steps` (JSON), `enabled`, `last_run_at`, `notification_email`, timestamps |
 | `workflow_runs` | Workflow execution history | `id`, `workflow_id` (indexed, no FK), `project_id` (indexed), `job_id` (indexed, no FK), `status` (indexed), `step_results` (JSON), `error`, `started_at`, `finished_at`, timestamps |
 | `integrations` | Provider connections with encrypted credentials | `id`, `project_id` (indexed, nullable), `organization_id` (indexed, nullable), `provider` (indexed), `display_name`, `status` (indexed), `mode` (indexed, default `csv_import`), `credentials_encrypted` (Text — Fernet token), `config` (JSON), `last_sync_at`, `notes`, timestamps |
+| `supplied_metrics` | Verbatim user-supplied vendor/private rows | `id`, `project_id` (indexed), `source` (indexed), `signal` (indexed), `data_kind` (indexed), `dimension` (indexed), `period_start`, `period_end`, `metrics` (JSON — original import columns), `meta_info` (JSON), `data_source_id` (indexed), timestamps |
 | `demo_scenarios` | Interview-ready demo content | `id`, `key` (unique, indexed), `title`, `question`, `context`, `challenge`, `steps`/`modules`/`expected_findings` (JSON), `interpretation`, `recommended_actions` (JSON), `limitations`, `interview_explanation`, `dataset_info` (JSON), timestamps |
 
 ## 9. Foreign keys and cascade behaviour

@@ -4,10 +4,11 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from sqlalchemy import select
 
-from app.api.deps import DB, UserDep, check_write
+from app.api.deps import DB, UserDep, check_write, get_project
 from app.api.v1._helpers import serialize
 from app.core.crypto import encrypt
 from app.models.operations import Integration
+from app.services.supplied_metrics import SIGNAL_LABELS, supplied_record_rows, supplied_signals
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
 
@@ -70,6 +71,25 @@ def upsert_integration(payload: dict, db: DB, user: UserDep):
         db.add(item)
     db.commit()
     return {"id": item.id, "status": item.status, "note": "Credentials stored encrypted; values are not returned."}
+
+
+@router.get("/supplied-signals")
+def supplied_signal_status(db: DB, user: UserDep, project_id: int):
+    """Which vendor signals have real user-supplied rows, and how many."""
+    get_project(db, project_id, user)
+    status = supplied_signals(db, project_id)
+    return {"items": [
+        {"signal": key, "label": SIGNAL_LABELS[key], **value}
+        for key, value in status.items()
+    ]}
+
+
+@router.get("/supplied-records")
+def supplied_records(db: DB, user: UserDep, project_id: int, signal: str, limit: int = 100):
+    get_project(db, project_id, user)
+    if signal not in SIGNAL_LABELS:
+        raise HTTPException(400, f"Unknown signal. Allowed: {sorted(SIGNAL_LABELS)}")
+    return {"items": supplied_record_rows(db, project_id, signal, min(max(limit, 1), 500))}
 
 
 @router.get("/{integration_id}")

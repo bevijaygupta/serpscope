@@ -10,6 +10,7 @@ from app.models.projects import DataSource
 from app.services.imports import parse_sitemap, parse_table, store_sitemap_entries, to_float, upsert_urls, URL_COLUMN_ALIASES
 from app.services.jobs import is_cancelled, progress, register
 from app.services.keywords import normalize_keyword
+from app.services.supplied_metrics import store_supplied_metrics
 
 
 def _find_col(columns: list[str], aliases: list[str]) -> str | None:
@@ -62,12 +63,17 @@ def run_import(db_session_factory, job_id, payload, project_id, organization_id)
                 "title": _find_col(columns, ["title", "page title", "h1"]) or "",
                 "referring_domains": _find_col(columns, ["referring domains", "domains", "backlinks"]) or "",
             }
-            if not mapping["url"]:
+            if not mapping["url"] and source_type in {"csv_urls", "cms", "screaming_frog", "sitebulb"}:
                 raise ValueError("No URL-like column found. Columns: " + ", ".join(columns[:30]))
             total = len(rows)
             for index, row in enumerate(rows):
                 if is_cancelled(job_id):
                     break
+                if not mapping["url"]:
+                    # Query/domain/location exports have no landing-page URL;
+                    # their rows are stored verbatim as supplied metrics.
+                    accepted += 1
+                    continue
                 extra = {
                     "title": row.get(mapping["title"], "") if mapping["title"] else "",
                     "clicks": to_float(row.get(mapping["clicks"])) if mapping["clicks"] else 0,
@@ -88,7 +94,6 @@ def run_import(db_session_factory, job_id, payload, project_id, organization_id)
                 if index % 500 == 0:
                     progress(job_id, index, total, f"Imported {index}/{total} rows")
                     db.commit()
-        db.commit()
         source = DataSource(
             project_id=project_id, source_type=source_type, name=name,
             file_name=path.name, row_count=accepted, rejected_count=rejected,
@@ -96,10 +101,17 @@ def run_import(db_session_factory, job_id, payload, project_id, organization_id)
             meta_info={"column_mapping": mapping, "errors": errors[:20]}, job_id=job_id,
         )
         db.add(source)
+        db.flush()
+        supplied_rows = store_supplied_metrics(
+            db, project_id, source_type, name, rows,
+            payload.get("data_kind", "imported"), source.id,
+        )
+        source.meta_info = {**(source.meta_info or {}), "supplied_metric_rows": supplied_rows}
         db.commit()
         progress(job_id, 100, 100, "Import complete")
         return {
             "data_source_id": source.id, "accepted": accepted, "rejected": rejected,
+            "supplied_metric_rows": supplied_rows,
             "column_mapping": mapping, "errors": errors[:20],
         }
     finally:
@@ -165,6 +177,8 @@ def import_keywords_job(db_session_factory, job_id, payload, project_id, organiz
             data_kind="imported", meta_info={"column_mapping": mapping}, job_id=job_id,
         )
         db.add(source)
+        db.flush()
+        store_supplied_metrics(db, project_id, source_type, path.name, rows, "imported", source.id)
         db.commit()
         progress(job_id, 100, 100, "Keyword import complete")
         return {"imported": len(records), "column_mapping": mapping, "data_source_id": source.id}

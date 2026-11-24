@@ -1,9 +1,10 @@
 # Integrations
 
-**Short version:** SERPScope integrates with **files**, not live vendor APIs. You can upload GSC/GA4-style CSV exports, XML sitemaps, and Screaming Frog/Sitebulb-style crawl CSVs. The provider registry can store connection records and encrypted credentials, but it does **not** call Google, Semrush, Ahrefs, an LLM provider, or any other external service.
+**Short version:** SERPScope integrates with **files**, not live vendor APIs. You can upload GSC/GA4-style CSV exports, keyword/rank/backlink/authority exports, Lighthouse/CrUX/SERP/paid/GBP/history exports, XML sitemaps, and Screaming Frog/Sitebulb-style crawl CSVs. Rows from declared vendor exports are stored **verbatim** and can change an audit signal from `Not supplied` to `Supplied`; the provider registry can store connection records and encrypted credentials, but it does **not** call Google, Semrush, Ahrefs, an LLM provider, or any other external service.
 
 - [What actually works](#what-actually-works)
 - [File imports](#file-imports)
+- [Supplied data and signal coverage](#supplied-data-and-signal-coverage)
 - [Recognised CSV columns](#recognised-csv-columns)
 - [Sitemaps and sitemap indexes](#sitemaps-and-sitemap-indexes)
 - [Provider registry](#provider-registry)
@@ -23,7 +24,9 @@
 | Keyword CSV import | `POST /api/v1/keywords/import`, `import_keywords` job | **Working** for delimited text |
 | Competitor keyword CSV | `source_type=competitor_csv` | **Working** as imported keyword rows with competitor evidence; no competitor site is queried |
 | Screaming Frog / Sitebulb CSV | `source_type=screaming_frog` / `sitebulb` | **Working** as URL/metric enrichment via the generic CSV column mapper |
-| GSC / GA4-style CSV | `source_type=gsc` / `ga4` / `analytics` | **Working** as URL-level metrics on `UrlRecord`; it does not create `AnalyticsRecord` rows |
+| GSC / GA4-style CSV | `source_type=gsc` / `ga4` / `analytics` | **Working** as URL-level metrics on `UrlRecord` and as verbatim supplied rows; it does not create `AnalyticsRecord` rows |
+| Private/vendor signal exports | `source_type=rank_tracking`, `authority`, `lighthouse`, `crux`, `serp_features`, `paid_ads`, `gbp`, `historical_audit` | **Working** as verbatim `SuppliedMetric` rows; query/domain/location-only files no longer require a URL column |
+| Supplied-signal API | `GET /api/v1/integrations/supplied-signals`, `GET /api/v1/integrations/supplied-records` | **Working**; reports row counts, source types, periods, samples and original metrics |
 | JSON / XLSX upload | `parse_table()` → `imports/url-list` job and keyword import | **Working** for JSON arrays/objects and XLSX first worksheet; values are converted to strings and mapped by header |
 | OAuth / API-key provider modes | registry declarations only | **Not implemented** |
 | Live LLM answer sampling | none | **Not implemented** |
@@ -43,13 +46,15 @@ The crawler (`POST /api/v1/crawler/start`) is a separate capability: it fetches 
 | `file` | `gsc_export.csv` | Required. |
 | `project_id` | `1` | Required; project access is checked. |
 | `source_type` | `gsc` | Default `csv_urls`; must be in `SOURCE_TYPES` below. |
-| `data_kind` | `imported` | Default `imported`; retained on every URL record. |
+| `data_kind` | `synthetic_verification` | Default `imported`; retained on URL records and every supplied row. Use `synthetic_verification` for test files so they can never be mistaken for real client data. |
 
 Allowed `source_type` values (from `backend/app/api/v1/imports.py`):
 
 ```
 csv_urls, sitemap, sitemap_index, gsc, ga4, cms, screaming_frog,
-sitebulb, backlinks, keyword_csv, competitor_csv, analytics
+sitebulb, backlinks, keyword_csv, competitor_csv, analytics,
+rank_tracking, authority, lighthouse, crux, serp_features,
+paid_ads, gbp, historical_audit
 ```
 
 Allowed extensions: `.csv`, `.tsv`, `.txt`, `.xml`, `.json`, `.xlsx`. CSV/TSV/TXT are delimiter-sniffed; JSON accepts an array of objects or an object with `items`/`rows`/`data`; XLSX reads the first worksheet's header row and converts cell values to strings. Uploads are capped by `MAX_UPLOAD_MB` (default 50 MB), sanitised to a safe filename, written under `data/uploads/<project_id>/`, and processed by the `import_file` background job. The response is `202` with a `job_id`:
@@ -58,7 +63,9 @@ Allowed extensions: `.csv`, `.tsv`, `.txt`, `.xml`, `.json`, `.xlsx`. CSV/TSV/TX
 { "job_id": 42, "status": "queued", "file": "gsc_export.csv", "bytes": 18320 }
 ```
 
-`GET /api/v1/imports/sources?project_id=1` shows `row_count`, `rejected_count`, `data_kind` and `meta_info` with the detected **column mapping** and the first 20 errors. That mapping is the audit trail for how a vendor export was interpreted.
+`GET /api/v1/imports/sources?project_id=1` shows `row_count`, `rejected_count`, `data_kind` and `meta_info` with the detected **column mapping**, the first 20 errors and `supplied_metric_rows`. That mapping is the audit trail for how a vendor export was interpreted.
+
+The Integrations page performs this exact multipart call and waits for the returned `job_id`; after the job succeeds it refreshes signal coverage, the verbatim row table and recent imports.
 
 ### Inline URL list
 
@@ -79,6 +86,53 @@ The demo generator uses the same URL model but labels every record `synthetic`; 
 
 ---
 
+## Supplied data and signal coverage
+
+Every import also writes its original rows to `supplied_metrics`, a verbatim store that is separate from the interpreted URL inventory. This is what makes a private signal honest: the audit never calls a vendor API and never estimates a private metric, but if the user supplies a real export the UI can prove it.
+
+| Source type | Signal | What it can supply |
+| --- | --- | --- |
+| `gsc` | `gsc` | Search Console queries, impressions, clicks, CTR and position |
+| `ga4`, `analytics` | `ga4` | Sessions, conversions and revenue |
+| `keyword_csv`, `competitor_csv` | `keywords` | Keyword volume, difficulty and CPC |
+| `rank_tracking` | `rank` | Positions and history |
+| `backlinks` | `backlinks` | Inbound backlinks and referring domains |
+| `authority` | `authority` | Third-party domain authority |
+| `lighthouse` | `performance` | Lighthouse / Core Web Vitals |
+| `crux` | `crux` | CrUX field data |
+| `serp_features` | `serp` | SERP features and rich results |
+| `paid_ads` | `paid` | Paid keywords, ads and spend |
+| `gbp` | `local` | Google Business Profile and local visibility |
+| `historical_audit` | `historical` | Retained audit history and trends |
+
+The `supplied_metrics` row keeps `project_id`, `source`, `signal`, `data_kind`, `dimension`, `period_start`, `period_end`, the original `metrics` dict and the parent `data_source_id`. Dimensions are detected from URL/page/query/keyword/domain/location-style columns; dates from date/period/day/month/week-style columns. If no URL-like column exists, URL-enrichment sources still populate the inventory but query/domain/location exports are accepted as verbatim supplied rows instead of failing.
+
+### APIs
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  "https://serpscope-api.onrender.com/api/v1/integrations/supplied-signals?project_id=1"
+
+curl -H "Authorization: Bearer $TOKEN" \
+  "https://serpscope-api.onrender.com/api/v1/integrations/supplied-records?project_id=1&signal=gsc&limit=50"
+```
+
+`supplied-signals` returns all 12 signals with `supplied`, `rows`, `sources`, `latest_period` and a small `sample`. `supplied-records` returns up to 500 original rows for one signal. Both endpoints enforce project access.
+
+### Effect on the public audit
+
+`build_public_audit()` reads the same store and adds:
+
+- `supplied_data` with per-signal status, row counts, source types and samples;
+- a dynamic `missing_data` register — for example, the GSC statement disappears only after `gsc` rows exist;
+- `source_registry` entries of type `user_supplied_export` with confidence `user_declared`;
+- `data_kinds` entries such as `user_supplied:gsc`;
+- report sections and PPT notes that name the datasets actually supplied.
+
+The Gap & Fix Center reads `supplied_data` to change matrix rows such as GA4, GSC, ranks, backlinks, performance, local and history to `Supplied`, and exposes the same object in its JSON gap-pack export. The derived public-evidence health score still uses only crawl findings; supplied data improves context, not a fabricated score.
+
+---
+
 ## Recognised CSV columns
 
 Column detection is case-insensitive and alias-based (`URL_COLUMN_ALIASES` and `_find_col` in `imports.py` / `import_jobs.py`). Delimiters `,`, `;`, tab and `|` are sniffed; UTF-8 BOM is handled.
@@ -96,7 +150,7 @@ Column detection is case-insensitive and alias-based (`URL_COLUMN_ALIASES` and `
 | Title | `title`, `page title`, `h1` |
 | Referring domains | `referring domains`, `domains`, `backlinks` |
 
-If no URL-like column is found the job fails with `No URL-like column found. Columns: ...` — inspect the job result and the source record.
+If no URL-like column is found in `csv_urls`, `cms`, `screaming_frog` or `sitebulb`, the job fails with `No URL-like column found. Columns: ...`. Query/domain/location-style exports declared as `gsc`, `rank_tracking`, `gbp`, etc. are accepted as verbatim supplied rows instead of being forced through URL enrichment.
 
 **GSC-style example** (export → URL inventory):
 
@@ -154,7 +208,7 @@ Values are carried through with their source name and `confidence`; the platform
 
 **Live public-audit discovery is separate from file import.** `CrawlEngine._discover_sitemaps()` fetches `/robots.txt`, robots-declared `Sitemap:` URLs plus `/sitemap.xml` and `/sitemap_index.xml`, expands one index level into child sitemaps, stores every fetched document as a raw `CrawlObservation`, and records `Crawl.summary.sitemap` (`declared_sitemaps`, `sitemap_files`, `sitemap_urls`, `errors`). Same-host `<loc>` entries are upserted as `data_kind=public_sitemap`, `source=sitemap`, `in_sitemap=true` with provenance `sitemap-discovery`, so orphan analysis can distinguish sitemap-only URLs from discovered links. The robots document and explicit allow/disallow rules for 12 known AI/search agents are stored under `Crawl.summary.robots`; they are evidence of declared policy, **not** a guarantee of answer-engine inclusion.
 
-Public-audit outputs never call GSC, GA4, rank tracking or LLM APIs. The audit response includes a `source_registry` (`robots.txt`, `sitemap files` and `crawl observations` = verified; `rule engine` = derived; `Search Console / GA4` = `not_supplied`) and `missing_data` statements for every private source that could upgrade the analysis later.
+Public-audit outputs never call GSC, GA4, rank tracking or LLM APIs. The audit response includes a `source_registry` (`robots.txt`, `sitemap files` and `crawl observations` = verified; `rule engine` = derived; `Search Console / GA4` = `not_supplied` only when no GSC/GA4 export was supplied) and a dynamic `missing_data` register for every private source that could upgrade the analysis later. Uploaded exports are registered as `user_supplied_export` / `user_declared` and listed in `supplied_data`.
 
 ---
 
@@ -226,9 +280,10 @@ Be explicit about these in interviews:
 
 1. **No live vendor API calls.** There is no OAuth handshake, token refresh, provider client, rate-limit handling, or GSC/GA4/Semrush/Ahrefs/GBP/Merchant request code.
 2. **JSON and XLSX parsing is structural only.** `parse_table()` reads the first XLSX worksheet with `openpyxl` and accepts JSON arrays of objects or objects with `items`/`rows`/`data`; all values are converted to strings before header mapping. Nested JSON values are stringified, so provider-specific payload shapes still need a dedicated adapter. XLSX is also fully supported for **exports** via `openpyxl`.
-3. **AnalyticsRecord rows are not created by file imports.** URL-level metrics from CSV land on `UrlRecord`. The demo generator creates GSC/GA4-style `AnalyticsRecord` rows directly for reporting demonstrations.
+3. **AnalyticsRecord rows are not created by file imports.** URL-level metrics from CSV land on `UrlRecord`, and verbatim private rows land on `SuppliedMetric`. The demo generator creates GSC/GA4-style `AnalyticsRecord` rows directly for reporting demonstrations.
 4. **No JavaScript rendering** in the crawler (`javascript_rendering: false` in defaults).
 5. **No automatic sitemap fetching**, no incremental recrawl scheduling beyond the workflow tick, and no deployment of redirects.
 6. **No LLM provider call.** `llm_provider` is a registry entry only; AI-search observations are manual or synthetic, and readiness is rule-based. No answer-engine inclusion or traffic outcome is guaranteed.
+7. **No inference of private metrics.** Volume, rank, traffic, backlink authority, Core Web Vitals and local visibility are never guessed from public HTML. They change from `Not supplied` only when labelled rows are actually stored.
 
 See [ROADMAP.md](ROADMAP.md) for prioritised next steps and [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for the endpoint catalogue.

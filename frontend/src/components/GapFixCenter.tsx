@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowUpRight, Copy, Download, Gauge, Search, ShieldAlert, Sparkles, Zap } from 'lucide-react';
+import { ArrowUpRight, Copy, Database, Download, Gauge, Search, ShieldAlert, Sparkles, Zap } from 'lucide-react';
 import { errorMessage, get, unwrapList } from '../lib/api';
 import { num, titleCase } from '../lib/format';
 import type { PublicAuditData } from '../pages/CustomPages';
@@ -210,6 +210,12 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
   const keywordRows = useMemo(() => keywords.data ? unwrapList<Row>(keywords.data).items : [], [keywords.data]);
   const mappingRows = useMemo(() => mappings.data ? unwrapList<Row>(mappings.data).items : [], [mappings.data]);
   const evidenceLoading = issues.loading || competitors.loading || gaps.loading || keywords.loading || mappings.loading;
+  const suppliedData = audit?.supplied_data ?? {};
+  const hasSignal = (...keys: string[]) => keys.some((key) => Boolean(suppliedData[key]?.supplied));
+  const signalRowsCount = (...keys: string[]) => keys.reduce((sum, key) => sum + (suppliedData[key]?.rows ?? 0), 0);
+  const signalPeriod = (...keys: string[]) => keys.map((key) => suppliedData[key]?.latest_period).filter(Boolean).join(', ');
+  const suppliedEntries = Object.entries(suppliedData);
+  const suppliedCount = suppliedEntries.filter(([, value]) => value.supplied).length;
   const score = useMemo(() => audit ? publicEvidenceScore(audit) : null, [audit]);
   const benchmark = useMemo(() => competitorRows
     .map((row) => ({ domain: str(row.domain) || str(row.name), links: outboundLinkCount(row) }))
@@ -245,44 +251,42 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
     const derived = audit.derived_evidence;
     const schemaMissing = arr<Row>(audit.findings).find((f) => f.id === 'missing_schema')?.affected_count ?? 0;
     const aiRules = Object.keys(obj(audit.robots.ai_rules)).length;
-    const missing = audit.missing_data.join(' ').toLowerCase();
-    const supplied = (marker: string) => !missing.includes(marker);
     return [
       {
         signal: 'Organic traffic, sessions and revenue', suite: 'Traffic trends by month and channel',
-        ours: supplied('ga4') ? 'GA4 data supplied' : 'Not supplied — GA4 sessions, conversions and revenue are absent',
-        status: supplied('ga4') ? 'Supplied' : 'Not supplied',
-        fix: 'Import a GA4 CSV export in Integrations. Until then no traffic or revenue number is claimed.',
+        ours: hasSignal('ga4') ? `${num(signalRowsCount('ga4'))} user-supplied GA4 rows${signalPeriod('ga4') ? ` · latest ${signalPeriod('ga4')}` : ''}` : 'Not supplied — GA4 sessions, conversions and revenue are absent',
+        status: hasSignal('ga4') ? 'Supplied' : 'Not supplied',
+        fix: 'Review the verbatim GA4 rows in Integrations. Sessions, conversions and revenue are claimed only as supplied.',
       },
       {
         signal: 'Search queries, impressions, CTR, position', suite: 'GSC query and landing-page report',
-        ours: supplied('search console') ? 'Search Console data supplied' : 'Not supplied — no GSC queries, clicks or average positions',
-        status: supplied('search console') ? 'Supplied' : 'Not supplied',
-        fix: 'Import a Search Console export. The roadmap will then weight pages using observed queries, not guesses.',
+        ours: hasSignal('gsc') ? `${num(signalRowsCount('gsc'))} user-supplied Search Console rows${signalPeriod('gsc') ? ` · latest ${signalPeriod('gsc')}` : ''}` : 'Not supplied — no GSC queries, clicks or average positions',
+        status: hasSignal('gsc') ? 'Supplied' : 'Not supplied',
+        fix: 'Review the verbatim rows in Integrations. No query is claimed unless a row was supplied.',
       },
       {
         signal: 'Keyword volume, difficulty and CPC', suite: 'Provider estimates for every keyword',
-        ours: `${num(derived?.keywords ?? keywordRows.length)} observed topic candidates; volume, difficulty and CPC are null`,
-        status: 'Derived proxy',
-        fix: 'Candidates come from public titles, H1s, URL paths and anchors. Connect a keyword provider to add estimates.',
+        ours: `${num(derived?.keywords ?? keywordRows.length)} observed topic candidates; ${hasSignal('keywords') ? `${num(signalRowsCount('keywords'))} user-supplied estimate rows` : 'volume, difficulty and CPC are null'}`,
+        status: hasSignal('keywords') ? 'Supplied + derived' : 'Derived proxy',
+        fix: 'Candidates come from public titles, H1s, URL paths and anchors. Upload a keyword export to add real estimates.',
       },
       {
         signal: 'Rank tracking and position history', suite: 'Daily positions per keyword',
-        ours: 'Not supplied — no rank tracking provider connected',
-        status: 'Not supplied',
-        fix: 'Add rank data in Integrations. This audit reports observed pages and topic evidence only.',
+        ours: hasSignal('rank') ? `${num(signalRowsCount('rank'))} user-supplied rank rows${signalPeriod('rank') ? ` · latest ${signalPeriod('rank')}` : ''}` : 'Not supplied — no rank tracking provider connected',
+        status: hasSignal('rank') ? 'Supplied' : 'Not supplied',
+        fix: 'Upload a rank export in Integrations; positions are shown exactly as supplied, never inferred.',
       },
       {
         signal: 'Backlinks and domain authority', suite: 'Referring domains and authority score',
-        ours: `${num(derived?.competitors ?? competitorRows.length)} external hostnames observed in outbound links; no inbound backlink data`,
-        status: 'Partial / observed',
-        fix: 'Inbound backlinks and authority are not supplied. Competitor hostnames are outbound-link candidates, not market-share claims.',
+        ours: `${num(derived?.competitors ?? competitorRows.length)} outbound hostnames observed${hasSignal('backlinks') || hasSignal('authority') ? `; ${num(signalRowsCount('backlinks', 'authority'))} user-supplied inbound/authority rows` : '; no inbound backlink data'}`,
+        status: hasSignal('backlinks') || hasSignal('authority') ? 'Supplied + observed' : 'Partial / observed',
+        fix: 'Upload inbound backlink or authority exports to add real data. Outbound hostnames are link candidates, not market-share claims.',
       },
       {
         signal: 'Top pages by performance', suite: 'Best pages by traffic and conversions',
-        ours: `${num(audit.coverage.inventory_urls)} inventory URLs, ${num(audit.coverage.fetched_urls)} fetched public pages, ${num(audit.counts.page_types?.article ?? 0)} articles`,
-        status: 'Observed',
-        fix: 'Pages are ranked by crawl evidence. Add analytics to rank them by business impact.',
+        ours: `${num(audit.coverage.inventory_urls)} inventory URLs, ${num(audit.coverage.fetched_urls)} fetched public pages, ${num(audit.counts.page_types?.article ?? 0)} articles${hasSignal('ga4') ? `; ${num(signalRowsCount('ga4'))} user-supplied analytics rows` : ''}`,
+        status: hasSignal('ga4') ? 'Supplied + observed' : 'Observed',
+        fix: hasSignal('ga4') ? 'Review the supplied analytics rows in Integrations; crawl evidence remains separate.' : 'Pages are ranked by crawl evidence. Upload GA4 data to rank them by business impact.',
       },
       {
         signal: 'Overall SEO health score', suite: 'Derived public-evidence score, not a vendor score',
@@ -322,27 +326,27 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
       },
       {
         signal: 'Page speed and Core Web Vitals', suite: 'Lighthouse and field performance',
-        ours: 'Not supplied — no Lighthouse or field performance dataset was imported',
-        status: 'Not supplied',
-        fix: 'Import Lighthouse or CrUX data in Integrations. Response status alone is not a speed score.',
+        ours: hasSignal('performance') || hasSignal('crux') ? `${num(signalRowsCount('performance', 'crux'))} user-supplied performance rows${signalPeriod('performance', 'crux') ? ` · latest ${signalPeriod('performance', 'crux')}` : ''}` : 'Not supplied — no Lighthouse or field performance dataset was imported',
+        status: hasSignal('performance') || hasSignal('crux') ? 'Supplied' : 'Not supplied',
+        fix: 'Upload Lighthouse or CrUX exports in Integrations. Response status alone is not a speed score.',
       },
       {
         signal: 'Local SEO and Google Business Profile', suite: 'Map pack and local rankings',
-        ours: 'Not supplied — no GBP, NAP or location dataset was supplied',
-        status: 'Not supplied',
-        fix: 'Import GBP and location pages. Local visibility cannot be inferred from a public crawl.',
+        ours: hasSignal('local') ? `${num(signalRowsCount('local'))} user-supplied GBP/local rows${signalPeriod('local') ? ` · latest ${signalPeriod('local')}` : ''}` : 'Not supplied — no GBP, NAP or location dataset was supplied',
+        status: hasSignal('local') ? 'Supplied' : 'Not supplied',
+        fix: 'Upload a GBP/local export in Integrations. Local visibility cannot be inferred from a public crawl.',
       },
       {
         signal: 'Paid ads and SERP features', suite: 'Ad traffic, snippets and rich results',
-        ours: 'Not supplied — no SERP or advertising data was sampled',
-        status: 'Not supplied',
-        fix: 'Add a SERP/ads provider if these signals matter. Schema presence is reported separately, not as a rich-result claim.',
+        ours: hasSignal('serp', 'paid') ? `${num(signalRowsCount('serp', 'paid'))} user-supplied SERP/paid rows${signalPeriod('serp', 'paid') ? ` · latest ${signalPeriod('serp', 'paid')}` : ''}` : 'Not supplied — no SERP or advertising data was sampled',
+        status: hasSignal('serp', 'paid') ? 'Supplied' : 'Not supplied',
+        fix: 'Upload SERP-feature or paid-ads exports in Integrations. Schema presence is reported separately, not as a rich-result claim.',
       },
       {
         signal: 'Historical trends and forecasting', suite: 'Month-over-month movement',
-        ours: 'Not supplied — only the current public crawl is observed',
-        status: 'Not supplied',
-        fix: 'Re-run scheduled audits and retain snapshots. Future movements must never be presented as measured history.',
+        ours: hasSignal('historical') ? `${num(signalRowsCount('historical'))} user-supplied historical rows${signalPeriod('historical') ? ` · latest ${signalPeriod('historical')}` : ''}` : 'Not supplied — only the current public crawl is observed',
+        status: hasSignal('historical') ? 'Supplied' : 'Not supplied',
+        fix: 'Upload retained audit snapshots in Integrations or re-run scheduled audits. Future movements must never be presented as measured history.',
       },
     ];
   }, [audit, issueRows, competitorRows, gapRows, keywordRows, mappingRows, score]);
@@ -472,8 +476,9 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
     generated_at: new Date().toISOString(),
     project_id: projectId,
     domain: audit?.meta.domain ?? '',
-    source: 'public evidence audit only; no GSC, GA4, rank or traffic data claimed',
+    source: 'public evidence audit; vendor data appears only when a user supplied and labelled it',
     signal_coverage: signalRows,
+    supplied_data: suppliedData,
     health_score: score,
     competitor_benchmark: benchmark,
     priority_fix_queue: fixQueue,
@@ -536,6 +541,31 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
       <div className="mt-5 rounded-xl border border-edge bg-canvas/40 p-4">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
+            <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-white"><Database className="h-4 w-4 text-emerald-400" /> User-supplied data in this audit <Badge tone={suppliedCount ? 'good' : 'bad'}>{suppliedCount}/{suppliedEntries.length} signals supplied</Badge></h3>
+            <p className="mt-1 max-w-3xl text-[11px] leading-5 text-muted">Rows below are verbatim user uploads, not inferred by the public crawl. Unsupplied vendor signals stay explicit gaps.</p>
+          </div>
+          <Link to="/integrations" className="inline-flex items-center gap-1 text-[11px] font-semibold text-accent hover:underline">Open Integrations <ArrowUpRight className="h-3 w-3" /></Link>
+        </div>
+        <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          {suppliedEntries.map(([key, value]) => (
+            <div key={key} className="rounded-lg border border-edge bg-panel/40 px-3 py-2">
+              <div className="flex items-center justify-between gap-2 text-[11px]">
+                <span className="truncate text-slate-300">{value.label}</span>
+                <Badge tone={value.supplied ? 'good' : 'bad'}>{value.supplied ? 'Supplied' : 'Not supplied'}</Badge>
+              </div>
+              <div className="mt-1 text-[10px] text-muted">
+                {value.supplied
+                  ? `${num(value.rows)} rows${value.sources.length ? ` · ${value.sources.join(', ')}` : ''}${value.latest_period ? ` · latest ${value.latest_period}` : ''}`
+                  : 'No user export supplied'}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-5 rounded-xl border border-edge bg-canvas/40 p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
             <h3 className="flex flex-wrap items-center gap-2 text-sm font-semibold text-white"><ArrowUpRight className="h-4 w-4 text-accent" /> Observed-host benchmark <Badge tone="neutral">Outbound links only</Badge></h3>
             <p className="mt-1 max-w-3xl text-[11px] leading-5 text-muted">External hostnames found in this site&apos;s public outbound links, ranked by observed link count. This is not a backlink, authority or market-share benchmark.</p>
           </div>
@@ -564,7 +594,7 @@ export function GapFixCenter({ projectId, audit, dataVersion }: { projectId: num
                   <div className="mt-0.5 text-[10px] text-muted">{row.suite}</div>
                 </td>
                 <td className="p-3 text-slate-300">{row.ours}</td>
-                <td className="p-3"><Badge tone={row.status === 'Not supplied' ? 'bad' : row.status === 'Derived proxy' ? 'warn' : 'good'}>{row.status}</Badge></td>
+                <td className="p-3"><Badge tone={row.status === 'Not supplied' ? 'bad' : row.status.includes('Derived') || row.status.includes('Partial') ? 'warn' : 'good'}>{row.status}</Badge></td>
                 <td className="p-3 text-muted">{row.fix}</td>
               </tr>
             ))}

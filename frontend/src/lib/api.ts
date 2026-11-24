@@ -57,6 +57,12 @@ export async function patch<T = unknown>(path: string, body?: unknown, config?: 
   return response.data;
 }
 
+/** Multipart upload for user-supplied vendor exports. */
+export async function uploadFile<T = unknown>(path: string, form: FormData): Promise<T> {
+  const response: AxiosResponse<T> = await api.post(path, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+  return response.data;
+}
+
 export type Page<T = Record<string, unknown>> = {
   items: T[];
   total: number;

@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Activity, BarChart3, CheckCircle2, Clock3, Database, Download, FileStack,
   FolderPlus, Globe2, Play, Presentation, RefreshCw, Rocket, Search,
-  ShieldAlert, Sparkles, TriangleAlert,
+  ShieldAlert, Sparkles, TriangleAlert, UploadCloud,
 } from 'lucide-react';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { ActionModal } from '../components/ActionModal';
 import { DataTable, type Row } from '../components/DataTable';
 import { GapFixCenter } from '../components/GapFixCenter';
 import { Badge, Drawer, ErrorState, JsonBlock, KeyValue, PageHeader, ProvenanceNote, Section, Spinner } from '../components/ui';
-import { downloadFile, errorMessage, get, post, unwrapList, unwrapNamedLists, waitForJob, type Job } from '../lib/api';
+import { downloadFile, errorMessage, get, post, unwrapList, unwrapNamedLists, uploadFile, waitForJob, type Job } from '../lib/api';
 import { compactJson, humanKey, num, titleCase } from '../lib/format';
 import type { ModuleAction, ModuleConfig } from '../lib/modules';
 import { useApp } from '../state/AppContext';
@@ -58,6 +58,10 @@ export type PublicAuditData = {
     competitors: number; keywords: number; keyword_gaps: number; keyword_mappings: number;
     method: string; candidate_definition: string;
   };
+  supplied_data?: Record<string, {
+    label: string; supplied: boolean; rows: number; sources: string[]; latest_period: string;
+    sample: { dimension: string; period: string; metrics: Record<string, string> }[];
+  }>;
   source_registry: { source: string; type: string; confidence: string; used_for: string[] }[];
   missing_data: string[];
   deliverables: string[];
@@ -915,6 +919,177 @@ function SettingsDocsPage() {
   );
 }
 
+/* ------------------------------- Integrations -------------------------------- */
+
+type SignalStatus = {
+  signal: string; label: string; supplied: boolean; rows: number;
+  sources: string[]; latest_period: string;
+  sample: { dimension: string; period: string; metrics: Record<string, string> }[];
+};
+
+const UPLOAD_KINDS: [string, string][] = [
+  ['gsc', 'Search Console export (query/page CSV)'],
+  ['ga4', 'GA4 export (sessions / conversions / revenue)'],
+  ['keyword_csv', 'Keyword volume / difficulty / CPC'],
+  ['rank_tracking', 'Rank tracking positions over time'],
+  ['backlinks', 'Inbound backlinks / referring domains'],
+  ['authority', 'Domain authority score'],
+  ['lighthouse', 'Lighthouse audit JSON/CSV'],
+  ['crux', 'CrUX field Core Web Vitals'],
+  ['serp_features', 'SERP features / rich results'],
+  ['paid_ads', 'Paid ads / paid keywords / spend'],
+  ['gbp', 'Google Business Profile / local visibility'],
+  ['historical_audit', 'Retained audit history / trends'],
+  ['sitemap', 'XML sitemap'],
+  ['csv_urls', 'URL inventory list'],
+];
+
+function IntegrationsPage() {
+  const { projectId, dataVersion, bumpData, notify } = useApp();
+  const [kind, setKind] = useState('gsc');
+  const [dataKind, setDataKind] = useState('user_supplied');
+  const [file, setFile] = useState<File | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [signal, setSignal] = useState('gsc');
+
+  const signals = useRemote<{ items: SignalStatus[] }>(projectId ? `/integrations/supplied-signals?project_id=${projectId}` : null, [projectId, dataVersion]);
+  const records = useRemote<{ items: Row[] }>(projectId ? `/integrations/supplied-records?project_id=${projectId}&signal=${signal}&limit=50` : null, [projectId, dataVersion, signal]);
+  const providers = useRemote<{ items: Row[], note?: string }>('/integrations/providers', []);
+  const sources = useRemote<{ items: Row[] }>(projectId ? `/imports/sources?project_id=${projectId}` : null, [projectId, dataVersion]);
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!projectId || !file) return;
+    setBusy(true);
+    setMessage('');
+    try {
+      const form = new FormData();
+      form.append('file', file);
+      form.append('project_id', String(projectId));
+      form.append('source_type', kind);
+      form.append('data_kind', dataKind);
+      const queued = await uploadFile<{ job_id: number }>('/imports/upload', form);
+      const job = await waitForJob(queued.job_id, undefined, 300_000);
+      if (job.status !== 'succeeded') throw new Error(job.error || job.message || `Import ${job.status}`);
+      setSignal(signals.data?.items.find((item) => item.signal === kind)?.signal ?? signal);
+      setMessage(`Imported ${file.name} as ${kind}. The audit now marks this signal as supplied.`);
+      signals.reload(); records.reload(); sources.reload(); bumpData();
+      notify('Import completed; signal coverage refreshed.', 'success');
+    } catch (cause) {
+      setMessage(errorMessage(cause));
+      notify(errorMessage(cause), 'error');
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const supplied = signals.data?.items.filter((item) => item.supplied) ?? [];
+
+  return (
+    <div className="animate-fade-in">
+      <PageHeader
+        eyebrow="Automation · integrations"
+        title="Data supplied by you"
+        description="Upload an export from a tool you already pay for. Rows are stored verbatim with their file and data-kind label; no vendor API is called and no private metric is inferred."
+        actions={<button className="btn" onClick={() => { signals.reload(); records.reload(); sources.reload(); bumpData(); }}><RefreshCw className="h-3.5 w-3.5" /> Refresh</button>}
+      />
+      <div className="mb-5"><ProvenanceNote>Vendor-only signals stay as <strong>Not supplied</strong> until you upload a real export. Demo or verification files must use a synthetic data-kind label.</ProvenanceNote></div>
+
+      <div className="grid gap-5 xl:grid-cols-[minmax(320px,0.8fr)_1.2fr]">
+        <Section title="Upload a declared export" description="CSV, TSV, JSON, XLSX or XML sitemap. The job reports its own progress.">
+          {!projectId ? <div className="py-8 text-center text-xs text-muted">Select a project first.</div> : (
+            <form className="space-y-3" onSubmit={submit}>
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted">Dataset
+                <select className="mt-1 w-full rounded-lg border border-edge bg-canvas/60 px-3 py-2 text-xs text-ink outline-none" value={kind} onChange={(e) => setKind(e.target.value)}>
+                  {UPLOAD_KINDS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+              </label>
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted">Data-kind label
+                <select className="mt-1 w-full rounded-lg border border-edge bg-canvas/60 px-3 py-2 text-xs text-ink outline-none" value={dataKind} onChange={(e) => setDataKind(e.target.value)}>
+                  <option value="user_supplied">user_supplied</option>
+                  <option value="synthetic_verification">synthetic_verification</option>
+                  <option value="imported">imported</option>
+                </select>
+              </label>
+              <label className="block text-[11px] font-semibold uppercase tracking-wider text-muted">File
+                <input type="file" className="mt-1 block w-full text-xs text-slate-300 file:mr-2 file:rounded-md file:border-0 file:bg-accent/15 file:px-3 file:py-1.5 file:text-xs file:text-accent" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+              </label>
+              <button className="btn btn-primary w-full justify-center" disabled={busy || !file}><UploadCloud className="h-3.5 w-3.5" /> {busy ? 'Importing…' : 'Import and refresh signals'}</button>
+              {message ? <div className="rounded-lg border border-edge bg-canvas/50 px-3 py-2 text-[11px] leading-5 text-slate-300">{message}</div> : null}
+              {signals.error || sources.error ? <div className="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-[11px] text-danger">{[signals.error, sources.error].filter(Boolean).join(' ')}</div> : null}
+            </form>
+          )}
+        </Section>
+
+        <Section title="Signal coverage" description={`${supplied.length} of ${signals.data?.items.length ?? 0} vendor signals currently backed by user-supplied rows.`}>
+          {signals.loading ? <Spinner /> : (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {signals.data?.items.map((item) => (
+                <button key={item.signal} onClick={() => setSignal(item.signal)} className={`rounded-lg border px-3 py-2 text-left transition ${signal === item.signal ? 'border-accent/50 bg-accent/10' : 'border-edge bg-canvas/40 hover:border-accent/30'}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="truncate text-[11px] font-semibold text-ink">{item.label}</span>
+                    <Badge tone={item.supplied ? 'good' : 'bad'}>{item.supplied ? 'Supplied' : 'Not supplied'}</Badge>
+                  </div>
+                  <div className="mt-1 text-[10px] text-muted">{num(item.rows)} verbatim rows{item.latest_period ? ` · latest ${item.latest_period}` : ''}{item.sources.length ? ` · ${item.sources.join(', ')}` : ''}</div>
+                </button>
+              ))}
+            </div>
+          )}
+        </Section>
+      </div>
+
+      <Section className="mt-5" title={`Supplied rows · ${signal}`} description="Original imported columns, unchanged. Choose a signal above to inspect its rows.">
+        {records.loading ? <Spinner /> : records.data?.items.length ? (
+          <div className="max-h-96 overflow-auto rounded-xl border border-edge">
+            <table className="w-full text-left text-[11px]">
+              <thead className="sticky top-0 bg-elevated text-[10px] uppercase tracking-wider text-muted">
+                <tr><th className="p-2.5">Dimension</th><th className="p-2.5">Period</th><th className="p-2.5">Verbatim metrics</th></tr>
+              </thead>
+              <tbody>
+                {records.data.items.map((row) => (
+                  <tr key={String(row.id)} className="border-t border-edge align-top">
+                    <td className="p-2.5 font-medium text-ink">{String(row.dimension || '—')}</td>
+                    <td className="p-2.5 text-muted">{String(row.period || '—')}</td>
+                    <td className="p-2.5 text-slate-400">{compactJson(row.metrics, 320)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : <div className="py-8 text-center text-xs text-muted">No rows were supplied for this signal yet.</div>}
+      </Section>
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+        <Section title="Provider registry" description={providers.data?.note}>
+          {providers.loading ? <Spinner /> : (
+            <div className="space-y-2">
+              {providers.data?.items.map((row) => (
+                <div key={String(row.provider)} className="flex items-center justify-between gap-2 rounded-lg border border-edge bg-canvas/40 px-3 py-2 text-[11px]">
+                  <span className="text-ink">{String(row.display_name)}</span>
+                  <span className="text-muted">{(row.modes as string[] | undefined)?.join(' · ')}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Section>
+        <Section title="Recent imports" description="Every file import records its source type, row count and detected columns.">
+          {sources.loading ? <Spinner /> : sources.data?.items.length ? (
+            <div className="max-h-72 space-y-2 overflow-auto">
+              {sources.data.items.map((row) => (
+                <div key={String(row.id)} className="rounded-lg border border-edge bg-canvas/40 px-3 py-2 text-[10px] leading-5 text-muted">
+                  <span className="font-semibold text-ink">{String(row.name)}</span> · {String(row.source_type)} · {num(row.row_count)} rows · {String(row.data_kind)}
+                  <div className="mono">{compactJson(row.meta_info, 220)}</div>
+                </div>
+              ))}
+            </div>
+          ) : <div className="py-8 text-center text-xs text-muted">No imports recorded yet.</div>}
+        </Section>
+      </div>
+    </div>
+  );
+}
+
 /* --------------------------------- Dispatcher --------------------------------- */
 
 export function CustomPage({ module }: { module: ModuleConfig }) {
@@ -922,6 +1097,7 @@ export function CustomPage({ module }: { module: ModuleConfig }) {
     case 'overview': return <OverviewPage />;
     case 'projects': return <ProjectsPage />;
     case 'crawler': return <CrawlerPage />;
+    case 'integrations': return <IntegrationsPage />;
     case 'demo': return <DemoCentrePage />;
     case 'settings': return <SettingsDocsPage />;
     default: return <ErrorState message="Custom page not implemented" />;

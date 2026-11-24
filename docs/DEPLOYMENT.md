@@ -47,7 +47,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 On startup the API:
 
 1. Creates `UPLOAD_DIR` and `EXPORT_DIR`.
-2. Runs `init_db()` → `Base.metadata.create_all()`, creating all 41 tables if absent.
+2. Runs `init_db()` → `Base.metadata.create_all()`, creating all 42 tables if absent.
 3. If the `users` table is empty, creates the demo organisation `Demo Organisation` (`demo-organisation`) and owner `demo@serpscope.local` with password `demo1234`, plus an owner `Membership`.
 4. Starts the inline worker thread if `RUN_JOBS_IN_API=true`.
 

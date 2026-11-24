@@ -22,6 +22,7 @@ from app.models.keywords import Keyword, KeywordMapping
 from app.models.operations import Report
 from app.models.projects import Project
 from app.services import crawler as crawler_service
+from app.services.supplied_metrics import SIGNAL_LABELS, supplied_signals
 
 SEVERITY_ORDER = {"Critical": 0, "High": 1, "Medium": 2, "Low": 3, "Info": 4, "Positive": 5}
 
@@ -416,6 +417,67 @@ def build_public_audit(db: Session, project_id: int, crawl_id: int | None = None
         )) or 0,
     }
 
+    raw_signals = supplied_signals(db, project_id)
+    supplied_data = {
+        key: {
+            "label": SIGNAL_LABELS[key],
+            "supplied": bool(value["supplied"]),
+            "rows": int(value["rows"]),
+            "sources": value["sources"],
+            "latest_period": value["latest_period"],
+            "sample": value["sample"],
+        }
+        for key, value in raw_signals.items()
+    }
+
+    def has_signal(*keys: str) -> bool:
+        return any(supplied_data[key]["supplied"] for key in keys)
+
+    missing_data: list[str] = []
+    if not has_signal("gsc"):
+        missing_data.append("No Search Console queries, impressions, clicks or average positions were supplied.")
+    if not has_signal("ga4"):
+        missing_data.append("No GA4 sessions, conversions or revenue were supplied.")
+    if not has_signal("keywords"):
+        missing_data.append("No keyword volume, difficulty or CPC dataset was supplied.")
+    if not has_signal("rank"):
+        missing_data.append("No rank tracking positions or history were supplied.")
+    if not has_signal("backlinks", "authority"):
+        missing_data.append("No inbound backlink or domain-authority dataset was supplied.")
+    if not has_signal("performance", "crux"):
+        missing_data.append("No Lighthouse, CrUX or Core Web Vitals dataset was supplied.")
+    if not has_signal("local"):
+        missing_data.append("No GBP, NAP or local-visibility dataset was supplied.")
+    if not has_signal("serp", "paid"):
+        missing_data.append("No SERP-feature or paid-ads dataset was supplied.")
+    if not has_signal("historical"):
+        missing_data.append("No retained audit history was supplied; only the current crawl is observed.")
+    missing_data.extend([
+        "No JavaScript-rendered DOM was captured; client-only content may be missing.",
+        "No authenticated, staging or private pages were crawled.",
+        "AI answer visibility is not sampled; only manually observed evidence can be reported.",
+        "Competitor domains are link-observed candidates only; third-party rankings, traffic and market share were not supplied unless a provider export was uploaded.",
+    ])
+
+    source_registry = [
+        {"source": "robots.txt", "type": "public_document", "confidence": "verified", "used_for": ["crawler permissions", "AI agent policy", "sitemap discovery"]},
+        {"source": "sitemap files", "type": "public_document", "confidence": "verified", "used_for": ["URL universe", "orphan reconciliation"]},
+        {"source": "crawl observations", "type": "observed_http", "confidence": "verified", "used_for": ["status", "headers", "on-page HTML", "timing"]},
+        {"source": "observed outbound links", "type": "observed_public_evidence", "confidence": "verified", "used_for": ["candidate competitor domains", "anchor-text topic evidence"]},
+        {"source": "derived keyword candidates", "type": "derived_from_observed_html", "confidence": "explained", "used_for": ["title/H1/anchor topic inventory", "keyword-to-page suggestions"]},
+        {"source": "rule engine", "type": "derived", "confidence": "explained", "used_for": ["issues", "priority", "roadmap"]},
+    ]
+    for key, value in supplied_data.items():
+        if value["supplied"]:
+            source_registry.append({
+                "source": f"user-supplied: {key}",
+                "type": "user_supplied_export",
+                "confidence": "user_declared",
+                "used_for": [f"{value['rows']} verbatim rows from {', '.join(value['sources'])}"],
+            })
+    if not has_signal(*[key for key in supplied_data]):
+        source_registry.append({"source": "Search Console / GA4", "type": "not_supplied", "confidence": "none", "used_for": ["not used; no private data claimed"]})
+
     audit: dict = {
         "meta": {
             "project_id": project_id,
@@ -427,7 +489,11 @@ def build_public_audit(db: Session, project_id: int, crawl_id: int | None = None
             "crawl_id": crawl.id if crawl else None,
             "crawl_name": crawl.name if crawl else None,
             "crawl_config": crawl.config if crawl else {},
-            "data_kinds": ["live_crawl" if not project.is_demo else "synthetic", "public_sitemap", "robots.txt", "derived_rules"],
+            "data_kinds": [
+                "live_crawl" if not project.is_demo else "synthetic",
+                "public_sitemap", "robots.txt", "derived_rules",
+                *([f"user_supplied:{key}" for key, value in supplied_data.items() if value["supplied"]]),
+            ],
         },
         "coverage": {
             "discovered_urls": int(summary.get("discovered", 0)),
@@ -458,24 +524,9 @@ def build_public_audit(db: Session, project_id: int, crawl_id: int | None = None
             "method": "Observed outbound links, page titles, H1s and URL paths from the public crawl. No search volume, difficulty, rank or traffic is claimed.",
             "candidate_definition": "A competitor is an external hostname linked by a crawled page; it is a candidate for review, not a verified market-share claim.",
         },
-        "source_registry": [
-            {"source": "robots.txt", "type": "public_document", "confidence": "verified", "used_for": ["crawler permissions", "AI agent policy", "sitemap discovery"]},
-            {"source": "sitemap files", "type": "public_document", "confidence": "verified", "used_for": ["URL universe", "orphan reconciliation"]},
-            {"source": "crawl observations", "type": "observed_http", "confidence": "verified", "used_for": ["status", "headers", "on-page HTML", "timing"]},
-            {"source": "observed outbound links", "type": "observed_public_evidence", "confidence": "verified", "used_for": ["candidate competitor domains", "anchor-text topic evidence"]},
-            {"source": "derived keyword candidates", "type": "derived_from_observed_html", "confidence": "explained", "used_for": ["title/H1/anchor topic inventory", "keyword-to-page suggestions"]},
-            {"source": "rule engine", "type": "derived", "confidence": "explained", "used_for": ["issues", "priority", "roadmap"]},
-            {"source": "Search Console / GA4", "type": "not_supplied", "confidence": "none", "used_for": ["not used; no private data claimed"]},
-        ],
-        "missing_data": [
-            "No Search Console queries, impressions, clicks or average positions were supplied.",
-            "No GA4 sessions, conversions or revenue were supplied.",
-            "No keyword volume, difficulty or rank tracking provider was connected.",
-            "No JavaScript-rendered DOM was captured; client-only content may be missing.",
-            "No authenticated, staging or private pages were crawled.",
-            "AI answer visibility is not sampled; only manually observed evidence can be reported.",
-            "Competitor domains are link-observed candidates only; third-party rankings, traffic and market share were not supplied.",
-        ],
+        "supplied_data": supplied_data,
+        "source_registry": source_registry,
+        "missing_data": missing_data,
         "deliverables": [
             "Site audit JSON/CSV/XLSX/PDF",
             "Editable PPT board deck",
@@ -530,15 +581,23 @@ def _report_sections(audit: dict) -> list[dict]:
             ],
         },
         {
-            "heading": "5. With and without vendor access",
+            "heading": "5. User-supplied datasets actually used",
+            "lines": [
+                f"{value['label']}: {value['rows']} verbatim rows from {', '.join(value['sources'])}"
+                + (f" (latest period {value['latest_period']})" if value["latest_period"] else "")
+                for value in audit.get("supplied_data", {}).values() if value["supplied"]
+            ] or ["No private or vendor dataset was supplied; every vendor-only signal stays 'Not supplied'."],
+        },
+        {
+            "heading": "6. With and without vendor access",
             "lines": [
                 "Without access: the full audit, PPT and roadmap are produced from public evidence alone.",
-                "With access later: import GSC/GA4 exports to weight real queries, clicks, sessions and conversions.",
-                "Vendor access upgrades prioritisation; it is never required for the audit to exist.",
+                "With access: upload GSC/GA4, rank, backlink, Lighthouse, SERP, paid, local or history exports in Integrations.",
+                "Uploaded values are stored verbatim and labelled user-supplied; they upgrade prioritisation but are never inferred.",
             ],
         },
         {
-            "heading": "6. What this audit does not claim",
+            "heading": "7. What this audit does not claim",
             "lines": audit["missing_data"],
         },
     ]
@@ -553,9 +612,10 @@ def to_ppt_slides(audit: dict) -> list[dict]:
             meta["domain"],
             f"Generated {meta['generated_at']} from public, source-tracked evidence",
             f"{coverage['fetched_urls']} URLs fetched · {coverage['sitemap_entries']} sitemap entries · robots respected: {coverage['robots_respected']}",
-            "Works with or without Search Console / Analytics access",
+            "Works with public evidence alone; user-supplied exports are labelled verbatim",
         ],
-        "note": "Source: SERPScope crawl, robots.txt, sitemap files and explained rules. No vendor data was supplied.",
+        "note": "Source: SERPScope crawl, robots.txt, sitemap files and explained rules. "
+                + ("User-supplied datasets: " + ", ".join(k for k, v in audit.get("supplied_data", {}).items() if v["supplied"]) if any(v["supplied"] for v in audit.get("supplied_data", {}).values()) else "No vendor data was supplied."),
     }]
     slides.append({
         "title": "Evidence baseline",

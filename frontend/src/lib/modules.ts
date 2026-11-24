@@ -52,7 +52,7 @@ export type ModuleConfig = {
   accent?: 'sky' | 'violet' | 'emerald' | 'amber' | 'rose';
   tabs: ModuleTab[];
   actions: ModuleAction[];
-  custom?: 'overview' | 'projects' | 'crawler' | 'demo' | 'settings';
+  custom?: 'overview' | 'projects' | 'crawler' | 'integrations' | 'demo' | 'settings';
 };
 
 const P = '{projectId}';
@@ -270,7 +270,8 @@ export const MODULES: ModuleConfig[] = [
   },
   {
     id: 'integrations', title: 'Integrations', short: 'Integrations', group: 'Automation', icon: Plug, accent: 'emerald',
-    description: 'Provider registry and connection records. Secrets are encrypted and never returned by list endpoints.',
+    description: 'Upload declared vendor exports, see which signals are truly supplied, and review provider records. No live vendor API is called.',
+    custom: 'integrations',
     tabs: [
       { key: 'providers', label: 'Available providers', path: '/integrations/providers', named: true },
       { key: 'connected', label: 'Connected', path: `/integrations?project_id=${P}` },

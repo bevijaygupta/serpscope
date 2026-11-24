@@ -21,6 +21,8 @@ MAX_BYTES = settings.max_upload_mb * 1024 * 1024
 SOURCE_TYPES = {
     "csv_urls", "sitemap", "sitemap_index", "gsc", "ga4", "cms", "screaming_frog",
     "sitebulb", "backlinks", "keyword_csv", "competitor_csv", "analytics",
+    "rank_tracking", "authority", "lighthouse", "crux", "serp_features",
+    "paid_ads", "gbp", "historical_audit",
 }
 
 

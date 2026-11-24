@@ -90,6 +90,26 @@ class Integration(Base, IdMixin, TimestampMixin):
     notes: Mapped[str] = mapped_column(Text, default="")
 
 
+class SuppliedMetric(Base, IdMixin, TimestampMixin):
+    """A user-supplied vendor row. Values are stored verbatim, never inferred.
+
+    `signal` groups rows into auditable capabilities (gsc, ga4, rank, backlinks,
+    performance, crux, serp, paid, local, historical, keywords). `metrics` keeps
+    the original import columns so the UI can show exactly what was supplied.
+    """
+    __tablename__ = "supplied_metrics"
+    project_id: Mapped[int] = mapped_column(index=True)
+    source: Mapped[str] = mapped_column(String(60), index=True)
+    signal: Mapped[str] = mapped_column(String(40), index=True)
+    data_kind: Mapped[str] = mapped_column(String(40), default="imported", index=True)
+    dimension: Mapped[str] = mapped_column(Text, index=True)
+    period_start: Mapped[str | None] = mapped_column(String(20))
+    period_end: Mapped[str | None] = mapped_column(String(20))
+    metrics: Mapped[dict] = mapped_column(JSON, default=dict)
+    meta_info: Mapped[dict] = mapped_column(JSON, default=dict)
+    data_source_id: Mapped[int | None] = mapped_column(index=True)
+
+
 class DemoScenario(Base, IdMixin, TimestampMixin):
     __tablename__ = "demo_scenarios"
     key: Mapped[str] = mapped_column(String(80), unique=True, index=True)

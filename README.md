@@ -79,7 +79,7 @@ Defined in `frontend/src/lib/modules.ts` and routed through `frontend/src/pages/
 | --- | --- |
 | **Workflow Builder** | Composable, non-destructive step library, manual/scheduled workflows and run history. |
 | **Client / Team** | Organisations, memberships and project permissions with write-role controls. |
-| **Integrations** | Provider registry and connection records with encrypted-at-rest credentials; CSV import is the working mode. |
+| **Integrations** | Declare vendor exports, store their rows verbatim, see which signals are truly supplied, and review provider records. No live vendor API is called. |
 | **Demo Centre** | 12 scenario definitions plus generators for labelled synthetic datasets. |
 | **Settings / Docs** | Provenance vocabulary, methodology summaries, export schemas and a documentation index. |
 
@@ -87,7 +87,7 @@ Defined in `frontend/src/lib/modules.ts` and routed through `frontend/src/pages/
 
 ## Real public audit (no vendor access required)
 
-**Overview → Source-tracked public audit** (or **Crawler → Run public audit**) crawls the selected project domain and produces a report, an editable `.pptx`, a six-month roadmap and CSV/XLSX/JSON/PDF exports. It uses only robots.txt, sitemap files, observed HTTP responses and explained rules. Search Console, GA4, rank tracking and AI-visibility APIs are **not** called.
+**Overview → Source-tracked public audit** (or **Crawler → Run public audit**) crawls the selected project domain and produces a report, an editable `.pptx`, a six-month roadmap and CSV/XLSX/JSON/PDF exports. It uses robots.txt, sitemap files, observed HTTP responses and explained rules. Search Console, GA4, rank tracking and AI-visibility APIs are **not** called; if you upload an export in Integrations, its verbatim rows are labelled as user-supplied and the audit reports exactly which signals changed from `Not supplied` to `Supplied`.
 
 | API | Purpose |
 | --- | --- |
@@ -100,14 +100,14 @@ Defined in `frontend/src/lib/modules.ts` and routed through `frontend/src/pages/
 
 The landing page needs only a website URL. It normalises the host, logs in as the demo owner, finds or creates the project, queues the public audit, waits for the job and opens `/overview` with every section populated. The Overview now includes the **Gap & Fix Center**, which turns the same public evidence into:
 
-- a Ubersuggest-style signal-coverage matrix (traffic, queries, volume/difficulty, ranks, backlinks/authority, top pages, site errors, competitor gaps, internal links, AI readiness and more) with explicit `Not supplied`, `Observed` and `Derived proxy` statuses;
+- a Ubersuggest-style signal-coverage matrix (traffic, queries, volume/difficulty, ranks, backlinks/authority, top pages, site errors, competitor gaps, internal links, AI readiness and more) with explicit `Not supplied`, `Observed`, `Supplied`, `Supplied + observed` and `Derived proxy` statuses; a User-supplied data panel shows the exact row counts, source types and periods behind each supplied signal;
 - a priority queue combining audit findings, technical issue groups, competitor topic gaps and mapped content opportunities, with filters, affected-URL samples, replacement suggestions, confidence, limitations and deep links into the relevant modules;
 - a derived **public-evidence health score** (0–100, per-category breakdown, disclosed formula) that is explicitly labelled as a transparent proxy, **not** Ubersuggest's or any vendor's score;
 - effort estimates (`Easy` / `Medium` / `Hard` / `Review`) with a quick-win filter for easy, high-severity fixes, plus rule-based copy drafts for title, meta, H1 and structured-data issues with a one-click Copy action;
 - an observed-host benchmark that ranks external hostnames by outbound links found in the public crawl, clearly labelled as outbound evidence rather than backlinks, authority or market share;
-- competitor topic evidence, keyword/page mappings, a missing-data register, source/confidence registry and a JSON gap-pack export that now includes `health_score` and `competitor_benchmark`.
+- competitor topic evidence, keyword/page mappings, a missing-data register, source/confidence registry and a JSON gap-pack export that now includes `health_score`, `competitor_benchmark` and `supplied_data`.
 
-No traffic, rank, volume, backlink-authority or AI-citation outcome is invented: vendor-only signals are shown as missing, with a description of how to supply them later. On the hosted Techmagnate audit this view shows **15 coverage rows**, **145 queued fixes**, **15 competitor gaps** and **386 keyword mappings**.
+No traffic, rank, volume, backlink-authority or AI-citation outcome is invented: vendor-only signals stay `Not supplied` until a real labelled export is uploaded. Uploaded rows are stored verbatim in `supplied_metrics`, exposed at `GET /api/v1/integrations/supplied-signals` and `GET /api/v1/integrations/supplied-records`, and echoed in the audit's `source_registry`, `missing_data`, report sections and PPT note. On the hosted Techmagnate audit this view shows **15 coverage rows**, **145 queued fixes**, **15 competitor gaps** and **386 keyword mappings**.
 
 A real end-to-end verification against **https://www.techmagnate.com/** (project 2 on the hosted demo) fetched **60 URLs** from **303 discovered URLs** with a deliberately narrow `max_urls=60`, `max_depth=2` sample; **0 fetches failed**, **60 sitemap entries** from **9 sitemap documents** were stored, and all fetched URLs returned HTTP 200. The default in-app job uses `max_urls=250`, `max_depth=3`, `concurrency=2`, `crawl_delay=1.0` and `respect_robots=true`.
 
@@ -121,7 +121,19 @@ Observed finding groups in that sample:
 | Explicit AI/search crawler rules in robots.txt | 12 | All named agents explicitly allowed; not an inclusion guarantee |
 | Sitemap evidence | 60 entries | 1 index + 8 child sitemaps |
 
-The audit explicitly lists six missing-data statements (no GSC queries/clicks, no GA4 sessions/conversions, no rank provider, no JS-rendered DOM, no private pages, no AI-answer sampling). The six-month roadmap works entirely from public evidence and describes how vendor data would **upgrade** prioritisation later. See [CRAWLER_METHODOLOGY.md](docs/CRAWLER_METHODOLOGY.md#12-public-audit-job) and [DEPLOYMENT.md](docs/DEPLOYMENT.md#3-hosted-portfolio-demo-vercel--render).
+The audit now maintains a dynamic missing-data register for 12 vendor/private signals (GSC, GA4, keywords, rank, backlinks, authority, Lighthouse, CrUX, SERP, paid ads, local/GBP and history) plus the always-public limits: no JavaScript-rendered DOM, no private pages and no AI-answer sampling. The six-month roadmap works entirely from public evidence and describes how vendor data would **upgrade** prioritisation later. See [INTEGRATIONS.md](docs/INTEGRATIONS.md), [CRAWLER_METHODOLOGY.md](docs/CRAWLER_METHODOLOGY.md#12-public-audit-job) and [DEPLOYMENT.md](docs/DEPLOYMENT.md#3-hosted-portfolio-demo-vercel--render).
+
+### User-supplied data (no vendor APIs)
+
+**Integrations → Upload a declared export** accepts GSC, GA4, keyword, rank, backlink, authority, Lighthouse, CrUX, SERP, paid-ads, GBP/local and historical-audit files. Every row is stored verbatim in `supplied_metrics` with its `source_type`, `data_kind`, file name and original columns; no field is inferred, averaged or backfilled. The Integrations page shows signal coverage, the original rows and recent imports, and the Gap Center marks a signal `Supplied` only when backed by stored rows.
+
+| API | Purpose |
+| --- | --- |
+| `POST /api/v1/imports/upload` with `source_type` and optional `data_kind` | Queue a labelled multipart export import. |
+| `GET /api/v1/integrations/supplied-signals?project_id={id}` | Row counts, source types, latest periods and samples for all 12 signals. |
+| `GET /api/v1/integrations/supplied-records?project_id={id}&signal=gsc` | Verbatim rows for one signal. |
+
+For a demo or verification upload choose `data_kind=synthetic_verification`; never present it as real client data. OAuth/API-key provider modes remain declarations only.
 
 ---
 
@@ -214,7 +226,7 @@ This project is a **demonstration of engineering and SEO process**, not a produc
 
 1. **All demo metrics are synthetic.** `backend/app/services/demo.py` invents URLs, clicks, sessions, conversions, revenue, keywords, locations, products and AI observations. Records carry `data_kind = "synthetic"` and a `SYNTHETIC DEMONSTRATION RECORD` note.
 2. **Planted issues are deterministic formulas**, e.g. `i % 137 == 17` creates a high-value 404. Exact counts for a 1,000-URL dataset are in [DEMO_GUIDE.md](docs/DEMO_GUIDE.md#planted-issue-inventory).
-3. **No live vendor API calls are made.** The integration registry lists providers and modes, but only file import is implemented. OAuth/API-key modes are declarations, not working connections. See [INTEGRATIONS.md](docs/INTEGRATIONS.md).
+3. **No live vendor API calls are made.** The integration registry lists providers and modes, but only file import is implemented. Declared vendor exports are stored verbatim and can change a Gap Center signal to `Supplied`; OAuth/API-key modes remain declarations, not working connections. See [INTEGRATIONS.md](docs/INTEGRATIONS.md).
 4. **The demo generator does not crawl.** It invents URLs under `demo.example.com`. The separate public-audit job can fetch authorised public URLs with robots/delay/SSRF protections; its output is labelled `live_crawl`, `public_sitemap`, `robots.txt` and `derived_rules`, and it states what it could not observe.
 5. **Forecasts are arithmetic on user-supplied assumptions** with a relative CTR curve. They are not ranking, traffic or revenue guarantees.
 6. **AI-search readiness is rule-based; visibility is manual observation only.** No answer-engine sampling or provider API is called, and no inclusion outcome is promised.
@@ -229,8 +241,8 @@ The API exposes the vocabulary at `GET /api/v1/meta/data-kinds`, methodologies a
 From `backend/`:
 
 ```bash
-# Fast suite (39 tests in the current tree)
-.venv/Scripts/python -m pytest -q -m "not slow"     # Windows
+# Full suite (46 tests in the current tree)
+.venv/Scripts/python -m pytest -q                    # Windows
 # .venv/bin/python -m pytest -q -m "not slow"       # macOS/Linux
 
 # Include the 100,000-URL acceptance check (marked slow)
@@ -278,7 +290,7 @@ The in-app **Settings / Docs → Docs** tab links to the same documents. `docs/I
 
 - **"Show me a hard problem."** Reconcile a 100k-URL source union into classified orphans, explain why an uncrawled URL is not automatically an orphan, and show the priority components.
 - **"Do you invent data?"** No — I label it. Open **Settings → Provenance** and point at `data_kind` in an export.
-- **"How do you avoid fake vendor claims?"** Open **Integrations → Providers**: CSV modes work, OAuth/API modes are explicitly unimplemented, and credentials are encrypted and never returned.
+- **"How do you avoid fake vendor claims?"** Open **Integrations**: declared CSV/vendor exports work and their rows are shown verbatim; a signal only becomes `Supplied` when rows are stored. OAuth/API modes are explicitly unimplemented, and credentials are encrypted and never returned.
 - **"How does the automation scale?"** Show a job moving `queued → claimed → running → succeeded`, then cancel one, then point to the separate worker option.
 - **"How do you communicate risk?"** Generate a report via **Analytics / Reporting → Generate now** and read the **Data gaps** section before the charts.
 - **"Can you audit a real site without vendor access?"** Select the Techmagnate project, run the public audit, then show the source column, the six-month roadmap and the explicit missing-data list. Vendor data is an upgrade, never a prerequisite.

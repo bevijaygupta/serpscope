@@ -30,6 +30,7 @@ from app.models.operations import (
     Forecast,
     Integration,
     Report,
+    SuppliedMetric,
     Workflow,
     WorkflowRun,
 )
@@ -75,6 +76,7 @@ __all__ = [
     "Forecast",
     "Integration",
     "Report",
+    "SuppliedMetric",
     "Workflow",
     "WorkflowRun",
 ]
