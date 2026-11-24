@@ -28,6 +28,15 @@ class AnalyticsRecord(Base, IdMixin, TimestampMixin):
     collected_at: Mapped[str | None] = mapped_column(String(40))
 
 
+class CaseStudyView(Base, IdMixin, TimestampMixin):
+    """Anonymous case-study page view. No IP, cookie or other PII is stored."""
+    __tablename__ = "case_study_views"
+    project_id: Mapped[int] = mapped_column(index=True)
+    report_id: Mapped[int | None] = mapped_column(index=True)
+    path: Mapped[str] = mapped_column(String(255), default="")
+    source: Mapped[str] = mapped_column(String(40), default="case_study_detail")
+
+
 class Report(Base, IdMixin, TimestampMixin):
     __tablename__ = "reports"
     project_id: Mapped[int] = mapped_column(index=True)

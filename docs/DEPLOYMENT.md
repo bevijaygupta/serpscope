@@ -196,11 +196,11 @@ MAX_UPLOAD_MB=50
 
 ## 6. Operational notes
 
-- **Schema changes:** run `alembic upgrade head` from `backend/` on each deploy. The baseline revision and `init_db()` both call `create_all()` for fresh tables; neither alters columns of an existing database. Any future change must ship as an explicit incremental revision and be tested against a copy of production data.
+- **Schema changes:** run `alembic upgrade head` from `backend/` on each deploy. The baseline revision and `init_db()` both call `create_all()` for fresh tables; neither alters columns of an existing database. Revision `0003_honest_foundation` adds `case_study_views` plus `answer_url`/`locale` on `ai_visibility_records`; it is idempotent and safe to run after `create_all()` has already created them. Because Render's start command does not invoke Alembic, `init_db()` also carries an idempotent compatibility shim that adds only the two missing AI-observation columns on an older database; running the Alembic revision remains the canonical path. Any future change must ship as an explicit incremental revision and be tested against a copy of production data.
 - **Backups:** back up the database and the upload/export volumes together. Integration credentials are Fernet-encrypted with a key derived from `SECRET_KEY`, so **losing or rotating `SECRET_KEY` makes stored credentials unreadable and invalidates all tokens**.
 - **Retention:** `organizations.retention_days` exists (default 365) but no automated purge job was found in the code; retention must be handled operationally.
 - **Job failures:** failed jobs persist `status="failed"`, an `error` string and `finished_at`; the traceback is returned at runtime but not stored. Monitor `jobs` with `status='failed'` or long-lived `status='claimed'`/`running'` rows (there is no visibility timeout or automatic retry).
-- **Worker scheduler:** the `scheduler_tick` job is enqueued by the worker roughly every 60 seconds; ensure only one worker is running if you rely on scheduled workflows.
+- **Worker scheduler:** the `scheduler_tick` job is enqueued roughly every 60 seconds by the standalone worker and, when `RUN_JOBS_IN_API=true`, by the inline API worker too. `due_workflows()` normalises timezone-aware and naive timestamps, so a scheduled workflow that has already run is no longer treated as permanently due. Ensure only one queue owner is active if you rely on scheduled workflows.
 
 ## 7. Production hardening checklist
 

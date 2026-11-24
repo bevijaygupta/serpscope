@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowRight, CheckCircle2, Database, FileText, Globe2, ShieldCheck, Sparkles,
 } from 'lucide-react';
-import { get, errorMessage } from '../lib/api';
+import { get, post, errorMessage } from '../lib/api';
 
 const BASE_URL = 'https://serpscopelive.vercel.app';
+const numViews = (value: number | undefined) => new Intl.NumberFormat('en').format(value ?? 0);
 
 type CaseStudySummary = {
   project_id: number;
@@ -20,6 +21,7 @@ type CaseStudySummary = {
   roadmap_themes: string[];
   top_findings: { title: string; severity: string; affected_count: number }[];
   ai_visibility_status: string;
+  view_count: number;
   case_study_path: string;
   case_study_url: string;
 };
@@ -49,6 +51,7 @@ type CaseStudyDetail = {
   roadmap: { month: number; theme: string; objective: string; deliverables: string[] }[];
   source_registry: { source: string; type: string; confidence: string; used_for: string[] }[];
   missing_data: string[];
+  analytics?: { view_count: number; note: string };
 };
 
 function useSeo(title: string, description: string, path: string, jsonLd: Record<string, unknown>) {
@@ -205,7 +208,7 @@ export function CaseStudies() {
                 ))}
               </div>
               <div className="mt-4 text-[10px] text-muted">
-                AI visibility: {item.ai_visibility_status === 'not_sampled' ? 'Not sampled' : 'Observed'} · Generated {String(item.generated_at).slice(0, 16).replace('T', ' ')} UTC
+                AI visibility: {item.ai_visibility_status === 'not_sampled' ? 'Not sampled' : 'Observed'} · {numViews(item.view_count)} anonymous views · Generated {String(item.generated_at).slice(0, 16).replace('T', ' ')} UTC
               </div>
               <Link to={item.case_study_path} className="btn btn-primary mt-auto w-full justify-center py-2 text-xs">
                 Read case study <ArrowRight className="h-3.5 w-3.5" />
@@ -221,6 +224,8 @@ export function CaseStudies() {
 export function CaseStudyDetail() {
   const { projectId } = useParams();
   const [audit, setAudit] = useState<CaseStudyDetail | null>(null);
+  const [viewCount, setViewCount] = useState<number | null>(null);
+  const recordedView = useRef<string | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(true);
   const domain = audit?.meta.domain || 'Published SEO audit';
@@ -244,7 +249,17 @@ export function CaseStudyDetail() {
   useEffect(() => {
     let cancelled = false;
     get<CaseStudyDetail>(`/public/case-studies/${projectId}`)
-      .then((payload) => { if (!cancelled) setAudit(payload); })
+      .then((payload) => {
+        if (cancelled) return;
+        setAudit(payload);
+        setViewCount(payload.analytics?.view_count ?? 0);
+        if (projectId && recordedView.current !== projectId) {
+          recordedView.current = projectId;
+          void post(`/public/case-studies/${projectId}/view`, { source: 'case_study_detail' })
+            .then(() => setViewCount((count) => (count ?? 0) + 1))
+            .catch(() => { /* analytics is non-critical; never block the case study */ });
+        }
+      })
       .catch((cause) => { if (!cancelled) setError(errorMessage(cause)); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -289,6 +304,12 @@ export function CaseStudyDetail() {
                 </div>
               ))}
             </section>
+
+            {viewCount !== null ? (
+              <p className="mt-3 text-[10px] leading-5 text-muted">
+                {numViews(viewCount)} anonymous page views · {audit.analytics?.note || 'No IP, cookie or user identity is stored.'}
+              </p>
+            ) : null}
 
             <section className="mt-6 rounded-xl border border-violet/30 bg-violet/10 p-5">
               <div className="flex items-center gap-2 text-sm font-semibold text-white"><Sparkles className="h-4 w-4 text-violet-400" /> AI citations, AI Overviews and mentions</div>

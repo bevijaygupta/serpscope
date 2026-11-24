@@ -32,6 +32,19 @@ AI_VISIBILITY_NOTICE = (
     "No live AI Overview, ChatGPT, Claude or Perplexity answers are sampled. "
     "An empty observation log means 'not sampled', not 'not mentioned'."
 )
+# Only explicitly declared, source-labelled observations become claims. Synthetic
+# or unverified imports must never flip the status to "observations_recorded".
+VERIFIED_OBSERVATION_KINDS = {
+    "observed", "verified", "verified_import", "licensed_export", "manual_observation",
+}
+SEVERITY_WEIGHTS = {"Critical": 8, "High": 4, "Medium": 2, "Low": 1}
+HEALTH_SCORE_NOTE = (
+    "SERPScope-derived public-evidence health score: 100 × weighted pass rate. "
+    "Each scored finding passes at 1 − min(affected URLs / fetched URLs, 1); "
+    "weights are Critical 8, High 4, Medium 2, Low 1. "
+    "Informational and positive evidence groups are excluded. "
+    "This is not Ubersuggest's or any vendor's authority score."
+)
 
 
 def _pct(value: float, total: float) -> float:
@@ -79,11 +92,16 @@ def ai_visibility_context(db: Session, project_id: int) -> dict:
     source-labelled observations may become claims, so an empty log is reported
     as `not_sampled` rather than as zero mentions or zero citations.
     """
-    rows = db.scalars(
+    stored = db.scalars(
         select(AiVisibilityRecord)
         .where(AiVisibilityRecord.project_id == project_id)
         .order_by(AiVisibilityRecord.id.desc())
     ).all()
+    rows = [
+        row for row in stored
+        if str(row.data_kind or "").strip().lower() in VERIFIED_OBSERVATION_KINDS
+    ]
+    unverified_rows = len(stored) - len(rows)
     buckets: dict[str, list[AiVisibilityRecord]] = {}
     for row in rows:
         engine = str(row.answer_engine or "Unspecified").strip() or "Unspecified"
@@ -102,15 +120,119 @@ def ai_visibility_context(db: Session, project_id: int) -> dict:
             "latest_observed_at": max(dates) if dates else None,
         })
     all_dates = [str(row.observed_at) for row in rows if row.observed_at]
-    return {
-        "method": "manual_observation_only",
+    result = {
+        "method": "manual_and_imported_observations_only",
         "status": "not_sampled" if not rows else "observations_recorded",
         "notice": AI_VISIBILITY_NOTICE,
         "engines": engines,
         "observation_count": len(rows),
+        "unverified_row_count": unverified_rows,
         "brand_mentions_observed": sum(1 for row in rows if row.brand_mentioned),
         "cited_urls_recorded": sum(1 for row in rows if bool(str(row.cited_url or "").strip())),
         "latest_observed_at": max(all_dates) if all_dates else None,
+    }
+    if unverified_rows:
+        result["verification_note"] = (
+            f"{unverified_rows} row(s) are labelled synthetic or unverified and are excluded from every claim above."
+        )
+    return result
+
+
+def health_score(audit: dict) -> float | None:
+    """Derive a labelled health score from observed finding coverage.
+
+    This is deliberately not a vendor authority score. Audits with no fetched
+    URLs, or with only informational/positive evidence, return ``None`` so the
+    UI can say "not enough evidence" instead of inventing a number.
+    """
+    coverage = audit.get("coverage") or {}
+    fetched = int(coverage.get("fetched_urls") or 0)
+    if fetched <= 0:
+        return None
+    weighted_pass = 0.0
+    total_weight = 0.0
+    for finding in audit.get("findings") or []:
+        if not isinstance(finding, dict):
+            continue
+        weight = SEVERITY_WEIGHTS.get(str(finding.get("severity")))
+        if not weight:
+            continue
+        affected = max(0, int(finding.get("affected_count") or 0))
+        weighted_pass += weight * (1.0 - min(affected / fetched, 1.0))
+        total_weight += weight
+    if not total_weight:
+        return None
+    return round(100.0 * weighted_pass / total_weight, 1)
+
+
+def audit_snapshot(report: "Report") -> dict:
+    """Condense a persisted report into a comparable, source-tracked snapshot."""
+    content = report.content if isinstance(report.content, dict) else {}
+    meta = content.get("meta") or {}
+    coverage = content.get("coverage") or {}
+    findings = [row for row in (content.get("findings") or []) if isinstance(row, dict)]
+    severity_counts: Counter = Counter(str(row.get("severity")) for row in findings)
+    return {
+        "report_id": report.id,
+        "title": report.title,
+        "generated_at": meta.get("generated_at"),
+        "crawl_id": meta.get("crawl_id"),
+        "domain": meta.get("domain"),
+        "fetched_urls": int(coverage.get("fetched_urls") or 0),
+        "discovered_urls": int(coverage.get("discovered_urls") or 0),
+        "sitemap_entries": int(coverage.get("sitemap_entries") or 0),
+        "findings": len(findings),
+        "severity_counts": dict(severity_counts),
+        "health_score": health_score(content),
+        "health_score_note": HEALTH_SCORE_NOTE,
+        "finding_counts": {str(row.get("id")): int(row.get("affected_count") or 0) for row in findings},
+        "finding_titles": {str(row.get("id")): str(row.get("title") or row.get("id")) for row in findings},
+    }
+
+
+def compare_audit_snapshots(base: dict, target: dict) -> dict:
+    """Compare two snapshots without implying ranking, traffic or vendor data."""
+    base_counts = base.get("finding_counts") or {}
+    target_counts = target.get("finding_counts") or {}
+    titles = {**base.get("finding_titles", {}), **target.get("finding_titles", {})}
+
+    def row(key: str) -> dict:
+        return {
+            "id": key,
+            "title": titles.get(key, key),
+            "base": base_counts.get(key, 0),
+            "target": target_counts.get(key, 0),
+            "delta": target_counts.get(key, 0) - base_counts.get(key, 0),
+        }
+
+    numeric_fields = ("fetched_urls", "discovered_urls", "sitemap_entries", "findings")
+    deltas = {key: int(target.get(key) or 0) - int(base.get(key) or 0) for key in numeric_fields}
+    base_score, target_score = base.get("health_score"), target.get("health_score")
+    deltas["health_score"] = (
+        round(float(target_score) - float(base_score), 1)
+        if base_score is not None and target_score is not None else None
+    )
+    severity_fields = sorted(set(base.get("severity_counts") or {}) | set(target.get("severity_counts") or {}))
+    severity_deltas = {
+        key: int((target.get("severity_counts") or {}).get(key, 0))
+             - int((base.get("severity_counts") or {}).get(key, 0))
+        for key in severity_fields
+    }
+    changed = [row(key) for key in sorted(set(base_counts) & set(target_counts))
+               if base_counts[key] != target_counts[key]]
+    changed.sort(key=lambda item: abs(item["delta"]), reverse=True)
+    return {
+        "base": base,
+        "target": target,
+        "deltas": deltas,
+        "severity_deltas": severity_deltas,
+        "new_findings": [row(key) for key in sorted(set(target_counts) - set(base_counts))],
+        "resolved_findings": [row(key) for key in sorted(set(base_counts) - set(target_counts))],
+        "changed_findings": changed,
+        "note": (
+            "Counts compare the same rule set across two public-evidence crawls. "
+            "A resolved finding means the rule group no longer appears; it is not a guarantee of a ranking or traffic change."
+        ),
     }
 
 
@@ -581,6 +703,9 @@ def apply_supplied_data(db: Session, project_id: int, audit: dict) -> dict:
     result["meta"] = meta
     if all(key in result for key in ("meta", "coverage", "counts", "findings", "roadmap")):
         result["sections"] = _report_sections(result)
+        if "health_score" not in result:
+            result["health_score"] = health_score(result)
+            result["health_score_note"] = HEALTH_SCORE_NOTE
     return result
 
 
@@ -692,6 +817,8 @@ def build_public_audit(db: Session, project_id: int, crawl_id: int | None = None
         ],
     }
     audit["findings"] = _findings(db, project_id, crawl, audit)
+    audit["health_score"] = health_score(audit)
+    audit["health_score_note"] = HEALTH_SCORE_NOTE
     audit["roadmap"] = build_roadmap(audit)
     audit["sections"] = _report_sections(audit)
     return audit
@@ -710,6 +837,7 @@ def _report_sections(audit: dict) -> list[dict]:
                 f"The crawler fetched {coverage['fetched_urls']} URLs from {coverage['discovered_urls']} discovered URLs; "
                 f"{coverage['failed_urls']} fetches failed and {coverage['sitemap_entries']} sitemap entries were stored.",
                 f"{len(audit['findings'])} source-tracked finding groups were produced without Search Console or Analytics access.",
+                f"Derived health score: {audit.get('health_score') if audit.get('health_score') is not None else 'not enough evidence'} — {HEALTH_SCORE_NOTE}",
                 "Every figure below comes from robots.txt, sitemap files, observed HTTP responses or explained rules.",
             ],
         },

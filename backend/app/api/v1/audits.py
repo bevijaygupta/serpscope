@@ -6,12 +6,12 @@ import json
 
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import FileResponse, Response
-from sqlalchemy import select
+from sqlalchemy import func, select
 
-from app.api.deps import DB, ProjectDep, UserDep, check_write
+from app.api.deps import DB, ProjectDep, UserDep, check_write, get_project
 from app.api.v1._helpers import download, serialize
 from app.core.config import settings
-from app.models.operations import Report
+from app.models.operations import CaseStudyView, Report
 from app.models.projects import Project
 from app.services import public_audit
 from app.services.exports import export_pptx_report
@@ -31,9 +31,18 @@ ROADMAP_COLUMNS = [
 CASE_STUDY_BASE_URL = "https://serpscopelive.vercel.app"
 
 
+def _case_study_view_counts(db) -> dict[int, int]:
+    """Anonymous view totals per project; no IP, cookie or user id is stored."""
+    rows = db.execute(
+        select(CaseStudyView.project_id, func.count()).group_by(CaseStudyView.project_id)
+    ).all()
+    return {int(project_id): int(count) for project_id, count in rows}
+
+
 def _published_case_studies(db) -> list[dict]:
     """List successful public audits that are safe to publish."""
     projects = db.scalars(select(Project).where(Project.is_demo.is_(False))).all()
+    view_counts = _case_study_view_counts(db)
     items: list[dict] = []
     for project in projects:
         if not (project.settings or {}).get("public_audit"):
@@ -70,6 +79,7 @@ def _published_case_studies(db) -> list[dict]:
                 for row in findings[:3] if isinstance(row, dict)
             ],
             "ai_visibility_status": (content.get("ai_visibility") or {}).get("status", "not_sampled"),
+            "view_count": view_counts.get(project.id, 0),
             "case_study_path": f"/case-studies/{project.id}",
             "case_study_url": f"{CASE_STUDY_BASE_URL}/case-studies/{project.id}",
         })
@@ -179,6 +189,81 @@ def list_public_reports(db: DB, project: ProjectDep):
     return {"items": [serialize(r, ["id", "title", "generated_by", "created_at", "missing_data"]) for r in rows]}
 
 
+@router.get("/projects/{project_id}/public-audit/history")
+def public_audit_history(db: DB, project: ProjectDep):
+    """Every stored public-audit snapshot, oldest first, for honest comparisons."""
+    reports = db.scalars(
+        select(Report).where(
+            Report.project_id == project.id,
+            Report.report_type == "public_audit",
+        ).order_by(Report.id)
+    ).all()
+    snapshots = [public_audit.audit_snapshot(report) for report in reports]
+    return {
+        "items": snapshots,
+        "count": len(snapshots),
+        "source": "persisted_public_audit_reports",
+        "metric_note": public_audit.HEALTH_SCORE_NOTE,
+        "note": "Reports are appended, never overwritten. Historical crawl evidence stays intact.",
+    }
+
+
+@router.get("/projects/{project_id}/public-audit/compare")
+def public_audit_compare(db: DB, project: ProjectDep, base: int | None = None, target: int | None = None):
+    """Compare two snapshots; omit both IDs to compare the two latest reports."""
+    reports = db.scalars(
+        select(Report).where(
+            Report.project_id == project.id,
+            Report.report_type == "public_audit",
+        ).order_by(Report.id.desc())
+    ).all()
+    if not reports:
+        raise HTTPException(404, "No public audit reports found")
+    by_id = {report.id: report for report in reports}
+    target_report = reports[0] if target is None else by_id.get(target)
+    if target_report is None:
+        raise HTTPException(404, "Target report not found")
+    if base is None:
+        older = [report for report in reports if report.id < target_report.id]
+        if not older:
+            return {
+                "comparison_available": False,
+                "note": "Run another public audit to unlock a before/after comparison. Stored reports are never overwritten.",
+                "target": public_audit.audit_snapshot(target_report),
+            }
+        base_report = older[0]
+    else:
+        base_report = by_id.get(base)
+        if base_report is None:
+            raise HTTPException(404, "Base report not found")
+        if base_report.id >= target_report.id:
+            raise HTTPException(400, "Base report must be older than target report")
+    return {
+        "comparison_available": True,
+        **public_audit.compare_audit_snapshots(
+            public_audit.audit_snapshot(base_report),
+            public_audit.audit_snapshot(target_report),
+        ),
+    }
+
+
+@router.get("/projects/{project_id}/case-study-analytics")
+def case_study_analytics(db: DB, project: ProjectDep):
+    """Anonymous, non-PII view totals for the project's published case study."""
+    rows = db.scalars(
+        select(CaseStudyView).where(CaseStudyView.project_id == project.id)
+        .order_by(CaseStudyView.id.desc())
+    ).all()
+    return {
+        "project_id": project.id,
+        "path": f"/case-studies/{project.id}",
+        "published": bool(not project.is_demo and (project.settings or {}).get("public_audit")),
+        "view_count": len(rows),
+        "recent_views": [serialize(row, ["id", "path", "source", "created_at"]) for row in rows[:10]],
+        "note": "Anonymous page views recorded on the public case study. No IP address, cookie, referrer or user identity is stored.",
+    }
+
+
 @public_router.get("/case-studies")
 def published_case_studies(db: DB):
     """Index every successful public audit for discovery and internal linking."""
@@ -220,6 +305,30 @@ def published_case_studies_sitemap(db: DB):
     return Response(content=xml, media_type="application/xml")
 
 
+@public_router.post("/case-studies/{project_id}/view", status_code=201)
+def record_case_study_view(project_id: int, db: DB, payload: dict | None = None):
+    """Record one anonymous page view. No IP, cookie, referrer or user id is kept."""
+    project = db.get(Project, project_id)
+    if project is None or project.is_demo or not (project.settings or {}).get("public_audit"):
+        raise HTTPException(404, "Published audit not found")
+    report = db.scalars(
+        select(Report).where(
+            Report.project_id == project_id,
+            Report.report_type == "public_audit",
+        ).order_by(Report.id.desc()).limit(1)
+    ).first()
+    source = str((payload or {}).get("source") or "case_study_detail")[:40]
+    view = CaseStudyView(
+        project_id=project_id,
+        report_id=report.id if report else None,
+        path=f"/case-studies/{project_id}",
+        source=source,
+    )
+    db.add(view)
+    db.commit()
+    return {"recorded": True, "note": "Anonymous view counted; no client identifier is stored."}
+
+
 @public_router.get("/case-studies/{project_id}")
 def published_case_study(project_id: int, db: DB):
     """Read-only, public-evidence-only audit for a published project."""
@@ -227,4 +336,9 @@ def published_case_study(project_id: int, db: DB):
     if project is None or project.is_demo or not (project.settings or {}).get("public_audit"):
         raise HTTPException(404, "Published audit not found")
     audit = _audit_for_project(db, project_id)
-    return public_audit.public_case_study_view(audit)
+    payload = public_audit.public_case_study_view(audit)
+    payload["analytics"] = {
+        "view_count": _case_study_view_counts(db).get(project_id, 0),
+        "note": "Anonymous page views only; no IP, cookie or user identity is stored.",
+    }
+    return payload

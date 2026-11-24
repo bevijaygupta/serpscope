@@ -139,6 +139,8 @@ class AiVisibilityRecord(Base, IdMixin, TimestampMixin):
     brand_mentioned: Mapped[bool | None] = mapped_column()
     competitor_mentioned: Mapped[list] = mapped_column(JSON, default=list)
     cited_url: Mapped[str] = mapped_column(Text, default="")
+    answer_url: Mapped[str] = mapped_column(Text, default="")
+    locale: Mapped[str] = mapped_column(String(20), default="")
     source: Mapped[str] = mapped_column(String(100), default="manual-observation")
     data_kind: Mapped[str] = mapped_column(String(30), default="observed")
     notes: Mapped[str] = mapped_column(Text, default="")

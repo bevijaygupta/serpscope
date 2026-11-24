@@ -1,7 +1,7 @@
 """Non-destructive workflow execution and simple interval scheduling."""
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from sqlalchemy import select
@@ -9,10 +9,35 @@ from sqlalchemy.orm import Session
 
 from app.core.timeutil import iso, utcnow
 from app.models.operations import Workflow, WorkflowRun
+from app.models.projects import Project
 from app.services import content, domains, issues, keywords, links, orphans, reports
+from app.services.jobs import enqueue
+
+
+def _queue_public_audit(db: Session, project_id: int, config: dict | None) -> dict:
+    """Queue a public-evidence audit instead of running a vendor or destructive step."""
+    project = db.get(Project, project_id)
+    if project is None:
+        raise ValueError("Project not found for scheduled public audit")
+    config = config or {}
+    body = {
+        "start_url": config.get("start_url") or project.domain,
+        "name": config.get("name") or f"Scheduled public audit · {project.domain}",
+        "config": config.get("config") or {},
+    }
+    job = enqueue(
+        db, "public_audit", body["name"], body,
+        project_id=project_id, organization_id=project.organization_id,
+    )
+    return {
+        "status": "queued",
+        "job_id": job.id,
+        "note": "Public audit queued from the workflow. It uses public evidence only and is never synthetic.",
+    }
 
 
 STEP_HANDLERS = {
+    "public_audit": lambda db, p, c: _queue_public_audit(db, p, c),
     "detect_issues": lambda db, p, c: issues.detect_issues(db, p),
     "detect_orphans": lambda db, p, c: orphans.detect_orphans(db, p, c),
     "cluster_keywords": lambda db, p, c: keywords.cluster_keywords(db, p, (c or {}).get("method", "normalized"), c),
@@ -75,7 +100,9 @@ def due_workflows(db: Session) -> list[Workflow]:
             due.append(wf)
             continue
         try:
-            last = datetime.fromisoformat(wf.last_run_at.replace("Z", "+00:00")).replace(tzinfo=None)
+            last = datetime.fromisoformat(wf.last_run_at.replace("Z", "+00:00"))
+            if last.tzinfo is None:
+                last = last.replace(tzinfo=timezone.utc)
         except ValueError:
             due.append(wf)
             continue

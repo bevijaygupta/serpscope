@@ -78,10 +78,18 @@ def supplied_signal_status(db: DB, user: UserDep, project_id: int):
     """Which vendor signals have real user-supplied rows, and how many."""
     get_project(db, project_id, user)
     status = supplied_signals(db, project_id)
-    return {"items": [
-        {"signal": key, "label": SIGNAL_LABELS[key], **value}
-        for key, value in status.items()
-    ]}
+    return {
+        "items": [
+            {"signal": key, "label": SIGNAL_LABELS[key], **value}
+            for key, value in status.items()
+        ],
+        "note": "Statuses are earned by real uploaded rows. No provider API is called and no private metric is inferred.",
+        "status_explanations": {
+            "not_supplied": "No real export was supplied for this signal. The audit says 'Not supplied' instead of guessing.",
+            "supplied": "Verbatim rows from a file you uploaded. Stored with its source and data-kind label; not a live API connection.",
+            "synthetic": "Labelled demo/verification rows. Never presented as real client or vendor performance.",
+        },
+    }
 
 
 @router.get("/supplied-records")

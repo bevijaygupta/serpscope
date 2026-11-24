@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Source-tracked robots.txt and sitemap-index evidence: 12 named AI/search agent rules, sitemap documents, `in_sitemap` provenance and AEO page evidence (question headings, answer paragraph, FAQ/Organization schema).
 - Public SEO landing page and static assets (`robots.txt`, `sitemap.xml`, `llms.txt`, `manifest.webmanifest`, `favicon.svg`, `og-preview.svg`), plus Overview and Crawler entry points for the public audit.
 - Regression tests for audit route registration, PPTX generation and the SQLite crawl-progress path.
+- Honest foundation: stored audit history with before/after comparison and a labelled SERPScope-derived health score; verified AI-observation CSV/JSON import; scheduled `public_audit` workflow step; anonymous, non-PII case-study view analytics; and explicit vendor "Not supplied"/"Supplied"/"Synthetic" status explanations.
 
 ### Changed
 
@@ -26,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Roadmap builder no longer raises `KeyError` for sitemap counts.
 - Sitemap evidence is committed before progress callbacks, preventing SQLite write locks during the one-click job.
 - Audit view no longer fails before the first crawl, and the start endpoint accepts an optional body.
+- Scheduled workflows no longer crash with "can't subtract offset-naive and offset-aware datetimes"; the scheduler now ticks in both the standalone worker and the inline API worker.
 
 ### Added (documentation set)
 

@@ -26,6 +26,7 @@ from app.models.enterprise import (
 )
 from app.models.operations import (
     AnalyticsRecord,
+    CaseStudyView,
     DemoScenario,
     Forecast,
     Integration,
@@ -72,6 +73,7 @@ __all__ = [
     "MigrationProject",
     "Product",
     "AnalyticsRecord",
+    "CaseStudyView",
     "DemoScenario",
     "Forecast",
     "Integration",

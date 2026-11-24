@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from sqlalchemy import create_engine, event
+from sqlalchemy import create_engine, event, inspect, text
 from sqlalchemy.orm import Session, sessionmaker
 
 from app.core.config import settings
@@ -43,3 +43,27 @@ def init_db() -> None:
     from app.models import Base  # noqa: F401  (import registers all tables)
 
     Base.metadata.create_all(bind=engine)
+    _ensure_ai_observation_columns()
+
+
+def _ensure_ai_observation_columns() -> None:
+    """Idempotent shim for hosts that deploy with create_all but not Alembic.
+
+    Revision 0003 ships the same columns as an explicit migration. This guard
+    only adds them when an older database is missing them, so a plain code
+    deploy never leaves the AI module querying non-existent columns.
+    """
+    inspector = inspect(engine)
+    if "ai_visibility_records" not in inspector.get_table_names():
+        return
+    existing = {column["name"] for column in inspector.get_columns("ai_visibility_records")}
+    additions = []
+    if "answer_url" not in existing:
+        additions.append("ALTER TABLE ai_visibility_records ADD COLUMN answer_url TEXT NOT NULL DEFAULT ''")
+    if "locale" not in existing:
+        additions.append("ALTER TABLE ai_visibility_records ADD COLUMN locale VARCHAR(20) NOT NULL DEFAULT ''")
+    if not additions:
+        return
+    with engine.begin() as connection:
+        for statement in additions:
+            connection.execute(text(statement))

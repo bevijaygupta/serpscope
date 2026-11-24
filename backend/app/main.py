@@ -92,7 +92,24 @@ def _inline_worker() -> None:  # pragma: no cover - background loop
         workflow_jobs,
     )
 
+    last_schedule_check = 0.0
     while True:
+        # Match the dedicated worker: scheduled workflows must tick whether the
+        # API process or the standalone worker owns the queue.
+        if time.time() - last_schedule_check > 60:
+            db = None
+            try:
+                from app.services.jobs import enqueue
+
+                db = SessionLocal()
+                enqueue(db, "scheduler_tick", "Scheduled workflow check", {}, created_by=None)
+                db.commit()
+            except Exception:  # noqa: BLE001
+                logger.exception("Inline worker could not enqueue scheduler tick")
+            finally:
+                if db is not None:
+                    db.close()
+            last_schedule_check = time.time()
         job_id = claim_next()
         if job_id is None:
             time.sleep(settings.job_poll_seconds)

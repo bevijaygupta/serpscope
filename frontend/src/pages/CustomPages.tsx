@@ -85,6 +85,33 @@ export type PublicAuditData = {
     owner: string; success_checks: string[]; without_access: string; with_access: string;
   }[];
   sections: { heading: string; lines: string[] }[];
+  health_score?: number | null;
+  health_score_note?: string;
+};
+
+type AuditHistoryItem = {
+  report_id: number; title: string; generated_at: string | null; crawl_id: number | null; domain: string | null;
+  fetched_urls: number; discovered_urls: number; sitemap_entries: number; findings: number;
+  severity_counts: Record<string, number>; health_score: number | null; health_score_note: string;
+  finding_counts: Record<string, number>; finding_titles: Record<string, string>;
+};
+
+type AuditHistory = {
+  items: AuditHistoryItem[]; count: number; source: string; metric_note: string; note: string;
+};
+
+type FindingDelta = { id: string; title: string; base: number; target: number; delta: number };
+
+type AuditComparison = {
+  comparison_available: boolean;
+  note?: string;
+  base?: AuditHistoryItem;
+  target?: AuditHistoryItem;
+  deltas?: Record<string, number | null>;
+  severity_deltas?: Record<string, number>;
+  new_findings?: FindingDelta[];
+  resolved_findings?: FindingDelta[];
+  changed_findings?: FindingDelta[];
 };
 
 async function runPublicAuditJob(projectId: number, startUrl: string, onUpdate?: (job: Job) => void) {
@@ -95,6 +122,86 @@ async function runPublicAuditJob(projectId: number, startUrl: string, onUpdate?:
   const job = await waitForJob(queued.job_id, onUpdate, 900_000);
   if (job.status !== 'succeeded') throw new Error(job.error || job.message || `Audit job ${job.status}`);
   return job;
+}
+
+function AuditHistoryPanel({ projectId, dataVersion }: { projectId: number; dataVersion: number }) {
+  const history = useRemote<AuditHistory>(`/audits/projects/${projectId}/public-audit/history`, [projectId, dataVersion]);
+  const comparison = useRemote<AuditComparison>(`/audits/projects/${projectId}/public-audit/compare`, [projectId, dataVersion]);
+  const items = history.data?.items ?? [];
+  const result = comparison.data;
+
+  return (
+    <details className="mt-4 rounded-lg border border-edge bg-canvas/50 p-3">
+      <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wider text-muted">
+        Audit history & before/after comparison ({history.data?.count ?? 0} snapshots)
+      </summary>
+      <div className="mt-3 space-y-3">
+        <ProvenanceNote>
+          Every public audit is appended as a stored snapshot. The health score below is {history.data?.metric_note || 'a SERPScope-derived public-evidence metric, not a vendor score'}.
+        </ProvenanceNote>
+        {history.loading ? <Spinner /> : history.error ? <ErrorState message={history.error} retry={history.reload} /> : items.length ? (
+          <div className="max-h-64 overflow-auto rounded-lg border border-edge">
+            <table className="w-full text-left text-[11px]">
+              <thead className="text-[10px] uppercase tracking-wider text-muted">
+                <tr><th className="p-2">Generated</th><th className="p-2">Report</th><th className="p-2">Fetched</th><th className="p-2">Findings</th><th className="p-2">Health</th></tr>
+              </thead>
+              <tbody>
+                {items.map((item) => (
+                  <tr key={item.report_id} className="border-t border-edge">
+                    <td className="p-2 text-ink">{String(item.generated_at || 'unknown').slice(0, 16).replace('T', ' ')}</td>
+                    <td className="p-2 text-muted">#{item.report_id} · crawl {item.crawl_id ?? 'n/a'}</td>
+                    <td className="p-2 text-muted">{num(item.fetched_urls)}</td>
+                    <td className="p-2 text-muted">{num(item.findings)}</td>
+                    <td className="p-2 font-semibold text-ink">{item.health_score === null ? 'Not enough evidence' : `${item.health_score}/100`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : <div className="py-6 text-center text-xs text-muted">No stored public audits yet. Run one to create the first snapshot.</div>}
+
+        {comparison.loading ? <Spinner /> : comparison.error ? <ErrorState message={comparison.error} retry={comparison.reload} /> : result?.comparison_available ? (
+          <div className="space-y-3">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+              {[
+                ['Fetched URLs', result.deltas?.fetched_urls],
+                ['Findings', result.deltas?.findings],
+                ['Sitemap URLs', result.deltas?.sitemap_entries],
+                ['Health score', result.deltas?.health_score],
+                ['High severity', result.severity_deltas?.High ?? 0],
+              ].map(([label, value]) => (
+                <div key={String(label)} className="panel-flat p-2.5">
+                  <div className="text-[10px] uppercase tracking-wider text-muted">{label}</div>
+                  <div className="mt-1 text-sm font-semibold text-ink">
+                    {value === null || value === undefined ? 'n/a' : `${(value as number) > 0 ? '+' : ''}${value}`}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="grid gap-3 md:grid-cols-3">
+              {[
+                ['New findings', result.new_findings ?? []],
+                ['Resolved findings', result.resolved_findings ?? []],
+                ['Changed findings', result.changed_findings ?? []],
+              ].map(([label, rows]) => (
+                <div key={String(label)} className="rounded-lg border border-edge bg-canvas/40 p-3">
+                  <div className="text-[11px] font-semibold text-ink">{String(label)} ({(rows as FindingDelta[]).length})</div>
+                  <ul className="mt-2 space-y-1 text-[10px] leading-4 text-muted">
+                    {(rows as FindingDelta[]).map((row) => (
+                      <li key={row.id}>• {row.title}: {row.base} → {row.target} ({row.delta > 0 ? '+' : ''}{row.delta})</li>
+                    ))}
+                    {(rows as FindingDelta[]).length === 0 ? <li>None</li> : null}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <p className="text-[10px] leading-5 text-muted">{result.note}</p>
+          </div>
+        ) : <div className="py-6 text-center text-xs text-muted">{result?.note || 'Run another public audit to compare snapshots.'}</div>}
+        <p className="text-[10px] text-muted">Scheduled audits are available in Automation → Workflows → “Queue public audit”. No vendor API is called.</p>
+      </div>
+    </details>
+  );
 }
 
 function PublicAuditPanel() {
@@ -172,13 +279,14 @@ function PublicAuditPanel() {
       ) : null}
       {audit.loading ? <Spinner /> : audit.error ? <ErrorState message={audit.error} retry={audit.reload} /> : audit.data ? (
         <>
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-8">
             {[
               ['Domain', audit.data.meta.domain],
               ['Fetched URLs', num(audit.data.coverage.fetched_urls)],
               ['Discovered', num(audit.data.coverage.discovered_urls)],
               ['Sitemap URLs', num(audit.data.coverage.sitemap_entries)],
               ['Findings', num(audit.data.findings.length)],
+              ['Health score', audit.data.health_score === null || audit.data.health_score === undefined ? 'Not enough evidence' : `${audit.data.health_score}/100`],
               ['Competitors', num(audit.data.derived_evidence?.competitors ?? 0)],
               ['Keywords', num(audit.data.derived_evidence?.keywords ?? 0)],
             ].map(([label, value]) => (
@@ -188,6 +296,8 @@ function PublicAuditPanel() {
               </div>
             ))}
           </div>
+
+          <AuditHistoryPanel projectId={projectId} dataVersion={dataVersion} />
 
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             <div>
@@ -963,7 +1073,9 @@ function IntegrationsPage() {
   const [message, setMessage] = useState('');
   const [signal, setSignal] = useState('gsc');
 
-  const signals = useRemote<{ items: SignalStatus[] }>(projectId ? `/integrations/supplied-signals?project_id=${projectId}` : null, [projectId, dataVersion]);
+  const signals = useRemote<{
+    items: SignalStatus[]; note?: string; status_explanations?: Record<string, string>;
+  }>(projectId ? `/integrations/supplied-signals?project_id=${projectId}` : null, [projectId, dataVersion]);
   const records = useRemote<{ items: Row[] }>(projectId ? `/integrations/supplied-records?project_id=${projectId}&signal=${signal}&limit=50` : null, [projectId, dataVersion, signal]);
   const providers = useRemote<{ items: Row[], note?: string }>('/integrations/providers', []);
   const sources = useRemote<{ items: Row[] }>(projectId ? `/imports/sources?project_id=${projectId}` : null, [projectId, dataVersion]);
@@ -1004,7 +1116,20 @@ function IntegrationsPage() {
         description="Upload an export from a tool you already pay for. Rows are stored verbatim with their file and data-kind label; no vendor API is called and no private metric is inferred."
         actions={<button className="btn" onClick={() => { signals.reload(); records.reload(); sources.reload(); bumpData(); }}><RefreshCw className="h-3.5 w-3.5" /> Refresh</button>}
       />
-      <div className="mb-5"><ProvenanceNote>Vendor-only signals stay as <strong>Not supplied</strong> until you upload a real export. Demo or verification files must use a synthetic data-kind label.</ProvenanceNote></div>
+      <div className="mb-5"><ProvenanceNote>Vendor-only signals stay as <strong>Not supplied</strong> until you upload a real export. Demo or verification files must use a synthetic data-kind label. {signals.data?.note}</ProvenanceNote></div>
+
+      <div className="mb-5 grid gap-3 md:grid-cols-3">
+        {[
+          ['Not supplied', signals.data?.status_explanations?.not_supplied || 'No real export was supplied; the audit says Not supplied instead of guessing.'],
+          ['Supplied', signals.data?.status_explanations?.supplied || 'Verbatim rows from your file, kept with source and data-kind. Not a live API connection.'],
+          ['Synthetic', signals.data?.status_explanations?.synthetic || 'Labelled demo rows. Never presented as real client or vendor performance.'],
+        ].map(([label, text]) => (
+          <div key={label} className="rounded-xl border border-edge bg-panel/40 p-3">
+            <div className="text-[11px] font-semibold text-white">{label}</div>
+            <div className="mt-1 text-[10px] leading-5 text-muted">{text}</div>
+          </div>
+        ))}
+      </div>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(320px,0.8fr)_1.2fr]">
         <Section title="Upload a declared export" description="CSV, TSV, JSON, XLSX or XML sitemap. The job reports its own progress.">
@@ -1049,7 +1174,7 @@ function IntegrationsPage() {
         </Section>
       </div>
 
-      <Section className="mt-5" title={`Supplied rows · ${signal}`} description="Original imported columns, unchanged. Choose a signal above to inspect its rows.">
+      <Section className="mt-5" title={`Supplied rows · ${signal}`} description="Original imported columns, unchanged. This is your uploaded file, not a live vendor connection. Choose a signal above to inspect its rows.">
         {records.loading ? <Spinner /> : records.data?.items.length ? (
           <div className="max-h-96 overflow-auto rounded-xl border border-edge">
             <table className="w-full text-left text-[11px]">

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { RefreshCw, Zap } from 'lucide-react';
 import { DataTable, type Row } from '../components/DataTable';
 import { ActionModal } from '../components/ActionModal';
+import { AiObservationImport } from '../components/AiObservationImport';
 import { Badge, Drawer, ErrorState, JsonBlock, KeyValue, PageHeader, ProvenanceNote, Section, Spinner } from '../components/ui';
 import { errorMessage, get, unwrapList, unwrapNamedLists } from '../lib/api';
 import { compactJson, humanKey, num } from '../lib/format';
@@ -156,6 +157,8 @@ function GenericModule({ module }: { module: ModuleConfig }) {
       />
 
       <div className="mb-5"><ProvenanceNote>{tab?.hint || undefined}</ProvenanceNote></div>
+
+      {module.id === 'ai' && activeTab === 'observations' && projectId ? <AiObservationImport /> : null}
 
       {module.tabs.length > 1 ? (
         <div className="mb-4 flex gap-1 overflow-x-auto rounded-lg border border-edge bg-panel/60 p-1">

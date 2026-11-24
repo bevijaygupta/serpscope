@@ -15,6 +15,7 @@ WORKFLOW_COLUMNS = ["id", "name", "description", "trigger", "schedule", "steps",
 RUN_COLUMNS = ["id", "workflow_id", "status", "step_results", "error", "started_at", "finished_at", "job_id"]
 
 STEP_LIBRARY = [
+    {"type": "public_audit", "label": "Queue public audit (public evidence)", "safe": True},
     {"type": "crawl", "label": "Schedule crawl", "safe": True},
     {"type": "detect_issues", "label": "Detect new issues", "safe": True},
     {"type": "detect_orphans", "label": "Identify orphans", "safe": True},
@@ -31,7 +32,10 @@ STEP_LIBRARY = [
 
 @router.get("/step-library")
 def step_library():
-    return {"items": STEP_LIBRARY, "note": "No destructive step is available."}
+    return {
+        "items": STEP_LIBRARY,
+        "note": "No destructive step is available. 'Queue public audit' appends a new source-tracked public audit from crawl evidence; no vendor API is called.",
+    }
 
 
 @router.get("")

@@ -290,8 +290,9 @@ Clustering methods advertised by the API: `exact, normalized, token, semantic, i
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
-| POST | `/api/v1/ai-search/observations` | Bearer (write) | Record a manual observation (201). |
-| GET | `/api/v1/ai-search/observations` | Bearer + project | Paged observations. |
+| POST | `/api/v1/ai-search/observations` | Bearer (write) | Record a manual observation (201). Accepts `answer_url` and `locale` alongside the original fields. |
+| POST | `/api/v1/ai-search/observations/import` | Bearer (write) | Import verified observations from `{"rows":[...]}` (or `{"csv":"..."}` for CSV/TSV text). Each row keeps its declared `source` and `data_kind`; accepts `question`, `answer_engine`, `observed_at`, `brand_mentioned`, `competitor_mentioned`, `cited_url`, `answer_url`, `locale`, `notes`. Returns accepted/rejected counts and the resulting visibility status (201). No answer engine is queried. |
+| GET | `/api/v1/ai-search/observations` | Bearer + project | Paged observations, including `answer_url` and `locale`. |
 | POST | `/api/v1/ai-search/audit` | Bearer (write) | Queue readiness audit (202). |
 | GET | `/api/v1/ai-search/readiness` | Bearer + project | Paged readiness items; filters `dimension,status`. |
 | GET | `/api/v1/ai-search/export` | Bearer + project | Export `kind=readiness\|observations`. |
@@ -314,7 +315,7 @@ Clustering methods advertised by the API: `exact, normalized, token, semantic, i
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
-| GET | `/api/v1/workflows/step-library` | Bearer | Allowed, non-destructive step types. |
+| GET | `/api/v1/workflows/step-library` | Bearer | Allowed, non-destructive step types, including `public_audit` ("Queue public audit"). |
 | GET | `/api/v1/workflows` | Bearer + project | Workflows for the project. |
 | POST | `/api/v1/workflows` | Bearer (write) | Create workflow; steps validated against the library (201). |
 | PATCH | `/api/v1/workflows/{workflow_id}` | Bearer (write) | Update workflow. |
@@ -330,6 +331,8 @@ Clustering methods advertised by the API: `exact, normalized, token, semantic, i
 | GET | `/api/v1/integrations` | Bearer | Connection records; optional `project_id` filter. |
 | POST | `/api/v1/integrations` | Bearer (write) | Create/upsert a connection; encrypts credentials (201). |
 | GET | `/api/v1/integrations/{integration_id}` | Bearer | Connection metadata; **never returns secrets**. |
+| GET | `/api/v1/integrations/supplied-signals` | Bearer + `project_id` | Per-signal supply status plus `status_explanations` for "Not supplied", "Supplied" and "Synthetic". Statuses are earned by uploaded rows; no provider API is called. |
+| GET | `/api/v1/integrations/supplied-records` | Bearer + `project_id`, `signal` | Verbatim uploaded rows for a signal. |
 
 ### Demo (`demo.py`)
 
@@ -348,11 +351,23 @@ Clustering methods advertised by the API: `exact, normalized, token, semantic, i
 | GET | `/api/v1/audits/projects/{project_id}/public-audit` | Bearer + project | Return the persisted public-audit report when one exists, otherwise assemble a source-tracked audit from stored evidence: `meta`, `coverage`, `robots`, `counts`, `findings`, `roadmap`, `source_registry`, `missing_data`, `sections`. Returning the persisted report stops a later manual crawl from silently changing the published numbers. Also works before the first audit. |
 | GET | `/api/v1/audits/projects/{project_id}/public-audit/export` | Bearer + project | `format=pptx\|pdf\|csv\|xlsx\|json`; `section=all\|findings\|roadmap`. `section=all&format=json` returns the complete audit JSON with every segment; other sections return flat rows. PPTX is a real editable PowerPoint deck built with `python-pptx`. |
 | GET | `/api/v1/audits/projects/{project_id}/public-audit/reports` | Bearer + project | Up to 50 persisted `public_audit` report records. |
-| GET | `/api/v1/public/case-studies` | Public | Index of every successfully published real-domain audit. Each row carries the case-study path, coverage counts, top findings and AI-visibility status. |
+| GET | `/api/v1/audits/projects/{project_id}/public-audit/history` | Bearer + project | Every stored public-audit snapshot (oldest first): generated time, coverage, findings, severity counts, derived health score and per-finding counts. |
+| GET | `/api/v1/audits/projects/{project_id}/public-audit/compare` | Bearer + project | Compare two snapshots via `base=<report_id>&target=<report_id>`; omit both for the two latest. Returns deltas, new/resolved/changed findings and an honesty note. Fewer than two reports returns `comparison_available: false` instead of an invented diff. |
+| GET | `/api/v1/audits/projects/{project_id}/case-study-analytics` | Bearer + project | Anonymous case-study view count, recent view records and a no-PII statement. |
+| GET | `/api/v1/public/case-studies` | Public | Index of every successfully published real-domain audit. Each row carries the case-study path, coverage counts, top findings, AI-visibility status and anonymous view count. |
 | GET | `/api/v1/public/case-studies/sitemap.xml` | Public | Dynamic XML sitemap of the case-study index and every published case-study URL. |
-| GET | `/api/v1/public/case-studies/{project_id}` | Public | Read-only, public-evidence-only audit. Returns 404 unless the project's `settings.public_audit` is `true` and the project is not the synthetic demo. User-supplied exports and manual AI observations are excluded. |
+| GET | `/api/v1/public/case-studies/{project_id}` | Public | Read-only, public-evidence-only audit. Returns 404 unless the project's `settings.public_audit` is `true` and the project is not the synthetic demo. User-supplied exports and manual AI observations are excluded. Includes an `analytics.view_count` derived from anonymous views. |
+| POST | `/api/v1/public/case-studies/{project_id}/view` | Public | Record one anonymous page view (201). Stores project, report, path and source only — no IP, cookie, referrer or user identity. |
 
 The queued job defaults to `max_urls=250`, `max_depth=3`, `concurrency=2`, `crawl_delay=1.0`, `timeout=12`, `respect_robots=true`, `sitemap_discovery=true`, `follow_external=false`, `allow_private=false` and `mode=live`. It runs crawl → orphan/link graph → issue/content/AEO rules → report persistence → automatic case-study publication for real domains. No Search Console, GA4, ranking or AI-visibility API is called; those gaps are listed in `missing_data`. The audit now includes an `ai_visibility` object: with no verified observations its status is `not_sampled`, never a claim of zero mentions or zero citations.
+
+### Honest-foundation additions
+
+- **Derived health score:** `100 × weighted pass rate`, where each scored finding passes at `1 − min(affected URLs / fetched URLs, 1)` and weights are Critical 8, High 4, Medium 2, Low 1. Informational and positive groups are excluded. When there is no crawl coverage or no scored finding the value is `null` ("not enough evidence"). It is explicitly **not** Ubersuggest's or any vendor's score and is labelled as SERPScope-derived in every API response, UI and export.
+- **History and comparison:** reports are appended, never overwritten. The comparison endpoint uses stored snapshots, so a later crawl cannot silently rewrite published numbers. "Resolved" means a rule group no longer appears in the newer snapshot; it is not a ranking or traffic claim.
+- **AI observation provenance:** only rows with `data_kind` in `observed`, `verified`, `verified_import`, `licensed_export` or `manual_observation` count as evidence. Synthetic/unverified rows stay stored and visible but are excluded from claims and reported as `unverified_row_count`. Published case studies always force `not_sampled`.
+- **Scheduled audits:** add a `public_audit` step to a workflow (with `trigger: "scheduled"` and `schedule: hourly|daily|weekly|monthly`). The step queues a normal public-audit job; it does not call a vendor API. The scheduler tick is enqueued by both the standalone worker and the inline API worker.
+- **Case-study analytics:** page views are anonymous counts only. No IP address, cookie, referrer or user identity is stored, and the count is never presented as traffic to the audited website.
 
 ```bash
 TOKEN=$(curl -s -X POST http://127.0.0.1:8000/api/v1/auth/login \
