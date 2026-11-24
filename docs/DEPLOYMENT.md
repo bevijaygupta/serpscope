@@ -228,3 +228,12 @@ Before exposing the stack to untrusted users, address the remaining items in [SE
 - [ ] Add network egress controls for the crawler (the code's SSRF check is string-based, not DNS-aware).
 - [ ] Keep uploads non-executable and non-web-served; patch openpyxl/lxml/httpx dependencies.
 - [ ] Tighten CSP `script-src` by removing inline legacy snippets (nonce or external files).
+
+## 8. Live verification record — hardening release (2026-11-24, final)
+
+Commit `860ddf7` was pushed to `main`. Local checks: **64 backend tests passed** (63 fast + the 100k slow test), `npm run typecheck` clean, `npm run build` succeeded with `assets/index-D-NSTYxj.js` and `assets/index-D67P6t2R.css`. Invariant counts remain **23 modules, 17 docs, 24 screenshots and 12 interview scenarios**; CI now enforces them.
+
+- Vercel auto-deployed `vercel.json`: the canonical origin returned HSTS, `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy` and the full CSP. A legacy alias (`serpscope-six.vercel.app/case-studies/2`) returned **308** to `https://serpscopelive.vercel.app/case-studies/2`. An `Origin: https://evil.example` request to `/api/health` received **no** `Access-Control-Allow-Origin`; the canonical origin received the expected header.
+- Render required **Manual Deploy → Deploy latest commit** on `serpscope-api` (`render.yaml` unchanged, so no Blueprint sync). Deploy `dep-dc2nfa17lnhs73evo550` for `860ddf7` succeeded in **1m 18s**. Hosted `/api/health` returned `{"status":"ok","environment":"production","database":"postgresql"}` after the real database probe. `/api/v1/meta/data-kinds` showed the new `user_supplied` and `synthetic_verification` labels, and `/api/v1/exports/files/serpscope_public_audit_2.json` returned **404** because the public static mount was removed.
+- Hosted case study 2 still reported `public_evidence_only`, GSC `supplied=false`, `rows=0`, empty `sample`/`sources`, and AI visibility `not_sampled` with `observation_count=0`. Browser checks on the live landing page and `/case-studies` showed **zero console errors**, working API calls under the CSP, and source `dataLayer` events containing only `event`, `page_path`, `timestamp` and GTM's own event ID — no title, audited domain, identity or search-box value.
+- **Known caveat unchanged:** the default GA4 `page_view` tag inside container `GTM-NZ3DFL7C` still adds `dt` (document title) and `dl` (page location). That tag must be disabled or configured in the GTM UI; SERPScope's own source events remain clean.
