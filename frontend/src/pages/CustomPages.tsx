@@ -11,6 +11,7 @@ import { DataTable, type Row } from '../components/DataTable';
 import { GapFixCenter } from '../components/GapFixCenter';
 import { Badge, Drawer, ErrorState, JsonBlock, KeyValue, PageHeader, ProvenanceNote, Section, Spinner } from '../components/ui';
 import { downloadFile, errorMessage, get, post, unwrapList, unwrapNamedLists, uploadFile, waitForJob, type Job } from '../lib/api';
+import { trackEvent } from '../lib/analytics';
 import { compactJson, humanKey, num, titleCase } from '../lib/format';
 import type { ModuleAction, ModuleConfig } from '../lib/modules';
 import { useApp } from '../state/AppContext';
@@ -213,15 +214,18 @@ function PublicAuditPanel() {
 
   const start = async () => {
     if (!projectId || !project?.domain) return;
+    trackEvent('serpscope_audit_started', { flow: 'workspace' });
     setRunning(true);
     setActionError('');
     setJob(null);
     try {
       await runPublicAuditJob(projectId, project.domain, setJob);
+      trackEvent('serpscope_audit_completed', { flow: 'workspace', outcome: 'success' });
       audit.reload();
       bumpData();
       notify('Public audit completed. Audit, PPT and exports are ready.', 'success');
     } catch (e) {
+      trackEvent('serpscope_audit_failed', { flow: 'workspace' });
       setActionError(errorMessage(e));
       notify(errorMessage(e), 'error');
     } finally {
@@ -233,6 +237,7 @@ function PublicAuditPanel() {
     if (!projectId) return;
     try {
       await downloadFile(`/audits/projects/${projectId}/public-audit/export`, { format, section }, fallback);
+      trackEvent('serpscope_export', { surface: 'audit', file_format: format, section });
     } catch (e) { notify(errorMessage(e), 'error'); }
   };
 
@@ -241,6 +246,7 @@ function PublicAuditPanel() {
     if (!crawlId) return;
     try {
       await downloadFile(`/crawler/runs/${crawlId}/export`, { format, project_id: projectId }, `serpscope-crawl-observations.${format}`);
+      trackEvent('serpscope_export', { surface: 'crawl', file_format: format });
     } catch (e) { notify(errorMessage(e), 'error'); }
   };
 

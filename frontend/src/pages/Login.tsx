@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router-dom';
 import { Activity, ArrowLeft, ArrowRight, ShieldCheck } from 'lucide-react';
 import { errorMessage, hasToken, login } from '../lib/api';
+import { trackEvent } from '../lib/analytics';
 import { useApp } from '../state/AppContext';
 
 export function Login() {
@@ -20,6 +21,7 @@ export function Login() {
     setError('');
     try {
       await login(email, password);
+      trackEvent('serpscope_login_success', { method: 'credentials' });
       await refreshProjects();
       navigate('/overview', { replace: true });
     } catch (e) {

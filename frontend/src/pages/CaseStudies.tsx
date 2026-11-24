@@ -4,6 +4,8 @@ import {
   ArrowRight, CheckCircle2, Database, FileText, Globe2, ShieldCheck, Sparkles,
 } from 'lucide-react';
 import { get, post, errorMessage } from '../lib/api';
+import { trackEvent } from '../lib/analytics';
+import { LiveVisitors } from '../components/LiveVisitors';
 
 const BASE_URL = 'https://serpscopelive.vercel.app';
 const numViews = (value: number | undefined) => new Intl.NumberFormat('en').format(value ?? 0);
@@ -153,8 +155,11 @@ export function CaseStudies() {
           </Link>
           <nav className="ml-auto flex items-center gap-5 text-xs font-medium text-muted">
             <Link to="/" className="hover:text-ink">Home</Link>
-            <Link to="/login" className="btn btn-primary text-xs">Open demo</Link>
           </nav>
+          <div className="flex items-center gap-3">
+            <LiveVisitors />
+            <Link to="/login" className="btn btn-primary text-xs">Open demo</Link>
+          </div>
         </div>
       </header>
 
@@ -255,6 +260,7 @@ export function CaseStudyDetail() {
         setViewCount(payload.analytics?.view_count ?? 0);
         if (projectId && recordedView.current !== projectId) {
           recordedView.current = projectId;
+          trackEvent('serpscope_case_study_view', { source: 'case_study_detail' });
           void post(`/public/case-studies/${projectId}/view`, { source: 'case_study_detail' })
             .then(() => setViewCount((count) => (count ?? 0) + 1))
             .catch(() => { /* analytics is non-critical; never block the case study */ });
@@ -273,6 +279,7 @@ export function CaseStudyDetail() {
             <ArrowRight className="h-3.5 w-3.5 rotate-180" /> All case studies
           </Link>
           <Link to="/" className="ml-auto text-xs font-medium text-muted hover:text-ink">Home</Link>
+          <LiveVisitors />
           <Link to="/login" className="btn btn-primary text-xs">Open demo</Link>
         </div>
       </header>

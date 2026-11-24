@@ -14,6 +14,16 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="manifest" href="/manifest.webmanifest" />
 
+    <!-- Google Tag Manager. Configure GA4 and SERPScope event triggers inside container GTM-NZ3DFL7C. -->
+    <script>
+    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-NZ3DFL7C');
+    </script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ window.dataLayer.push(arguments); }
+      gtag('js', new Date());
+    </script>
+
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="SERPScope" />
     <meta property="og:url" content="https://serpscopelive.vercel.app/" />
@@ -90,6 +100,7 @@
     </script>
   </head>
   <body class="bg-canvas text-ink antialiased">
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NZ3DFL7C" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

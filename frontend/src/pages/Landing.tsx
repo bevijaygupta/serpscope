@@ -5,6 +5,8 @@ import {
   KeyRound, Linkedin, Presentation, Search, ShieldCheck, Sparkles, Workflow,
 } from 'lucide-react';
 import { errorMessage, get, login, post, unwrapList, waitForJob, type Job } from '../lib/api';
+import { trackEvent } from '../lib/analytics';
+import { LiveVisitors } from '../components/LiveVisitors';
 import { num } from '../lib/format';
 import { useApp } from '../state/AppContext';
 
@@ -135,6 +137,7 @@ export function Landing() {
   const auditSite = async (event: FormEvent) => {
     event.preventDefault();
     if (running) return;
+    trackEvent('serpscope_search_submit');
     setRunning(true);
     setError('');
     setJob(null);
@@ -165,11 +168,13 @@ export function Landing() {
       if (finished.status !== 'succeeded') {
         throw new Error(finished.error || finished.message || `Audit job ${finished.status}`);
       }
+      trackEvent('serpscope_audit_completed', { flow: 'landing', outcome: 'success' });
       setProjectId(project.id);
       bumpData();
       setStatus('Audit complete. Opening your evidence workspace…');
       navigate('/overview');
     } catch (cause) {
+      trackEvent('serpscope_audit_failed', { flow: 'landing' });
       setError(errorMessage(cause));
       setStatus('');
     } finally {
@@ -195,7 +200,10 @@ export function Landing() {
             <a href="#faq" className="hover:text-ink">FAQ</a>
             <a href="https://github.com/bevijaygupta/serpscope" target="_blank" rel="noreferrer" className="hover:text-ink">Source</a>
           </nav>
-          <Link to="/login" className="btn btn-primary ml-auto text-xs md:ml-0"><KeyRound className="h-3.5 w-3.5" /> Open demo</Link>
+          <div className="ml-auto flex items-center gap-3 md:ml-0">
+            <LiveVisitors />
+            <Link to="/login" className="btn btn-primary text-xs"><KeyRound className="h-3.5 w-3.5" /> Open demo</Link>
+          </div>
         </div>
       </header>
 

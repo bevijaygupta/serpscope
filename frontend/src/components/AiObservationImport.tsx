@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { UploadCloud } from 'lucide-react';
 import { errorMessage, post } from '../lib/api';
+import { trackEvent } from '../lib/analytics';
 import { ProvenanceNote } from './ui';
 import { useApp } from '../state/AppContext';
 
@@ -50,6 +51,12 @@ export function AiObservationImport() {
       const payload = await post<ImportResult>(
         `/ai-search/observations/import?project_id=${projectId}`, body,
       );
+      trackEvent('serpscope_ai_import', {
+        status: payload.visibility_status,
+        data_kind: dataKind,
+        accepted: payload.accepted,
+        rejected: payload.rejected,
+      });
       setResult(payload);
       bumpData();
       notify(`Imported ${payload.accepted} observation(s); status is ${payload.visibility_status}.`, 'success');

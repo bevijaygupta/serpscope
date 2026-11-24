@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { useEffect, type ReactNode } from 'react';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { Layout } from './components/Layout';
+import { trackPageView } from './lib/analytics';
 import { hasToken } from './lib/api';
 import { CaseStudyDetail, CaseStudies } from './pages/CaseStudies';
 import { Landing } from './pages/Landing';
@@ -12,17 +13,28 @@ function Protected({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+function RouteAnalytics() {
+  const location = useLocation();
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location.pathname]);
+  return null;
+}
+
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/case-studies" element={<CaseStudies />} />
-      <Route path="/case-studies/:projectId" element={<CaseStudyDetail />} />
-      <Route path="/login" element={<Login />} />
-      <Route element={<Protected><Layout /></Protected>}>
-        <Route path="/:moduleId" element={<ModulePage />} />
-      </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <>
+      <RouteAnalytics />
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/case-studies" element={<CaseStudies />} />
+        <Route path="/case-studies/:projectId" element={<CaseStudyDetail />} />
+        <Route path="/login" element={<Login />} />
+        <Route element={<Protected><Layout /></Protected>}>
+          <Route path="/:moduleId" element={<ModulePage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </>
   );
 }

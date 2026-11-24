@@ -8,6 +8,7 @@ import { MODULES, MODULE_GROUPS } from '../lib/modules';
 import { clearToken, get } from '../lib/api';
 import { useApp } from '../state/AppContext';
 import { Badge } from './ui';
+import { LiveVisitors } from './LiveVisitors';
 
 function Logo() {
   return (
@@ -184,6 +185,7 @@ export function Layout() {
               <ChevronDown className="pointer-events-none absolute right-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted" />
             </div>
             <div className="ml-auto flex items-center gap-2">
+              <LiveVisitors />
               <NavLink to="/demo" className="btn btn-ghost hidden text-xs sm:inline-flex"><FlaskConical className="h-4 w-4" /> Demo Centre</NavLink>
               <div className="relative">
                 <button className="btn relative p-2" onClick={() => setJobsOpen((v) => !v)} title="Background jobs">

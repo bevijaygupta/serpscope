@@ -6,6 +6,7 @@ import { ActionModal } from '../components/ActionModal';
 import { AiObservationImport } from '../components/AiObservationImport';
 import { Badge, Drawer, ErrorState, JsonBlock, KeyValue, PageHeader, ProvenanceNote, Section, Spinner } from '../components/ui';
 import { errorMessage, get, unwrapList, unwrapNamedLists } from '../lib/api';
+import { trackEvent } from '../lib/analytics';
 import { compactJson, humanKey, num } from '../lib/format';
 import { getModule, resolvePath, type ModuleAction, type ModuleConfig } from '../lib/modules';
 import { useApp } from '../state/AppContext';
@@ -91,6 +92,10 @@ function GenericModule({ module }: { module: ModuleConfig }) {
     setRawSearch('');
     setOffset(0);
   }, [module]);
+
+  useEffect(() => {
+    trackEvent('serpscope_tab_view', { module_id: module.id, tab: activeTab });
+  }, [module.id, activeTab]);
 
   const path = useMemo(() => {
     if (!tab || !projectId) return '';

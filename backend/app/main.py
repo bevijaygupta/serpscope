@@ -31,6 +31,7 @@ from app.api.v1 import (
     meta,
     migration,
     orphans,
+    presence,
     projects,
     technical,
     workflows,
@@ -61,7 +62,7 @@ ROUTERS = [
     auth, meta, projects, clients, imports, jobs, inventory, crawler, technical,
     orphans, keywords, content, links, competitor, international, local,
     ecommerce, migration, ai, analytics, workflows, integrations, demo,
-    audits, audits.public_router,
+    audits, audits.public_router, presence,
 ]
 for router in ROUTERS:
     app.include_router(router.router if hasattr(router, "router") else router, prefix="/api/v1")
