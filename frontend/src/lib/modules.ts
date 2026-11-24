@@ -79,7 +79,7 @@ export const MODULES: ModuleConfig[] = [
     description: 'Robots-aware, delay-limited crawling with raw observations stored separately from interpreted URL records.',
     custom: 'crawler',
     tabs: [
-      { key: 'runs', label: 'Crawl runs', path: `/crawler/runs?project_id=${P}`, expandPath: `/crawler/runs/{id}` },
+      { key: 'runs', label: 'Crawl runs', path: `/crawler/runs?project_id=${P}`, expandPath: `/crawler/runs/{id}?project_id={projectId}` },
       { key: 'defaults', label: 'Safety defaults', path: '/crawler/config-defaults', named: true, hint: 'Robots.txt, crawl delay, cancellation and SSRF protections are enforced by the worker.' },
     ],
     actions: [{
@@ -92,7 +92,7 @@ export const MODULES: ModuleConfig[] = [
     id: 'technical', title: 'Technical Auditor', short: 'Technical', group: 'Discovery', icon: ShieldAlert, accent: 'rose',
     description: 'Rule-based technical issue detection with evidence, priority components and reviewable status workflow.',
     tabs: [
-      { key: 'issues', label: 'Issue groups', path: `/technical/issues?project_id=${P}`, exportPath: `/technical/export?project_id=${P}`, expandPath: `/technical/issues/{id}` },
+      { key: 'issues', label: 'Issue groups', path: `/technical/issues?project_id=${P}`, exportPath: `/technical/export?project_id=${P}`, expandPath: `/technical/issues/{id}?project_id={projectId}` },
       { key: '404s', label: 'High-value 404s', path: `/technical/high-value-404s?project_id=${P}`, hint: 'Ranked using supplied revenue, conversions, clicks and internal links — not invented values.' },
     ],
     actions: [{ label: 'Detect issues', method: 'post', path: `/technical/detect?project_id=${P}`, hint: 'Re-scans the current URL inventory and recomputes transparent priority explanations.' }],
@@ -101,7 +101,7 @@ export const MODULES: ModuleConfig[] = [
     id: 'inventory', title: 'URL Intelligence', short: 'URL Intel', group: 'Discovery', icon: Search, accent: 'sky',
     description: 'One million-row-ready URL inventory with filtering, provenance, pagination and column-level exports.',
     tabs: [
-      { key: 'urls', label: 'URL inventory', path: `/inventory/urls?project_id=${P}`, exportPath: `/inventory/export?project_id=${P}`, expandPath: `/inventory/urls/{id}` },
+      { key: 'urls', label: 'URL inventory', path: `/inventory/urls?project_id=${P}`, exportPath: `/inventory/export?project_id=${P}`, expandPath: `/inventory/urls/{id}?project_id={projectId}` },
       { key: 'summary', label: 'Composition', path: `/inventory/summary?project_id=${P}`, named: true },
     ],
     actions: [],
@@ -110,7 +110,7 @@ export const MODULES: ModuleConfig[] = [
     id: 'orphans', title: 'Orphans', short: 'Orphans', group: 'Discovery', icon: Network, accent: 'violet',
     description: 'Union-based orphan reconciliation across sitemap, crawl and imported sources with explicit confidence.',
     tabs: [
-      { key: 'orphans', label: 'Orphan register', path: `/orphans?project_id=${P}`, exportPath: `/orphans/export?project_id=${P}`, expandPath: `/orphans/{id}` },
+      { key: 'orphans', label: 'Orphan register', path: `/orphans?project_id=${P}`, exportPath: `/orphans/export?project_id=${P}` },
       { key: 'summary', label: 'Summary', path: `/orphans/summary?project_id=${P}`, named: true },
     ],
     actions: [{ label: 'Detect orphans', method: 'post', path: `/orphans/detect?project_id=${P}` }],
@@ -248,7 +248,7 @@ export const MODULES: ModuleConfig[] = [
     description: 'Composable step library, manual/scheduled workflows and a complete run history with audit output.',
     tabs: [
       { key: 'workflows', label: 'Workflows', path: `/workflows?project_id=${P}` },
-      { key: 'runs', label: 'Run history', path: `/workflows/runs?project_id=${P}`, expandPath: `/workflows/runs/{id}` },
+      { key: 'runs', label: 'Run history', path: `/workflows/runs?project_id=${P}` },
       { key: 'steps', label: 'Step library', path: '/workflows/step-library', named: true },
     ],
     actions: [

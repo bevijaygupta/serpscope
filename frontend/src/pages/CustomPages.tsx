@@ -115,10 +115,10 @@ function PublicAuditPanel() {
   };
 
   const exportCrawl = async (format: string) => {
-    const crawlId = audit.data?.meta.crawl_id;
+    const crawlId = audit.data?.meta.project_id === projectId ? audit.data.meta.crawl_id : null;
     if (!crawlId) return;
     try {
-      await downloadFile(`/crawler/runs/${crawlId}/export`, { format }, `serpscope-crawl-observations.${format}`);
+      await downloadFile(`/crawler/runs/${crawlId}/export`, { format, project_id: projectId }, `serpscope-crawl-observations.${format}`);
     } catch (e) { notify(errorMessage(e), 'error'); }
   };
 
@@ -492,7 +492,11 @@ function OverviewPage() {
           </div>
 
           <div className="mt-5">
-            <LiveEvidenceTables projectId={projectId as number} crawlId={audit.data?.meta.crawl_id ?? null} dataVersion={dataVersion} />
+            <LiveEvidenceTables
+              projectId={projectId as number}
+              crawlId={audit.data?.meta.project_id === projectId ? audit.data.meta.crawl_id : null}
+              dataVersion={dataVersion}
+            />
           </div>
 
           <div className="mt-5">
