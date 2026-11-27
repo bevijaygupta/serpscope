@@ -1,7 +1,7 @@
 """Organisation, user, membership and audit models."""
 from __future__ import annotations
 
-from sqlalchemy import JSON, Boolean, ForeignKey, String
+from sqlalchemy import JSON, Boolean, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, IdMixin, TimestampMixin
@@ -40,6 +40,18 @@ class Membership(Base, IdMixin, TimestampMixin):
 
     user: Mapped[User] = relationship(back_populates="memberships")
     organization: Mapped[Organization] = relationship(back_populates="memberships")
+
+
+class RevokedToken(Base, IdMixin, TimestampMixin):
+    """A revoked bearer token, stored only as a digest with its original expiry.
+
+    Persistence in the shared database makes logout effective across API
+    workers and restarts, unlike a process-local denylist.
+    """
+
+    __tablename__ = "revoked_tokens"
+    token_digest: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    expires_at: Mapped[int] = mapped_column(Integer, index=True)
 
 
 class AuditLog(Base, IdMixin, TimestampMixin):

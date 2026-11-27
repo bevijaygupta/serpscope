@@ -48,7 +48,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 On startup the API:
 
 1. Creates `UPLOAD_DIR` and `EXPORT_DIR`.
-2. Runs `init_db()` → `Base.metadata.create_all()`, creating all 43 tables if absent.
+2. Runs `init_db()` → `Base.metadata.create_all()`, creating all 44 tables if absent.
 3. On every startup, ensures the demo organisation `Demo Organisation` (`demo-organisation`) and owner `demo@serpscope.local` with password `demo1234` exist, plus an owner `Membership`, even if other users were created first. Existing demo rows are never overwritten.
 4. Starts the inline worker thread if `RUN_JOBS_IN_API=true`.
 
@@ -133,7 +133,7 @@ On the canonical `/overview`, project 4 (`Backend deploy verification`) shows th
 The audit endpoints and case study are live. The steps below were used for the original publication; repeat them after backend changes or to regenerate the hosted evidence. For a backend-only change, push `main` and then deploy the latest commit in Render; Vercel auto-deploys the frontend from `main`.
 
 1. In Render, open `serpscope-api` → **Manual Deploy → Deploy latest commit**; wait for the health check to pass. If `render.yaml` changed, also open the `serpscope` Blueprint → **Manual sync** and approve the plan.
-   `POST /api/v1/auth/logout` revokes only the presented token until its original expiry, using an in-memory denylist of token digests. It is per web process and clears on restart; a shared denylist or short-lived tokens are needed before relying on logout for global invalidation across multiple instances.
+   `POST /api/v1/auth/logout` revokes only the presented token until its original expiry, storing its digest in the shared `revoked_tokens` table (created by `create_all()` or Alembic revision `0004_token_revocation`). Revocation is visible to every API worker and survives restarts; expired rows are pruned on the next logout.
 2. Log in with `demo@serpscope.local` / `demo1234` and obtain a bearer token:
    ```bash
    curl -s -X POST https://serpscope-api.onrender.com/api/v1/auth/login \
@@ -210,7 +210,7 @@ MAX_UPLOAD_MB=50
 
 ## 6. Operational notes
 
-- **Schema changes:** run `alembic upgrade head` from `backend/` on each deploy. The baseline revision and `init_db()` both call `create_all()` for fresh tables; neither alters columns of an existing database. Revision `0003_honest_foundation` adds `case_study_views` plus `answer_url`/`locale` on `ai_visibility_records`; it is idempotent and safe to run after `create_all()` has already created them. Because Render's start command does not invoke Alembic, `init_db()` also carries an idempotent compatibility shim that adds only the two missing AI-observation columns on an older database; running the Alembic revision remains the canonical path. Any future change must ship as an explicit incremental revision and be tested against a copy of production data.
+- **Schema changes:** run `alembic upgrade head` from `backend/` on each deploy. The baseline revision and `init_db()` both call `create_all()` for fresh tables; neither alters columns of an existing database. Revision `0003_honest_foundation` adds `case_study_views` plus `answer_url`/`locale` on `ai_visibility_records`; revision `0004_token_revocation` adds the shared `revoked_tokens` denylist. Both are idempotent and safe to run after `create_all()` has already created them. Because Render's start command does not invoke Alembic, `init_db()` also carries an idempotent compatibility shim that adds only the two missing AI-observation columns on an older database; running Alembic remains the canonical path. Any future change must ship as an explicit incremental revision and be tested against a copy of production data.
 - **Backups:** back up the database and the upload/export volumes together. Integration credentials are Fernet-encrypted with a key derived from `SECRET_KEY`, so **losing or rotating `SECRET_KEY` makes stored credentials unreadable and invalidates all tokens**.
 - **Retention:** `organizations.retention_days` exists (default 365) but no automated purge job was found in the code; retention must be handled operationally.
 - **Job failures:** failed jobs persist `status="failed"`, an `error` string and `finished_at`; the traceback is returned at runtime but not stored. Monitor `jobs` with `status='failed'` or long-lived `status='claimed'`/`running'` rows (there is no visibility timeout or automatic retry).

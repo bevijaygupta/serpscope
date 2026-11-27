@@ -10,16 +10,11 @@ import hashlib
 import hmac
 import json
 import secrets
-import threading
 import time
 
 from app.core.config import settings
 
 _PBKDF2_ROUNDS = 210_000
-# Process-local revocation list: only token digests are kept, never a raw token.
-# Entries are pruned when their original expiry passes; a restart clears them.
-_REVOKED: dict[str, int] = {}
-_REVOKED_LOCK = threading.Lock()
 
 
 def hash_password(password: str) -> str:
@@ -91,35 +86,6 @@ def decode_access_token(token: str) -> dict | None:
         return None
 
 
-def _token_digest(token: str) -> str:
-    """Key the revocation list without retaining the bearer token itself."""
+def token_digest(token: str) -> str:
+    """Key the persistent revocation record without retaining a raw token."""
     return hmac.new(settings.secret_key.encode(), token.encode(), hashlib.sha256).hexdigest()
-
-
-def revoke_token(token: str) -> int:
-    """Revoke one valid token until its original expiry. Returns its expiry."""
-    payload = decode_access_token(token)
-    if not payload or "exp" not in payload:
-        raise ValueError("Invalid or expired token")
-    expiry = int(payload["exp"])
-    now = int(time.time())
-    digest = _token_digest(token)
-    with _REVOKED_LOCK:
-        for key, value in list(_REVOKED.items()):
-            if value < now:
-                _REVOKED.pop(key, None)
-        _REVOKED[digest] = expiry
-    return expiry
-
-
-def is_token_revoked(token: str) -> bool:
-    """True only for an explicitly revoked, still-unexpired token."""
-    digest = _token_digest(token)
-    with _REVOKED_LOCK:
-        expiry = _REVOKED.get(digest)
-        if expiry is None:
-            return False
-        if expiry < int(time.time()):
-            _REVOKED.pop(digest, None)
-            return False
-        return True

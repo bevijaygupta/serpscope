@@ -9,6 +9,7 @@ from sqlalchemy import select
 from app.api.deps import DB, UserDep, check_write, get_project
 from app.api.v1._helpers import paged, serialize
 from app.core.security import decode_access_token
+from app.services.token_revocation import is_token_revoked
 from app.models.auth import Membership, User
 from app.models.projects import Job, Project
 
@@ -87,6 +88,9 @@ async def job_progress(websocket: WebSocket, job_id: int):
 
     auth_db = SessionLocal()
     try:
+        if is_token_revoked(auth_db, token):
+            await websocket.close(code=4401)
+            return
         user = auth_db.get(User, int(payload["sub"]))
         if user is None or not user.is_active:
             await websocket.close(code=4401)

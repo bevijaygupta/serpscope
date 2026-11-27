@@ -8,7 +8,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.security import decode_access_token, is_token_revoked
+from app.core.security import decode_access_token
+from app.services.token_revocation import is_token_revoked
 from app.db.session import get_db
 from app.models.auth import Membership, Organization, User
 from app.models.projects import Project
@@ -24,7 +25,7 @@ def current_user(
 ) -> User:
     if credentials is None or not credentials.credentials:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Authentication required")
-    if is_token_revoked(credentials.credentials):
+    if is_token_revoked(db, credentials.credentials):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been revoked")
     payload = decode_access_token(credentials.credentials)
     if not payload or not payload.get("sub"):

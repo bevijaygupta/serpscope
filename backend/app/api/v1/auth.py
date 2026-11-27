@@ -9,8 +9,9 @@ from sqlalchemy import select
 
 from app.api.deps import DB, UserDep, bearer, current_user
 from app.core.config import settings
-from app.core.security import create_access_token, hash_password, revoke_token, verify_password
+from app.core.security import create_access_token, hash_password, verify_password
 from app.models.auth import Membership, User
+from app.services.token_revocation import revoke_token
 from app.schemas.common import LoginRequest, RegisterRequest, TokenResponse, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -33,13 +34,14 @@ def me(user: UserDep):
 
 @router.post("/logout")
 def logout(
+    db: DB,
     user: UserDep,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)] = None,
 ):
     """Revoke the presented bearer token until its original expiry."""
     if credentials is None or not credentials.credentials:
         raise HTTPException(401, "Authentication required")
-    revoke_token(credentials.credentials)
+    revoke_token(db, credentials.credentials)
     return {"detail": "Token revoked", "token_type": "bearer"}
 
 

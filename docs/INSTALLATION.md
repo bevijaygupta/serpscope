@@ -163,7 +163,7 @@ See [DEMO_GUIDE.md](DEMO_GUIDE.md) for the full walkthrough and planted-issue in
 From `backend/`:
 
 ```bash
-# Fast suite: 77 passed; full suite: 78 passed including the slow 100k test
+# Fast suite: 89 passed; full suite: 90 passed including the slow 100k test
 .venv/Scripts/python -m pytest -q -m "not slow"     # Windows
 .venv/bin/python -m pytest -q -m "not slow"         # macOS/Linux
 
