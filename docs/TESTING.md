@@ -1,6 +1,6 @@
 # Testing
 
-The backend has a pytest suite covering URL utilities, imports, exports, job/queue behaviour, RBAC, WebSocket authentication, crawler compliance, issue detection, orphan/link/keyword analysis, priority scoring and a 100,000-URL acceptance test. The frontend has **no unit-test script** in `package.json`; its available checks are TypeScript type-checking and a production build.
+The backend has a pytest suite covering URL utilities, DNS-aware SSRF hardening, imports and upload cleanup, exports and format validation, jobs and cancellation-safe publication, RBAC/tenant scoping/rate limits, WebSocket authentication, crawler compliance and caller-override stripping, issue detection, orphan/link/keyword analysis, priority scoring and a 100,000-URL acceptance test. The frontend has **no unit-test script** in `package.json`; its available checks are TypeScript type-checking and a production build.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the systems under test and [SECURITY.md](SECURITY.md) for the security-relevant assertions.
 
@@ -17,7 +17,7 @@ All commands run from the `backend/` directory:
 ```bash
 cd backend
 
-# Fast suite (63 tests; the full suite has 64 including the slow 100k test)
+# Fast suite (74 tests; the full suite has 75 including the slow 100k test)
 pytest -q -m "not slow"
 
 # Full suite, including the large-dataset acceptance test
@@ -48,32 +48,34 @@ SEO_LAB_SCALE_URLS=20000 pytest -q -m slow
 
 | Fixture / hook | Behaviour |
 | --- | --- |
-| Module import | Deletes `backend/data/test_serpscope.db` if present, then sets `DATABASE_URL=sqlite:///<backend>/data/test_serpscope.db`, `RUN_JOBS_IN_API=false` and `SECRET_KEY=test-only-secret` **before** importing the app |
+| Module import | Deletes `backend/data/test_serpscope.db` if present, then sets `DATABASE_URL=sqlite:///<backend>/data/test_serpscope.db`, `RUN_JOBS_IN_API=false`, `SECRET_KEY=test-only-secret` and `RATE_LIMIT_ENABLED=false` **before** importing the app |
 | `_schema` (session, autouse) | Calls `init_db()` once to create all tables |
+| `public_dns_for_test_hosts` (autouse) | Maps `example.com`, `*.example.com` and `*.example` to `93.184.216.34` so DNS-aware SSRF checks are deterministic |
 | `clean_db` (function, autouse) | Deletes every table in `reversed(Base.metadata.sorted_tables)` before each test, so tests do not leak state |
 | `db` | Yields a SQLAlchemy `Session` and closes it |
 | `demo_project` | Calls `app.services.demo.generate_demo(db, size=200, keyword_count=150, include_scenarios=False)` |
 | `client` | `TestClient(app)` context manager (startup bootstrap creates the demo owner) |
 | `auth_headers` | Logs in as `demo@serpscope.local` / `demo1234` and returns `{"Authorization": "Bearer <token>"}` |
 
-`RUN_JOBS_IN_API=false` prevents the inline worker thread from starting during tests; jobs are executed explicitly via `run_job()` where needed.
+`RUN_JOBS_IN_API=false` prevents the inline worker thread from starting during tests; jobs are executed explicitly via `run_job()` where needed. `RATE_LIMIT_ENABLED=false` keeps the fixed-window throttle from interfering with test assertions.
 
 ## 4. Test inventory
 
 | File | What it verifies |
 | --- | --- |
-| `test_url_utils.py` | URL normalisation (tracking params preserved/stripped, `www`, case), SSRF rejection list (`localhost`, `127.0.0.1`, `169.254.169.254`, `file://`, embedded credentials, `javascript:`, empty, 5000 chars), `allow_private` override, canonical resolution, host/page classification and CSV formula neutralisation |
-| `test_jobs_and_api.py` | 401 for missing/invalid tokens and wrong passwords, `/api/health` public and DB-probed, pinned JWT algorithm, no public export mount, `/auth/me` role, viewer scoping via memberships and 403 on writes/cross-org reads, pagination bounds (`limit=501` → 422), CSV BOM + attachment headers and XLSX bytes, job cancellation flow, terminal status and authenticated/project-scoped WebSocket progress, public case-study private-data exclusion |
-| `test_imports.py` | CSV/JSON/XLSX column/row parsing, namespaced sitemap `<loc>` parsing, batched deduplicated `upsert_urls` with rejected internal/empty URLs and source merging, `/imports/url-list` API metadata, provenance labels restricted at upload and inline-list boundaries, sitemap entries stored separately from inventory |
-| `test_exports.py` | CSV formula escaping, JSON nested sanitisation, XLSX (`PK` header) and PDF (`%PDF`) generation, `make_export` format dispatch |
-| `test_demo_and_issues.py` | Demo generator produces labelled synthetic data and planted issues, `detect_issues` emits evidence/explanations and `issue_urls`, high-value 404 ranking uses supplied revenue and includes score components |
+| `test_url_utils.py` | URL normalisation (tracking params preserved/stripped, `www`, case), SSRF rejection list (`localhost`, `127.0.0.1`, `169.254.169.254`, `file://`, embedded credentials, `javascript:`, empty, 5000 chars), numeric/hex IP spellings, reserved host suffixes, private DNS answers and fail-closed DNS errors, canonical resolution, host/page classification and CSV formula neutralisation; `allow_private` is only for direct local tooling |
+| `test_jobs_and_api.py` | 401 for missing/invalid tokens and wrong passwords, `/api/health` public and DB-probed, pinned JWT alg/typ headers, unknown export format → 400, collision-free export filenames, no public export mount, `/auth/me` role, viewer scoping via memberships and 403 on writes/cross-org reads, pagination bounds (`limit=501` → 422), CSV BOM + attachment headers and XLSX bytes, job cancellation flow, terminal status and authenticated/project-scoped WebSocket progress, public case-study private-data exclusion |
+| `test_imports.py` | CSV/JSON/XLSX column/row parsing, namespaced sitemap `<loc>` parsing, batched deduplicated `upsert_urls` with rejected internal/empty URLs and source merging, `/imports/url-list` API metadata, provenance labels restricted at upload and inline-list boundaries, sitemap entries stored separately from inventory, queued-upload path confinement and post-import upload cleanup |
+| `test_exports.py` | CSV formula escaping, JSON nested sanitisation, XLSX (`PK` header) and PDF (`%PDF`) generation, `make_export` format dispatch, editable PPTX generation and unsupported-format rejection |
+| `test_demo_and_issues.py` | Demo generator produces labelled synthetic data and planted issues, `detect_issues` emits evidence/explanations and `issue_urls`, high-value 404 ranking uses supplied revenue and includes score components, and demo reset preserves the currently running reset job |
 | `test_orphans_links_keywords.py` | Orphan classification/confidence and no mislabelled 404s, link-graph proposals with reasons/anchors, keyword intent/clustering/mapping/cannibalisation, link-count recomputation from `link_edges` |
 | `test_priority.py` | `clamp`/`log_scale` bounds, explainable score with components/weights summing to 1, low-confidence → `Review`, orphan component differentiation |
-| `test_honest_foundation.py` | Health-score evidence threshold, audit history/compare, AI observation provenance and `not_sampled`, scheduled public audits, hostile public-audit config clamping, production config fail-fast, anonymous case-study analytics, `not_supplied` signal explanations |
+| `test_honest_foundation.py` | Health-score evidence threshold, audit history/compare, AI observation provenance and `not_sampled`, scheduled public audits, hostile public-audit config clamping and cancellation-safe audit/report/case-study publication, production config fail-fast, anonymous case-study analytics, `not_supplied` signal explanations |
 | `test_supplied_metrics.py` | User-supplied GSC rows change only declared signal status; audits without supplied data keep every vendor gap explicit |
 | `test_public_evidence_derivation.py` | Derived result keys, external-link evidence when not followed, public-evidence keywords/competitors/gaps |
 | `test_presence.py` | Anonymous visitor token requirement and distinct-session counting without identity storage |
-| `test_crawler_safety.py` | Robots permission checked before each request and redirect hop, fail-closed robots fetch errors, disallowed URLs excluded, cancellation between batches and private-target rejection |
+| `test_crawler_safety.py` | Robots permission checked before each request and redirect hop, fail-closed robots fetch errors, disallowed URLs excluded, cancellation between batches, private-target and private-redirect rejection, fail-closed DNS checks and stripping of caller `allow_private`/`auth_headers` overrides |
+| `test_tenant_and_rate_limits.py` | Cross-tenant rejection for projects/clients/jobs/integrations/users and child writes, plus generic 429 throttling |
 | `test_scale_100k.py` | `@pytest.mark.slow` acceptance test: 100k Core-batched URL import speed (under 90s), count, bounded paginated API response and `has_more`/`page` correctness |
 
 ## 5. Frontend checks

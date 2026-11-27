@@ -11,7 +11,7 @@ Base URL for the REST API: **`http://127.0.0.1:8000/api/v1`**
 
 FastAPI serves the interactive docs by default; no custom authentication is applied to `/docs` or `/openapi.json`. The frontend talks to the API through a Vite proxy: browser requests to `/api/*` on `http://localhost:5173` are forwarded to `http://127.0.0.1:8000`.
 
-The route table below was derived from introspecting `app.main.app` (all feature routers registered with the `/api/v1` prefix, including the two audit routers), not from memory. The current schema exposes 119 paths / 134 operations; the five added paths are the public-audit endpoints.
+The route table below was derived from introspecting `app.main.app` (all feature routers registered with the `/api/v1` prefix, including the two audit routers), not from memory. An AST-derived route inventory contains 130 unique HTTP paths including `/api/health`, 144 `/api/v1` HTTP operations (145 including health) and one authenticated job WebSocket.
 
 ---
 
@@ -41,7 +41,7 @@ Flow details:
 6. `POST /auth/register` creates a local-development account with global role `viewer`. It is not an invitation/SSO flow.
 7. Token lifetime defaults to 1,440 minutes (`ACCESS_TOKEN_EXPIRE_MINUTES`). There is no refresh-token endpoint; log in again after expiry.
 
-**Public endpoints:** `POST /auth/login`, `POST /auth/register`, all `/meta/*` endpoints, `GET /api/health`, `POST /presence/ping`, `GET /presence/count`, the docs/OpenAPI routes, the static export mount and `GET /public/case-studies/{project_id}` (only when the project has `settings.public_audit=true`). Everything else expects a bearer token. The progress WebSocket `/api/v1/jobs/ws/{job_id}` also requires authentication via a `Bearer` header or a `token` query parameter, and applies the same project-scope check as REST job endpoints (close codes `4401`/`4403`/`4404` for unauthenticated, forbidden and missing jobs).
+**Public endpoints:** `POST /auth/login`, `POST /auth/register`, all `/meta/*` endpoints, `GET /api/health`, `POST /presence/ping`, `GET /presence/count`, the docs/OpenAPI routes and `GET /public/case-studies/{project_id}` (only when the project has `settings.public_audit=true`). There is no public static export mount; files are streamed only by authenticated export endpoints. Everything else expects a bearer token. The progress WebSocket `/api/v1/jobs/ws/{job_id}` also requires authentication via a `Bearer` header or a `token` query parameter, and applies the same project-scope check as REST job endpoints (close codes `4401`/`4403`/`4404` for unauthenticated, forbidden and missing jobs).
 
 ---
 
@@ -80,7 +80,7 @@ Some endpoints intentionally return only `{ "items": [...] }` (e.g. `/projects`,
 | Provenance | Records include `data_kind` and often `source` / `sources` / `observed_at`. Values follow `/meta/data-kinds`. |
 | Errors | HTTP errors use FastAPI's `{ "detail": "..." }`; the global handler logs the traceback server-side and returns only `{ "detail": "Internal server error" }` with status 500. |
 | Writes | `POST` usually returns `201` and an id or `{ "success": true }`; job-triggering `POST`s return `202` with `{ "job_id": ..., "status": "queued" }`. |
-| Exports | `GET .../export?format=csv\|json\|xlsx` (reports support `pdf`; public audits also support `pptx`) returns a `FileResponse` with an attachment header. Column selection uses `columns=a,b,c` where supported. Cells are escaped against spreadsheet formula injection. |
+| Exports | `GET .../export?format=csv\|json\|xlsx` (reports support `pdf`; public audits also support `pptx`) returns a `FileResponse` with an attachment header. Unknown formats return HTTP 400 and generated filenames use a 12-character UUID suffix so exports cannot collide. Column selection uses `columns=a,b,c` where supported. Cells are escaped against spreadsheet formula injection. |
 | Booleans in filters | `indexable` and `in_sitemap` on `/inventory/urls` are `0`/`1` integers constrained to `[0,1]`. `orphan` is a real boolean. |
 | Job progress | `GET /jobs/{id}`; `POST /jobs/{id}/cancel`; WebSocket `/jobs/ws/{id}` polls the database once per second. |
 | Async semantics | `202` means the work is queued, **not complete**. Track the returned `job_id`. `POST /analytics/reports/generate-now` is the deliberate synchronous exception for small demo datasets. |
@@ -89,7 +89,7 @@ Some endpoints intentionally return only `{ "items": [...] }` (e.g. `/projects`,
 
 ## Route table
 
-`Auth` column: **Bearer** = token required; **Bearer + project** = token plus authorised `project_id`; **Public** = no token; **None today** = no check implemented (development-only).
+`Auth` column: **Bearer** = token required; **Bearer + project** = token plus authorised `project_id`; **Public** = no token. No route uses `None today`; the job WebSocket requires a bearer token or token query parameter and applies the same project-scope check as REST job endpoints.
 
 ### Meta & health
 
@@ -150,7 +150,7 @@ This is an in-process, single-instance **on-site presence counter**, not GA4 Rea
 
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
-| POST | `/api/v1/imports/upload` | Bearer (write) | Multipart upload → 202 + `job_id`. Allowed: `.csv .tsv .txt .xml .json .xlsx`; max `MAX_UPLOAD_MB`. |
+| POST | `/api/v1/imports/upload` | Bearer (write) | Multipart upload → 202 + `job_id`. Allowed: `.csv .tsv .txt .xml .json .xlsx`; max `MAX_UPLOAD_MB`; queued paths are confined to the upload directory and uploaded files are deleted after import. |
 | POST | `/api/v1/imports/url-list` | Bearer (write) | Inline list of up to 10,000 URLs (201). |
 | GET | `/api/v1/imports/sources` | Bearer + project | Imported data sources. |
 | GET | `/api/v1/imports/sources/{source_id}` | Bearer | One source with column mapping/errors. |
@@ -162,7 +162,7 @@ This is an in-process, single-instance **on-site presence counter**, not GA4 Rea
 | GET | `/api/v1/jobs` | Bearer | Paged jobs; filters `project_id`, `status_filter`. |
 | GET | `/api/v1/jobs/{job_id}` | Bearer | Job detail including `result`, `payload`, `cancel_requested`. |
 | POST | `/api/v1/jobs/{job_id}/cancel` | Bearer (write) | Request cancellation. |
-| WS | `/api/v1/jobs/ws/{job_id}` | None today | 1-second polling progress stream. |
+| WS | `/api/v1/jobs/ws/{job_id}` | Bearer header or token query + project scope | 1-second polling progress stream; close codes 4401/4403/4404. |
 
 ### Inventory (`inventory.py`)
 
@@ -370,7 +370,7 @@ The UI's **Google Search Overview** combines these two authenticated endpoints i
 | GET | `/api/v1/public/case-studies/{project_id}` | Public | Read-only, public-evidence-only audit. Returns 404 unless the project's `settings.public_audit` is `true` and the project is not the synthetic demo. User-supplied exports and manual AI observations are excluded. Includes an `analytics.view_count` derived from anonymous views. |
 | POST | `/api/v1/public/case-studies/{project_id}/view` | Public | Record one anonymous page view (201). Stores project, report, path and source only — no IP, cookie, referrer or user identity. |
 
-The queued job defaults to `max_urls=250`, `max_depth=3`, `concurrency=2`, `crawl_delay=1.0`, `timeout=12`, `respect_robots=true`, `sitemap_discovery=true`, `follow_external=false`, `allow_private=false` and `mode=live`. It runs crawl → orphan/link graph → issue/content/AEO rules → report persistence → automatic case-study publication for real domains. No Search Console, GA4, ranking or AI-visibility API is called; those gaps are listed in `missing_data`. The audit now includes an `ai_visibility` object: with no verified observations its status is `not_sampled`, never a claim of zero mentions or zero citations. Public case-study responses also include `meta.publication_scope`, `meta.private_data_policy` and a zeroed `supplied_data` object so the public Google Search Overview can show **Private data excluded** without disclosing uploaded rows.
+The queued job defaults to `max_urls=250`, `max_depth=3`, `concurrency=2`, `crawl_delay=1.0`, `timeout=12`, `respect_robots=true`, `sitemap_discovery=true`, `follow_external=false`, `allow_private=false` and `mode=live`. It runs crawl → orphan/link graph → issue/content/AEO rules → cancellation-safe report persistence and case-study publication for real domains; cancellation before rebuild/report/publish returns `case_study_published=false`, and caller `allow_private`/`auth_headers` overrides are stripped. No Search Console, GA4, ranking or AI-visibility API is called; those gaps are listed in `missing_data`. The audit now includes an `ai_visibility` object: with no verified observations its status is `not_sampled`, never a claim of zero mentions or zero citations. Public case-study responses also include `meta.publication_scope`, `meta.private_data_policy` and a zeroed `supplied_data` object so the public Google Search Overview can show **Private data excluded** without disclosing uploaded rows.
 
 ### Honest-foundation additions
 

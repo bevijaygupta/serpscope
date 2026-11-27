@@ -19,6 +19,8 @@ type Props = {
   exportParams?: Record<string, unknown>;
   expandLabel?: string;
   onExpand?: (row: Row) => void;
+  selectedRowId?: string | number | null;
+  onSelect?: (row: Row) => void;
   maxColumns?: number;
   emptyTitle?: string;
   emptyDescription?: string;
@@ -41,7 +43,7 @@ function renderCell(key: string, value: unknown) {
 
 export function DataTable({
   rows, total = rows.length, loading, search = '', onSearch, offset = 0, limit = 50, onPage,
-  exportPath, exportParams, onExpand, expandLabel = 'Evidence', maxColumns = 9,
+  exportPath, exportParams, onExpand, expandLabel = 'Evidence', selectedRowId, onSelect, maxColumns = 9,
   emptyTitle, emptyDescription,
 }: Props) {
   const [visible, setVisible] = useState<string[] | null>(null);
@@ -65,6 +67,8 @@ export function DataTable({
 
   const from = total === 0 ? 0 : offset + 1;
   const to = Math.min(offset + limit, total);
+  const hasRowActions = Boolean(onExpand || onSelect);
+  const isSelected = (row: Row) => selectedRowId != null && String(row.id ?? '') === String(selectedRowId);
 
   return (
     <div className="overflow-hidden rounded-lg border border-edge">
@@ -114,16 +118,27 @@ export function DataTable({
             <thead>
               <tr>
                 {columns.map((key) => <th key={key} className="table-head whitespace-nowrap px-3 py-2.5">{humanKey(key)}</th>)}
-                {onExpand ? <th className="table-head px-3 py-2.5">Action</th> : null}
+                {hasRowActions ? <th className="table-head px-3 py-2.5">Action</th> : null}
               </tr>
             </thead>
             <tbody>
               {rows.map((row, index) => (
-                <tr key={String(row.id ?? index)} className="transition hover:bg-white/[0.025]">
+                <tr key={String(row.id ?? index)} className={`transition hover:bg-white/[0.025] ${isSelected(row) ? 'bg-accent/10' : ''}`}>
                   {columns.map((key) => <td key={key} className="table-cell max-w-[280px]">{renderCell(key, row[key])}</td>)}
-                  {onExpand ? (
-                    <td className="table-cell">
-                      <button className="text-xs font-medium text-accent hover:underline" onClick={() => onExpand(row)}>{expandLabel}</button>
+                  {hasRowActions ? (
+                    <td className="table-cell whitespace-nowrap">
+                      {onSelect ? (
+                        <button
+                          className={`mr-3 text-xs font-medium hover:underline ${isSelected(row) ? 'text-success' : 'text-accent'}`}
+                          onClick={() => onSelect(row)}
+                          title={isSelected(row) ? 'Clear selected row' : 'Select this row for row actions'}
+                        >
+                          {isSelected(row) ? 'Selected' : 'Select'}
+                        </button>
+                      ) : null}
+                      {onExpand ? (
+                        <button className="text-xs font-medium text-accent hover:underline" onClick={() => onExpand(row)}>{expandLabel}</button>
+                      ) : null}
                     </td>
                   ) : null}
                 </tr>

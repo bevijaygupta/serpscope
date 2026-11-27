@@ -18,7 +18,8 @@ export function ActionModal({ action, projectId, rowId, onClose }: { action: Mod
 
   if (!action) return null;
 
-  const path = resolvePath(action.path, projectId, rowId);
+  const missingRowId = action.path.includes('{id}') && (rowId == null || rowId === '');
+  const path = missingRowId ? action.path : resolvePath(action.path, projectId, rowId);
 
   return (
     <div className="fixed inset-0 z-50 grid place-items-center p-4">
@@ -28,7 +29,7 @@ export function ActionModal({ action, projectId, rowId, onClose }: { action: Mod
           <div>
             <div className="text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">Confirm action</div>
             <h2 className="mt-1 text-lg font-semibold text-white">{action.label}</h2>
-            <code className="mono mt-1 block text-muted">{action.method.toUpperCase()} {path}</code>
+            <code className="mono mt-1 block text-muted">{action.method.toUpperCase()} {path}{missingRowId ? ' (select a row first)' : ''}</code>
           </div>
           <button className="btn btn-ghost p-1" onClick={onClose}><X className="h-4 w-4" /></button>
         </div>
@@ -38,7 +39,7 @@ export function ActionModal({ action, projectId, rowId, onClose }: { action: Mod
         {error ? <p className="mt-2 text-xs text-danger">{error}</p> : null}
         <div className="mt-5 flex justify-end gap-2">
           <button className="btn" onClick={onClose}>Cancel</button>
-          <button className={`btn ${action.danger ? 'btn-danger' : 'btn-primary'}`} onClick={() => {
+          <button disabled={missingRowId} className={`btn ${action.danger ? 'btn-danger' : 'btn-primary'}`} onClick={() => {
             try {
               const parsed = JSON.parse(body || '{}');
               void runAction(action.method, path, parsed);

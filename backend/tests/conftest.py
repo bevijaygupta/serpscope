@@ -32,6 +32,23 @@ def _schema():
 
 
 @pytest.fixture(autouse=True)
+def public_dns_for_test_hosts(monkeypatch):
+    """Keep SSRF DNS checks deterministic for reserved documentation hosts."""
+    import socket
+
+    real_getaddrinfo = socket.getaddrinfo
+
+    def fake_getaddrinfo(host, port, *args, **kwargs):
+        if isinstance(host, str) and (
+            host == "example.com" or host.endswith(".example.com") or host.endswith(".example")
+        ):
+            return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("93.184.216.34", port or 0))]
+        return real_getaddrinfo(host, port, *args, **kwargs)
+
+    monkeypatch.setattr(socket, "getaddrinfo", fake_getaddrinfo)
+
+
+@pytest.fixture(autouse=True)
 def clean_db():
     db = SessionLocal()
     try:

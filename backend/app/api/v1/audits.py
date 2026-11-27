@@ -9,8 +9,7 @@ from fastapi.responses import FileResponse, Response
 from sqlalchemy import func, select
 
 from app.api.deps import DB, ProjectDep, UserDep, check_write, get_project
-from app.api.v1._helpers import download, serialize
-from app.core.config import settings
+from app.api.v1._helpers import download, export_path, serialize
 from app.models.operations import CaseStudyView, Report
 from app.models.projects import Project
 from app.services import public_audit
@@ -153,8 +152,7 @@ def export_public_audit(project: ProjectDep, db: DB, format: str = "json", secti
     if section == "all" and format == "json":
         # "All" must mean the complete source-tracked audit, not a summary row.
         content = json.dumps(audit, ensure_ascii=False, indent=2, default=str).encode("utf-8")
-        settings.export_path.mkdir(parents=True, exist_ok=True)
-        path = settings.export_path / f"{base}.json"
+        path = export_path(base, "json")
         path.write_bytes(content)
         return FileResponse(str(path), media_type="application/json", filename=f"{base}.json")
     if format == "pdf":
@@ -165,8 +163,7 @@ def export_public_audit(project: ProjectDep, db: DB, format: str = "json", secti
             public_audit.to_ppt_slides(audit),
             f"{base}.pptx",
         )
-        settings.export_path.mkdir(parents=True, exist_ok=True)
-        path = settings.export_path / filename
+        path = export_path(base, "pptx")
         path.write_bytes(content)
         return FileResponse(str(path), media_type=media_type, filename=filename)
     rows = [{

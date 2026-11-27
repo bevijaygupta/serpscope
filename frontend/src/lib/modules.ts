@@ -253,7 +253,7 @@ export const MODULES: ModuleConfig[] = [
     ],
     actions: [
       { label: 'New workflow', method: 'post', path: `/workflows?project_id=${P}`, defaultBody: { name: 'Weekly technical audit', trigger: 'manual', steps: [{ type: 'detect_issues' }, { type: 'generate_report' }] } },
-      { label: 'Run selected', method: 'post', path: `/workflows/{id}/run?project_id=${P}`, hint: 'Open a workflow row to copy its ID, then run it from here.' },
+      { label: 'Run selected', method: 'post', path: `/workflows/{id}/run?project_id=${P}`, hint: 'Select a workflow row first, then run it from here.' },
     ],
   },
   {

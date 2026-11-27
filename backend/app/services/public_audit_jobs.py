@@ -38,7 +38,7 @@ def run_public_audit_job(db_session_factory, job_id: int, payload: dict, project
             config["start_url"] = (project.domain if project else "").strip()
         finally:
             db.close()
-    validate_target_url(config["start_url"], allow_private=bool(config.get("allow_private")))
+    validate_target_url(config["start_url"], allow_private=False)
     crawl_config = CrawlConfig.from_dict(config)
 
     db = db_session_factory()
@@ -70,8 +70,9 @@ def run_public_audit_job(db_session_factory, job_id: int, payload: dict, project
 
     db = db_session_factory()
     try:
+        cancelled = is_cancelled(job_id)
         crawl = db.get(Crawl, crawl_id)
-        crawl.status = "cancelled" if is_cancelled(job_id) else "completed"
+        crawl.status = "cancelled" if cancelled else "completed"
         crawl.discovered = stats["discovered"]
         crawl.crawled = stats["crawled"]
         crawl.failed = stats["failed"]
@@ -79,6 +80,17 @@ def run_public_audit_job(db_session_factory, job_id: int, payload: dict, project
         crawl.summary = stats
         crawl.finished_at = iso(utcnow())
         db.commit()
+        if cancelled:
+            # A cancelled audit is not a successful audit. Stop before any
+            # derived rebuild, report persistence or case-study publication.
+            progress(job_id, 100, 100, "Cancelled before report publication")
+            return {
+                "crawl_id": crawl_id,
+                "report_id": None,
+                "case_study_published": False,
+                "cancelled": True,
+                "fetched_urls": stats.get("crawled", 0),
+            }
         progress(job_id, 62, 100, "Rebuilding orphan and link graph")
         orphans.detect_orphans(db, project_id)
         links.analyse_graph(db, project_id)
@@ -99,6 +111,15 @@ def run_public_audit_job(db_session_factory, job_id: int, payload: dict, project
         domains.ai_readiness(db, project_id)
         progress(job_id, 90, 100, "Assembling audit, roadmap and report")
         audit = public_audit.build_public_audit(db, project_id, crawl_id)
+        if is_cancelled(job_id):
+            progress(job_id, 100, 100, "Cancelled before report publication")
+            return {
+                "crawl_id": crawl_id,
+                "report_id": None,
+                "case_study_published": False,
+                "cancelled": True,
+                "fetched_urls": stats.get("crawled", 0),
+            }
         report_id = public_audit.persist_report(db, project_id, audit)
         case_study_published = public_audit.publish_case_study(db, project_id)
         progress(job_id, 100, 100, "Public audit completed")

@@ -163,7 +163,7 @@ See [DEMO_GUIDE.md](DEMO_GUIDE.md) for the full walkthrough and planted-issue in
 From `backend/`:
 
 ```bash
-# Default suite: 39 passed, 1 deselected in the current tree
+# Fast suite: 74 passed; full suite: 75 passed including the slow 100k test
 .venv/Scripts/python -m pytest -q -m "not slow"     # Windows
 .venv/bin/python -m pytest -q -m "not slow"         # macOS/Linux
 

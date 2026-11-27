@@ -12,6 +12,10 @@ import { getModule, resolvePath, type ModuleAction, type ModuleConfig } from '..
 import { useApp } from '../state/AppContext';
 import { CustomPage } from './CustomPages';
 
+function needsRowId(action: ModuleAction): boolean {
+  return action.path.includes('{id}');
+}
+
 function NamedView({ payload }: { payload: unknown }) {
   const named = unwrapNamedLists(payload);
   const entries = Object.entries(named);
@@ -86,11 +90,15 @@ function GenericModule({ module }: { module: ModuleConfig }) {
   const [expandLoading, setExpandLoading] = useState(false);
 
   const tab = module.tabs.find((t) => t.key === activeTab) ?? module.tabs[0];
+  const hasRowActions = module.actions.some(needsRowId);
 
   useEffect(() => {
     setActiveTab(module.tabs[0]?.key ?? '');
     setRawSearch('');
     setOffset(0);
+    setRowId(null);
+    setExpanded(null);
+    setExpandData(null);
   }, [module]);
 
   useEffect(() => {
@@ -145,6 +153,17 @@ function GenericModule({ module }: { module: ModuleConfig }) {
 
   const exportParams = useMemo(() => ({ project_id: projectId, q: rawSearch }), [projectId, rawSearch]);
 
+  const selectRow = (row: Row) => {
+    const id = row.id;
+    if (typeof id === 'string' || typeof id === 'number') setRowId(id);
+  };
+
+  const toggleRow = (row: Row) => {
+    const id = row.id;
+    if (typeof id !== 'string' && typeof id !== 'number') return;
+    setRowId((current) => (current != null && String(current) === String(id) ? null : id));
+  };
+
   return (
     <div className="animate-fade-in">
       <PageHeader
@@ -153,11 +172,20 @@ function GenericModule({ module }: { module: ModuleConfig }) {
         description={module.description}
         actions={[
           <button key="refresh" className="btn" onClick={bumpData} title="Refresh data"><RefreshCw className="h-3.5 w-3.5" /> Refresh</button>,
-          ...module.actions.map((item) => (
-            <button key={item.label} className={`btn ${item.label.toLowerCase().includes('detect') || item.label.toLowerCase().includes('analyse') ? 'btn-primary' : ''}`} onClick={() => { setRowId(null); setAction(item); }}>
-              <Zap className="h-3.5 w-3.5" /> {item.label}
-            </button>
-          )),
+          ...module.actions.map((item) => {
+            const disabled = needsRowId(item) && rowId == null;
+            return (
+              <button
+                key={item.label}
+                className={`btn ${item.label.toLowerCase().includes('detect') || item.label.toLowerCase().includes('analyse') ? 'btn-primary' : ''}`}
+                disabled={disabled}
+                title={disabled ? 'Select a row first' : item.hint}
+                onClick={() => { if (!needsRowId(item)) setRowId(null); setAction(item); }}
+              >
+                <Zap className="h-3.5 w-3.5" /> {item.label}
+              </button>
+            );
+          }),
         ]}
       />
 
@@ -168,7 +196,7 @@ function GenericModule({ module }: { module: ModuleConfig }) {
       {module.tabs.length > 1 ? (
         <div className="mb-4 flex gap-1 overflow-x-auto rounded-lg border border-edge bg-panel/60 p-1">
           {module.tabs.map((item) => (
-            <button key={item.key} onClick={() => { setActiveTab(item.key); setOffset(0); setRawSearch(''); setExpanded(null); }}
+            <button key={item.key} onClick={() => { setActiveTab(item.key); setOffset(0); setRawSearch(''); setRowId(null); setExpanded(null); setExpandData(null); }}
               className={`whitespace-nowrap rounded-md px-3 py-1.5 text-xs font-medium transition ${item.key === activeTab ? 'bg-accent/15 text-accent' : 'text-muted hover:bg-white/5 hover:text-ink'}`}>
               {item.label}
             </button>
@@ -189,13 +217,15 @@ function GenericModule({ module }: { module: ModuleConfig }) {
           rows={rows}
           total={total}
           search={rawSearch}
-          onSearch={tab && ['/inventory/urls', '/keywords?', '/technical/issues'].some((p) => tab.path.includes(p)) ? (value) => { setRawSearch(value); setOffset(0); } : undefined}
+          onSearch={tab && ['/inventory/urls', '/keywords?', '/technical/issues'].some((p) => tab.path.includes(p)) ? (value) => { setRawSearch(value); setOffset(0); setRowId(null); } : undefined}
           offset={offset}
           limit={limit}
-          onPage={(nextOffset, nextLimit) => { setOffset(nextOffset); setLimit(nextLimit); }}
+          onPage={(nextOffset, nextLimit) => { setOffset(nextOffset); setLimit(nextLimit); setRowId(null); }}
           exportPath={tab?.exportPath ? resolvePath(tab.exportPath, projectId) : undefined}
           exportParams={exportParams}
-          onExpand={tab?.expandPath ? (row) => { setExpanded(row); setExpandData(null); } : undefined}
+          selectedRowId={rowId}
+          onSelect={hasRowActions ? toggleRow : undefined}
+          onExpand={tab?.expandPath ? (row) => { setExpanded(row); setExpandData(null); selectRow(row); } : undefined}
         />
       )}
 

@@ -48,8 +48,8 @@ Crawl             = job-level configuration, counters and final summary
 | `canonical_handling` | `"record"` | Stored in config, but `crawler.py` has no branch on this value; relative canonicals are always resolved and recorded when present. |
 | `respect_robots` | `True` | Robots permission is checked **before** each request and before following each redirect hop. Disallowed URLs are excluded and never stored; robots fetch failures fail closed. |
 | `sitemap_discovery` | `True` | Fetches `scheme://netloc/sitemap.xml`; only a `sitemap` result (not a `sitemap_index`) contributes up to `max_urls` depth-1 seeds. |
-| `auth_headers` | `{}` | Extra request headers. `CrawlConfig.as_dict()` removes them, so they are not persisted in `Crawl.config`. |
-| `allow_private` | `False` | Opt-in to private/internal network targets; dangerous and off by default. |
+| `auth_headers` | `{}` | Caller-supplied headers are stripped at the API and `CrawlConfig.from_dict()` boundaries, forced to `{}`, and omitted from persisted `Crawl.config`. |
+| `allow_private` | `False` | Reserved for explicit local tooling; REST callers cannot enable it and worker configs force `False`. |
 | `schedule` | `"manual"` | Stored in config. `crawler.py` itself contains no scheduler. |
 | `mode` | `"live"` | Labels created records as `live_crawl` or `simulated`; it does not change fetch mechanics. |
 
@@ -72,7 +72,7 @@ All other normalisation defaults come from `backend/app/core/url_utils.py`: lowe
 - its scheme is not `http` or `https`;
 - it has no hostname;
 - it contains embedded `username`/`password`;
-- the host **as written** is a private/loopback/link-local/reserved/multicast/unspecified IP literal, or is `localhost`, `metadata`, `metadata.google.internal`, or a `.localhost` name, unless `allow_private=True`. DNS resolution is not performed, so a public hostname that resolves to a private address is not detected;
+- numeric/IPv6/integer/hex IP spellings, reserved suffixes and private DNS answers are rejected; DNS failures fail closed; REST callers cannot pass `allow_private=True`;
 - its port is outside `1..65535`.
 
 Validation runs again on every redirect hop. Invalid seeds increment `stats["excluded"]` and are recorded in `stats["errors"]`; invalid discovered links are excluded.
@@ -231,13 +231,13 @@ Cancellation:
 
 - No JavaScript rendering, screenshot capture, browser execution, or resource loading beyond the initial HTML document.
 - `follow_internal=False` stops internal `LinkEdge` storage but internal links are still enqueued by `run()`.
-- Sitemap discovery requests are robots-checked for the crawler's declared user agent; the crawler does not infer that a named AI agent's policy applies to `SERPScopeAuditBot`.
-- `validate_target_url()` is string-based: IP literals and known local names are rejected, but DNS results are not inspected and no egress firewall is applied.
+- Sitemap/robots redirect hops are SSRF-validated; candidate and child sitemap URLs are robots-gated for the crawler's declared user agent, but redirect hops are not separately robots-gated and named AI-agent rules are evidence only.
+- `validate_target_url()` is DNS-aware and rejects private DNS answers, numeric IP spellings and unsafe redirect hops; no egress firewall or rebinding-proof connection layer is applied.
 - `canonical_handling` and `schedule` are stored but not acted upon by the engine.
 - Sitemap indexes are expanded one level (index → child sitemap → URL); deeper nesting is not followed, and at most 25 candidate and 25 child documents are fetched.
 - The `UrlRecord` hash is based on the requested URL, so redirects can create separate records for old and final URLs.
 - Imported/synthetic records can be updated by a crawl without changing their `data_kind`.
-- Private-network targets are rejected unless `allow_private=True`; there is no authentication system in the crawler beyond static `auth_headers`.
+- Private-network targets are rejected; REST callers cannot set `allow_private` or `auth_headers`, and the crawler has no native user authentication beyond those empty headers.
 - `max_urls`, `max_depth`, pattern filters and duplicate counters bound work; they do not guarantee completeness.
 - Sitemap writes are committed before progress callbacks because the job row is updated through a separate session; on SQLite a long open write transaction would otherwise block progress.
 

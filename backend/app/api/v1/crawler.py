@@ -24,14 +24,18 @@ def config_defaults():
 @router.post("/start", status_code=202)
 def start_crawl(payload: dict, db: DB, user: UserDep, project: ProjectDep):
     check_write(user)
-    config = payload.get("config") or {}
+    requested = payload.get("config") or {}
+    config = {key: value for key, value in requested.items()
+              if key not in {"allow_private", "auth_headers"}}
+    config["allow_private"] = False
+    config["auth_headers"] = {}
     start_url = config.get("start_url") or ""
     seeds = config.get("seed_urls") or []
     if not start_url and not seeds:
         raise HTTPException(400, "Provide start_url or seed_urls")
     for url in ([start_url] if start_url else []) + list(seeds)[:50]:
         try:
-            validate_target_url(url, allow_private=bool(config.get("allow_private")))
+            validate_target_url(url, allow_private=False)
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from exc
     job = enqueue(

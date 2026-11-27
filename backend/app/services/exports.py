@@ -143,4 +143,6 @@ def make_export(fmt: str, rows: Iterable[Any], columns: list[str], base: str, pd
     if fmt == "pdf":
         sections = pdf_sections or [{"heading": base, "lines": [str(r) for r in rows][:200]}]
         return export_pdf_report(base.replace("_", " ").title(), sections, f"{base}.pdf")
-    return export_csv(rows, columns, f"{base}.csv")
+    if fmt == "csv":
+        return export_csv(rows, columns, f"{base}.csv")
+    raise ValueError(f"Unsupported export format: {fmt}")

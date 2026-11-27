@@ -1,8 +1,11 @@
 """Shared API helpers for pagination, serialisation and exports."""
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
+from fastapi import HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -47,9 +50,18 @@ def paged(items: list, total: int, offset: int, limit: int) -> dict:
     }
 
 
-def download(rows, columns: list[str], base: str, fmt: str = "csv", pdf_sections=None) -> FileResponse:
-    content, media_type, filename = make_export(fmt, rows, columns, base, pdf_sections)
+def export_path(base: str, suffix: str) -> Path:
+    """Return a collision-free on-disk path for a generated export."""
     settings.export_path.mkdir(parents=True, exist_ok=True)
-    path = settings.export_path / filename
+    clean_suffix = suffix.lstrip(".").lower() or "bin"
+    return settings.export_path / f"{base}_{uuid4().hex[:12]}.{clean_suffix}"
+
+
+def download(rows, columns: list[str], base: str, fmt: str = "csv", pdf_sections=None) -> FileResponse:
+    try:
+        content, media_type, filename = make_export(fmt, rows, columns, base, pdf_sections)
+    except ValueError as exc:
+        raise HTTPException(400, str(exc)) from exc
+    path = export_path(base, Path(filename).suffix)
     path.write_bytes(content)
     return FileResponse(str(path), media_type=media_type, filename=filename)

@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from sqlalchemy import func, select
 
+from app.db.session import SessionLocal
 from app.models.analysis import Issue, IssueUrl
 from app.models.inventory import UrlRecord
+from app.models.projects import Job
+from app.services.demo_jobs import reset_demo_job
 from app.services.issues import detect_issues, high_value_404s
 
 
@@ -32,6 +35,17 @@ def test_detect_issues_creates_evidence_and_explanations(demo_project, db):
     linked = db.scalar(select(func.count()).select_from(IssueUrl).where(
         IssueUrl.project_id == demo_project["project_id"]))
     assert linked > 0
+
+
+def test_reset_demo_preserves_the_running_reset_job(db):
+    job = Job(name="Reset demo data", job_type="reset_demo", status="running")
+    db.add(job)
+    db.commit()
+
+    reset_demo_job(SessionLocal, job.id, {}, None, None)
+
+    db.expire_all()
+    assert db.get(Job, job.id) is not None
 
 
 def test_high_value_404_workflow_uses_supplied_business_evidence(demo_project, db):

@@ -41,7 +41,7 @@ Rules from `backend/app/api/v1/demo.py` and `backend/app/services/demo_jobs.py`:
 
 - `size` is clamped to a minimum of 100 and rejected above 200,000 (`400`).
 - Generation is deterministic: `random.Random(20261122)` and modulo-based issue placement mean the same size always yields the same planted counts.
-- Reset deletes rows from all demo-related tables for projects where `is_demo=1`, deletes the `demo-organisation`, and deletes `generate_demo`/`reset_demo` jobs. It does **not** archive anything.
+- Reset deletes rows from all demo-related tables for projects where `is_demo=1`, deletes the `demo-organisation`, and deletes older `generate_demo`/`reset_demo` jobs but preserves the currently running reset job (`id != current_job`). It does **not** archive anything.
 
 For a 1,000-URL dataset the generator also creates: 1,000 keywords, 857 sitemap entries (143 deliberate omissions), 19 planted orphan targets, 1,000 GSC-style + 200 query analytics rows (fixed period `2026-11-02` → `2026-11-08`), 250 locations, 200 products, 250 migration mappings, 30 AI visibility observations, a Singapore international plan and three example workflows.
 

@@ -33,7 +33,7 @@ flowchart TB
     end
 
     subgraph api["API process (FastAPI)"]
-        MAIN["app.main:app\nCORS, 23 v1 routers,\nstatic exports mount,\n/api/health"]
+        MAIN["app.main:app\nCORS, 26 v1 routers,\nno public static mount,\n/api/health"]
         DEPS["app.api.deps\ncurrent_user / require_roles /\nget_project / check_write"]
         ROUTERS["app.api.v1.*\nauth, inventory, imports, crawler,\njobs, analysis, integrations, ..."]
         SEC["app.core.security\nHMAC tokens + PBKDF2"]
@@ -57,7 +57,7 @@ flowchart TB
     end
 
     subgraph data["Persistence"]
-        DB[("SQLAlchemy engine\nSQLite (WAL) or PostgreSQL\n41 tables")]
+        DB[("SQLAlchemy engine\nSQLite (WAL) or PostgreSQL\n43 tables")]
         FILES[("Filesystem\ndata/uploads, data/exports")]
     end
 
@@ -79,7 +79,7 @@ flowchart TB
 
 ### Notes on the diagram
 
-- `app.main` includes **23 routers**, each registered under the `/api/v1` prefix. `/api/health` is intentionally outside that prefix and is unauthenticated.
+- `app.main` includes **26 routers**, each registered under the `/api/v1` prefix. `/api/health` is intentionally outside that prefix and is unauthenticated.
 - The frontend does **not** talk to a separate BFF; axios calls `/api/v1` directly and the edge (Vite in development, nginx in the intended container setup) proxies to Uvicorn.
 - Exported files are written under `settings.export_path` only so authenticated endpoints can stream them with `FileResponse`; no public static mount exposes the directory. `/api/health` is unauthenticated but performs a real database probe and never reveals credentials.
 - The worker and the inline worker are alternative execution strategies; run **one or the other** in a given deployment.
@@ -169,7 +169,7 @@ Implemented provenance rules:
 - **No invented metrics** — Keyword `volume`, `difficulty`, `cpc` and analytics figures are nullable or default to zero and are populated only from supplied input; classification and scoring are labelled as rules (`source`, `intent_source`, `cluster_method`, `score_components`, `priority_explanation`). Business figures for high-value 404 ranking come from supplied revenue/conversions/clicks/internal links.
 - **Human review preserved** — Recommendations remain proposals (`ContentBrief.approval_status="draft"`, `KeywordMapping.status="suggested"`, `LinkSuggestion.status="proposed"`, `Issue.validation_status="unvalidated"`). Migrations and AI observations are never deployed automatically.
 - **Bounded reads** — List endpoints paginate (`page_query`, `paginate` with `page_size` capped at 500; inventory `limit` capped at 500 → 422 above that). Crawl observation exports explicitly cap at 200,000 rows. This is what makes the 100k-URL acceptance test possible without loading the whole inventory.
-- **Outbound access is guarded** — `validate_target_url()` is called at the crawler API boundary and again inside the crawler engine for seeds and discovered links, with an optional `allow_private` override. See [SECURITY.md](SECURITY.md).
+- **Outbound access is guarded** — `validate_target_url()` is called at the crawler API boundary and again inside the crawler engine for seeds and discovered links, with caller overrides stripped. `allow_private` and `auth_headers` cannot be supplied through the API or job payload. See [SECURITY.md](SECURITY.md).
 
 ## 6. Database and configuration notes
 

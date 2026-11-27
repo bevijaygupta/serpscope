@@ -120,6 +120,13 @@ def test_crawler_start_accepts_the_ui_payload_shape(client, auth_headers, demo_p
     bad = client.post(url, headers=auth_headers, json={"max_urls": 10})
     assert bad.status_code == 400
 
+    private = client.post(url, headers=auth_headers, json={"config": {
+        "start_url": "http://127.0.0.1/admin",
+        "allow_private": True,
+        "auth_headers": {"Authorization": "Bearer secret"},
+    }})
+    assert private.status_code == 400, private.text
+
     response = client.post(url, headers=auth_headers, json={
         "config": {
             "start_url": "https://demo.example.com/",
@@ -129,7 +136,8 @@ def test_crawler_start_accepts_the_ui_payload_shape(client, auth_headers, demo_p
             "crawl_delay": 0.5,
             "respect_robots": True,
             "follow_external": False,
-            "allow_private": False,
+            "allow_private": True,
+            "auth_headers": {"Authorization": "Bearer secret"},
         }
     })
     assert response.status_code == 202, response.text
@@ -138,6 +146,16 @@ def test_crawler_start_accepts_the_ui_payload_shape(client, auth_headers, demo_p
     detail = client.get(f"/api/v1/jobs/{job_id}", headers=auth_headers).json()
     assert detail["job_type"] == "crawl"
     assert detail["payload"]["config"]["crawl_delay"] == 0.5
+    assert detail["payload"]["config"]["allow_private"] is False
+    assert detail["payload"]["config"]["auth_headers"] == {}
+
+
+def test_unknown_export_format_is_rejected(client, auth_headers, demo_project):
+    response = client.get(
+        f"/api/v1/inventory/export?project_id={demo_project['project_id']}&format=xml",
+        headers=auth_headers,
+    )
+    assert response.status_code == 400
 
 
 def test_job_progress_websocket_requires_token_and_project_access(client, auth_headers, demo_project, db):

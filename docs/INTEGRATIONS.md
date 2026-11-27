@@ -57,7 +57,7 @@ rank_tracking, authority, lighthouse, crux, serp_features,
 paid_ads, gbp, historical_audit
 ```
 
-Allowed extensions: `.csv`, `.tsv`, `.txt`, `.xml`, `.json`, `.xlsx`. CSV/TSV/TXT are delimiter-sniffed; JSON accepts an array of objects or an object with `items`/`rows`/`data`; XLSX reads the first worksheet's header row and converts cell values to strings. Uploads are capped by `MAX_UPLOAD_MB` (default 50 MB), sanitised to a safe filename, written under `data/uploads/<project_id>/`, and processed by the `import_file` background job. The response is `202` with a `job_id`:
+Allowed extensions: `.csv`, `.tsv`, `.txt`, `.xml`, `.json`, `.xlsx`. CSV/TSV/TXT are delimiter-sniffed; JSON accepts an array of objects or an object with `items`/`rows`/`data`; XLSX reads the first worksheet's header row and converts cell values to strings. Uploads are capped by `MAX_UPLOAD_MB` (default 50 MB), sanitised to a safe filename, written under `data/uploads/<project_id>/`, confined to `settings.upload_path` by `_safe_upload_path()` when queued, processed by the `import_file` background job and deleted in `finally` after import. The response is `202` with a `job_id`:
 
 ```json
 { "job_id": 42, "status": "queued", "file": "gsc_export.csv", "bytes": 18320 }

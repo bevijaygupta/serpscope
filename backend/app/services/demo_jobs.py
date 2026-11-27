@@ -44,7 +44,12 @@ def reset_demo_job(db_session_factory, job_id, payload, project_id, organization
                 db.execute(text(f"DELETE FROM {table} WHERE project_id=:p"), {"p": pid})
             db.execute(text("DELETE FROM projects WHERE id=:p"), {"p": pid})
         db.execute(text("DELETE FROM organizations WHERE is_demo IS TRUE AND slug='demo-organisation'"))
-        db.execute(text("DELETE FROM jobs WHERE job_type IN ('generate_demo','reset_demo')"))
+        # Preserve the in-flight reset job: run_job needs it to record the final
+        # cancelled/succeeded state after this handler returns.
+        db.execute(
+            text("DELETE FROM jobs WHERE job_type IN ('generate_demo','reset_demo') AND id != :current_job"),
+            {"current_job": job_id},
+        )
         db.commit()
         if payload.get("regenerate"):
             result = demo.generate_demo(

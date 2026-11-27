@@ -22,7 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Real end-to-end audit of `https://www.techmagnate.com/` recorded in the documentation: 303 discovered URLs, 60 fetched from a deliberately narrow sample, 0 failures, 60 sitemap entries from 9 documents, 6 finding groups and a 6-month roadmap. Demo metrics remain labelled synthetic; public-audit data is labelled as observed or derived public evidence.
 - Hosted public audit completed on the same domain (job 17, report 2, crawl 1): 497 discovered, 219 fetched, 0 failed, 1 excluded, 12 finding groups and 6 roadmap months. Sitemap discovery timed out in the hosted run, so the hosted evidence states 0 sitemap entries; the local sample's 60 sitemap entries are kept separate rather than blended.
-- Test counts updated to 39 fast / 40 full; documented sitemap limitations and hosted deploy steps now reflect the current code.
+- Test counts updated to 74 fast / 75 full; hardening regressions now cover DNS SSRF, redirect hops, caller overrides, upload cleanup, export validation and cancellation-safe publication.
 
 ### Fixed
 
@@ -67,7 +67,7 @@ Initial portfolio reference release of SERPScope.
 - Full-stack application: FastAPI backend, React 18 / TypeScript / Vite frontend, SQLAlchemy models and SQLite-by-default storage.
 - 23-module interface covering command centre, discovery, intent and content, market intelligence, intelligence and automation workflows.
 - Authentication and authorisation: demo account bootstrap, HMAC-SHA256 signed bearer tokens, PBKDF2 password hashing, organisation/project scoping and write-role checks.
-- Database-backed job queue with an inline API worker and a standalone `python -m app.workers.runner` worker, plus REST job status, cancellation, retry and a one-second polling WebSocket.
+- Database-backed job queue with an inline API worker and a standalone `python -m app.workers.runner` worker, plus REST job status and cancellation and a one-second polling WebSocket; no REST retry endpoint exists.
 - Deterministic synthetic dataset generation seeded with `random.Random(20261122)`, with record-level `synthetic` / `simulated` labels and planted technical, content, link and analytics issue classes.
 - Twelve curated demo scenarios, including a full audit preset, with interview explanations and stated limitations.
 - Technical issue detection, URL inventory, raw crawl observations, orphan reconciliation, internal-link suggestions and weighted priority explanations.

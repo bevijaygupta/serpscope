@@ -8,6 +8,7 @@ from __future__ import annotations
 import hashlib
 import ipaddress
 import re
+import socket
 from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 
 DEFAULT_TRACKING_PARAMS = {
@@ -30,24 +31,75 @@ DEFAULT_RULES = {
 }
 
 TRACKING_RE = re.compile(r"^(utm_|gclid$|fbclid$|msclkid$|dclid$|mc_[ce]id$|_ga$|_gl$)", re.I)
+RESERVED_HOST_SUFFIXES = (
+    ".localhost", ".local", ".internal", ".localdomain", ".home.arpa",
+)
 
 
-def _is_private_host(host: str) -> bool:
-    host = host.lower().rstrip(".")
-    if host in {"localhost", "metadata", "metadata.google.internal"} or host.endswith(".localhost"):
-        return True
+def _forbidden_ip(ip: ipaddress._BaseAddress) -> bool:
+    return bool(
+        ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved
+        or ip.is_multicast or ip.is_unspecified
+    )
+
+
+def _ip_literal(host: str) -> ipaddress._BaseAddress | None:
+    """Parse dotted, IPv6 and decimal/hex integer IP spellings."""
+    candidate = host.strip().strip("[]")
     try:
-        ip = ipaddress.ip_address(host)
-        return (
-            ip.is_private or ip.is_loopback or ip.is_link_local or ip.is_reserved
-            or ip.is_multicast or ip.is_unspecified
-        )
+        return ipaddress.ip_address(candidate)
     except ValueError:
-        return False
+        pass
+    for base in (10, 16):
+        try:
+            value = int(candidate, base)
+        except (TypeError, ValueError):
+            continue
+        if 0 <= value <= (2 ** 128) - 1:
+            try:
+                return ipaddress.ip_address(value)
+            except ValueError:
+                continue
+    return None
 
 
-def validate_target_url(url: str, allow_private: bool = False) -> str:
-    """Validate a URL before any network access. Raises ValueError on unsafe input."""
+def _is_forbidden_literal_host(host: str) -> bool:
+    normalized = host.lower().rstrip(".")
+    if normalized in {"localhost", "metadata", "metadata.google.internal"}:
+        return True
+    if any(normalized.endswith(suffix) for suffix in RESERVED_HOST_SUFFIXES):
+        return True
+    literal = _ip_literal(normalized)
+    return bool(literal and _forbidden_ip(literal))
+
+
+def _resolve_public_addresses(host: str) -> None:
+    """Fail closed when a hostname resolves to any non-public address."""
+    normalized = host.rstrip(".").encode("idna").decode("ascii")
+    try:
+        infos = socket.getaddrinfo(normalized, None, type=socket.SOCK_STREAM)
+    except OSError as exc:
+        raise ValueError(f"Host could not be resolved safely: {type(exc).__name__}") from exc
+    if not infos:
+        raise ValueError("Host has no usable address")
+    for info in infos[:20]:
+        address = info[4][0]
+        try:
+            ip = ipaddress.ip_address(str(address).split("%", 1)[0])
+        except ValueError as exc:
+            raise ValueError("Host resolved to an unrecognised address") from exc
+        if _forbidden_ip(ip):
+            raise ValueError("Host resolves to a private or internal network address")
+
+
+def validate_target_url(url: str, allow_private: bool = False, resolve_dns: bool = True) -> str:
+    """Validate a URL before any network access. Raises ValueError on unsafe input.
+
+    Public targets are DNS-resolved and rejected when any resolved address is
+    private, loopback, link-local, reserved or multicast. Callers cannot bypass
+    this by spelling an IPv4 address as an integer. ``allow_private`` exists only
+    for explicit local tooling and still rejects embedded credentials.
+    """
     if not url or not isinstance(url, str):
         raise ValueError("URL is required")
     url = url.strip()
@@ -60,8 +112,11 @@ def validate_target_url(url: str, allow_private: bool = False) -> str:
         raise ValueError("URL has no hostname")
     if parts.username or parts.password:
         raise ValueError("Embedded credentials are not allowed")
-    if not allow_private and _is_private_host(parts.hostname):
-        raise ValueError("Private or internal network addresses are not allowed")
+    if not allow_private:
+        if _is_forbidden_literal_host(parts.hostname):
+            raise ValueError("Private or internal network addresses are not allowed")
+        if resolve_dns and _ip_literal(parts.hostname) is None:
+            _resolve_public_addresses(parts.hostname)
     if parts.port and not (1 <= parts.port <= 65535):
         raise ValueError("Invalid port")
     return url

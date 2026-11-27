@@ -118,6 +118,11 @@ class CrawlConfig:
     @classmethod
     def from_dict(cls, data: dict | None) -> "CrawlConfig":
         raw = {**DEFAULT_CONFIG, **(data or {})}
+        # Network reachability is never a caller-controlled crawl option. Private
+        # targets and per-request auth headers can turn a public audit into an
+        # internal probe, so they are dropped before the worker sees the config.
+        raw["allow_private"] = False
+        raw["auth_headers"] = {}
         allowed = {f: raw[f] for f in cls.__dataclass_fields__ if f in raw}
         allowed["max_urls"] = max(1, min(int(allowed.get("max_urls", 500)), 100000))
         allowed["max_depth"] = max(0, min(int(allowed.get("max_depth", 3)), 20))
@@ -360,6 +365,19 @@ class CrawlEngine:
         if wait > 0:
             time.sleep(min(wait, 30))
 
+    def _safe_get(self, client: httpx.Client, url: str, max_hops: int = 6):
+        """Fetch without automatic redirects; validate every hop before use."""
+        current = url
+        for hop in range(max_hops + 1):
+            validate_target_url(current, allow_private=self.config.allow_private)
+            response = client.get(current)
+            location = response.headers.get("location") or response.headers.get("Location")
+            if 300 <= (response.status_code or 0) < 400 and location and hop < max_hops:
+                current = urljoin(current, location)
+                continue
+            return response, current
+        raise ValueError("Too many redirects")
+
     def _fetch(self, url: str) -> FetchResult:
         result = FetchResult(requested_url=url)
         headers = {"User-Agent": self.config.user_agent}
@@ -520,7 +538,8 @@ class CrawlEngine:
                 # not crawl it. Preserve it for competitor discovery, but never
                 # queue it unless follow_external is explicitly enabled.
                 try:
-                    validate_target_url(target, allow_private=self.config.allow_private)
+                    # External links are stored as evidence, not fetched here.
+                    validate_target_url(target, allow_private=self.config.allow_private, resolve_dns=False)
                 except ValueError:
                     continue
             self.db.add(LinkEdge(
@@ -561,9 +580,8 @@ class CrawlEngine:
         headers.update(self.config.auth_headers or {})
         parser: RobotFileParser | None = None
         try:
-            validate_target_url(robots_url, allow_private=self.config.allow_private)
-            with httpx.Client(timeout=8, follow_redirects=True, headers=headers) as client:
-                robots_resp = client.get(robots_url)
+            with httpx.Client(timeout=8, follow_redirects=False, headers=headers) as client:
+                robots_resp, _ = self._safe_get(client, robots_url)
                 info["robots_status"] = robots_resp.status_code
                 robots_text = robots_resp.text if robots_resp.status_code == 200 else ""
                 info["document"] = robots_text[:12000]
@@ -593,13 +611,12 @@ class CrawlEngine:
                     if len(seen_files) >= 25 or len(all_entries) >= self.config.max_urls:
                         break
                     try:
-                        validate_target_url(candidate, allow_private=self.config.allow_private)
                         if parser and self.config.respect_robots and not parser.can_fetch(self.config.user_agent, candidate):
                             continue
                         if candidate in seen_files:
                             continue
                         seen_files.add(candidate)
-                        resp = client.get(candidate)
+                        resp, _ = self._safe_get(client, candidate)
                         if resp.status_code != 200:
                             continue
                         text = resp.text
@@ -615,11 +632,10 @@ class CrawlEngine:
                                 if not loc or loc in seen_files or len(seen_files) >= 25:
                                     continue
                                 try:
-                                    validate_target_url(loc, allow_private=self.config.allow_private)
                                     if parser and self.config.respect_robots and not parser.can_fetch(self.config.user_agent, loc):
                                         continue
                                     seen_files.add(loc)
-                                    child_resp = client.get(loc)
+                                    child_resp, _ = self._safe_get(client, loc)
                                     if child_resp.status_code != 200:
                                         continue
                                     self._add_evidence_observation(

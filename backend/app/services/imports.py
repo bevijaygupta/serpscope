@@ -203,7 +203,10 @@ def upsert_urls(
                 errors.append(f"Rejected empty or oversized URL: {str(raw)[:120]}")
             continue
         try:
-            validate_target_url(url)
+            # Imports persist URLs; they do not fetch them. Literal/private hosts
+            # are still rejected here, while DNS answers are checked immediately
+            # before any outbound request by the crawler's fetch path.
+            validate_target_url(url, resolve_dns=False)
             norm = normalize_url(url, rules)
             h = url_hash(url, rules)
         except ValueError as exc:

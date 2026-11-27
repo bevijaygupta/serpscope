@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import pytest
 from pydantic import ValidationError
-from sqlalchemy import select
+from sqlalchemy import func, select
 
 from app.core.config import Settings
 from app.models.operations import CaseStudyView, Report, Workflow
@@ -337,3 +337,39 @@ def test_vendor_signal_status_explains_not_supplied(client, auth_headers, demo_p
     assert "No provider API is called" in body["note"]
     assert "No real export was supplied" in body["status_explanations"]["not_supplied"]
     assert "not a live API connection" in body["status_explanations"]["supplied"]
+
+
+def test_cancelled_public_audit_never_persists_or_publishes(monkeypatch, db, demo_project):
+    from app.db.session import SessionLocal
+    from app.services import public_audit_jobs
+
+    source = db.get(Project, demo_project["project_id"])
+    project = Project(
+        organization_id=source.organization_id,
+        name="Cancelled audit project",
+        domain="honest.example",
+        is_demo=False,
+        settings={},
+    )
+    db.add(project)
+    db.commit()
+
+    class FakeEngine:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def run(self):
+            return {"discovered": 1, "crawled": 0, "failed": 0, "excluded": 0}
+
+    monkeypatch.setattr(public_audit_jobs, "CrawlEngine", FakeEngine)
+    monkeypatch.setattr(public_audit_jobs, "is_cancelled", lambda job_id: True)
+    result = public_audit_jobs.run_public_audit_job(
+        SessionLocal, 987654, {"start_url": "https://honest.example/"},
+        project.id, project.organization_id,
+    )
+    assert result["cancelled"] is True
+    assert result["case_study_published"] is False
+    count = db.scalar(select(func.count()).select_from(Report).where(Report.project_id == project.id))
+    assert count == 0
+    db.refresh(project)
+    assert not (project.settings or {}).get("public_audit")

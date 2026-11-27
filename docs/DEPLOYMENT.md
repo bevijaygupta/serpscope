@@ -48,7 +48,7 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 On startup the API:
 
 1. Creates `UPLOAD_DIR` and `EXPORT_DIR`.
-2. Runs `init_db()` → `Base.metadata.create_all()`, creating all 42 tables if absent.
+2. Runs `init_db()` → `Base.metadata.create_all()`, creating all 43 tables if absent.
 3. If the `users` table is empty, creates the demo organisation `Demo Organisation` (`demo-organisation`) and owner `demo@serpscope.local` with password `demo1234`, plus an owner `Membership`.
 4. Starts the inline worker thread if `RUN_JOBS_IN_API=true`.
 
@@ -227,7 +227,7 @@ Before exposing the stack to untrusted users, address the remaining items in [SE
 - [ ] Add gateway-level rate limiting and failed-login/account lockout; the in-process throttle is not a WAF.
 - [ ] Use PostgreSQL with a managed pool instead of default SQLite for multi-process/concurrent writes (Render already uses PostgreSQL).
 - [ ] Add a backup/restore runbook and test each incremental Alembic revision against production-like data.
-- [ ] Add network egress controls for the crawler (the code's SSRF check is string-based, not DNS-aware).
+- [ ] Add network egress controls for the crawler (DNS answers and redirect hops are validated, but there is still no egress firewall or rebinding-proof connection layer).
 - [ ] Keep uploads non-executable and non-web-served; patch openpyxl/lxml/httpx dependencies.
 - [ ] Tighten CSP `script-src` by removing inline legacy snippets (nonce or external files).
 

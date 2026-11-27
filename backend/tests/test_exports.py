@@ -4,6 +4,8 @@ import io
 import json
 import zipfile
 
+import pytest
+
 from app.services.exports import (
     export_csv, export_json, export_pdf_report, export_pptx_report,
     export_xlsx, make_export,
@@ -61,3 +63,5 @@ def test_make_export_dispatches_formats():
     assert make_export("json", ROWS, COLUMNS, "base")[2] == "base.json"
     assert make_export("xlsx", ROWS, COLUMNS, "base")[2] == "base.xlsx"
     assert make_export("pdf", ROWS, COLUMNS, "base")[2] == "base.pdf"
+    with pytest.raises(ValueError, match="Unsupported"):
+        make_export("xml", ROWS, COLUMNS, "base")

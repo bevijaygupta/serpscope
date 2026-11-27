@@ -17,7 +17,7 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 
 | Area | Status | Evidence in the current build |
 |---|---|---|
-| FastAPI application shell | Implemented | `backend/app/main.py` wires all `/api/v1` routers, health check, static frontend mount, OpenAPI docs, and an inline worker tick. |
+| FastAPI application shell | Implemented | `backend/app/main.py` wires all `/api/v1` routers, health check, no public static mount, OpenAPI docs, and an inline worker tick. |
 | Local authentication and RBAC | Implemented | Demo login, JWT access tokens, password hashing, role checks, and project-scoped data access are present. |
 | Project, domain, and crawl management | Implemented | CRUD APIs and database-backed projects, domains, and crawl definitions are present. |
 | Deterministic synthetic demo data | Implemented | `backend/app/services/demo.py` generates a labelled, repeatable dataset with planted issue classes. |
@@ -29,12 +29,12 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 | Internal linking and orphan detection | Implemented | Synthetic link graph, page-level link suggestions, and orphan target detection are present. |
 | Live crawler and simulation | Implemented | Robots checks before each request and redirect hop, fail-closed robots errors, per-host delay, SSRF validation, cancellation, raw observations, URL inventory, issue generation and progress are present. `mode` changes `data_kind` only; no JS renderer is active. |
 | Public-evidence audit | Implemented | One-click `public_audit` job crawls robots.txt, sitemaps and public pages, then assembles source-tracked findings, a six-month roadmap, an explicit missing-data list and PPTX/PDF/CSV/XLSX/JSON exports. The read-only case-study endpoint is gated by `settings.public_audit=true`. Verified locally with a 60-URL sample and on the hosted demo with 219 fetched URLs; the endpoints serve the persisted job report, and the full JSON export contains all segments. |
-| Workflows and scheduled jobs | Implemented | Workflow definitions and runs, schedule CRUD, job listing, job details, cancellation, and retry are present. |
+| Workflows and scheduled jobs | Implemented | Workflow definitions and runs, schedule CRUD, job listing, job details and cancellation are present; no REST retry endpoint exists and claimed jobs have no automatic retry. |
 | Reports | Implemented | Report generation, retrieval, data-gap notes and CSV/JSON/XLSX/PDF exports are present; public audits add editable PPTX decks. |
 | Import jobs | Implemented | CSV/TSV/TXT, XML sitemaps, JSON and XLSX uploads are parsed into URL/keyword inventory with source tracking and bounded batches. |
 | Database migrations | Implemented | Alembic baseline revision `0001_initial_schema.py` plus `create_all()` bootstrap for fresh databases. |
 | Frontend application | Implemented | React/Vite SPA with 23 module pages, API client, auth state, project state, Demo Centre and in-app documentation index. |
-| Test suite | Implemented | Backend pytest suite passes with `39 passed, 1 deselected` using `-m "not slow"` and `40 passed` for the full suite; the 100,000-URL scale test is included. |
+| Test suite | Implemented | Backend pytest suite passes with `74 passed` using `-m "not slow"` and `75 passed` for the full suite; the 100,000-URL scale test is included. |
 
 ### Partial
 
@@ -42,7 +42,7 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 |---|---|---|---|
 | Container deployment | Partial | All Compose assets are present, but the stack has not been built in this environment; local source setup is the verified path. | Medium |
 | Integration providers | Partial | Provider registry, encrypted credential records and connection declarations exist, but no live vendor API calls are implemented. | Medium |
-| Crawler depth | Partial | `canonical_handling` and `schedule` config keys are stored but unused; JS rendering/Playwright is not implemented; target validation is string-based, without DNS/egress enforcement; sitemap indexes expand only one level. | High |
+| Crawler depth | Partial | `canonical_handling` and `schedule` config keys are stored but unused; JS rendering/Playwright is not implemented; DNS validation and redirect-hop checks exist but egress firewall/connection-time enforcement is still absent; sitemap indexes expand only one level. | High |
 | Public-audit coverage | Partial | Local verification used a deliberately narrow 60-URL sample; the hosted run fetched 219 URLs under the 250-URL default. Neither is exhaustive. Robots rules for named AI agents are evidence of declared policy only; no GSC/GA4, rank or AI-answer visibility data is used. The hosted sitemap discovery timed out and is reported as 0 entries. | Medium |
 | Issue rule coverage | Partial | Some declared rules (`excessive_depth`, `broken_external_link`) have no detector. | Medium |
 | Production RBAC | Partial | Writes are gated by global role; per-project write roles and a role-management UI are not implemented. | Medium |
@@ -57,7 +57,7 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 
 1. Trigger **Manual Deploy → Deploy latest commit** in Render, then verify the hosted public-audit endpoints, exports and case study against project 2; Vercel deploys `main` automatically.
 2. Build and verify the provided Compose stack, or continue documenting local source setup as the only supported path.
-3. Harden crawler target validation with DNS resolution, private-range checks on resolved addresses and network egress controls.
+3. Add network egress controls, connection-time address pinning and resolved-IP allow/deny rules; DNS checks and redirect-hop validation already exist.
 4. Implement real JS rendering (for example Playwright) or remove the misleading `javascript_rendering` option.
 5. Align request pagination parameters with response pagination fields, or document a deliberate compatibility layer.
 

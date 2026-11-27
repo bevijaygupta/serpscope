@@ -25,11 +25,31 @@ def _find_col(columns: list[str], aliases: list[str]) -> str | None:
     return None
 
 
+def _safe_upload_path(file_path: object) -> Path:
+    """Resolve a queued upload only inside the configured upload directory."""
+    root = settings.upload_path.resolve()
+    path = Path(str(file_path or "")).resolve()
+    if root != path.parent and root not in path.parents:
+        raise ValueError("Upload path is outside the configured upload directory")
+    return path
+
+
+def _remove_upload(path: Path | None) -> None:
+    if path is None:
+        return
+    try:
+        path.unlink(missing_ok=True)
+    except OSError:
+        # Cleanup failure must not turn a completed import into a failed job.
+        pass
+
+
 @register("import_file")
 def run_import(db_session_factory, job_id, payload, project_id, organization_id):
     db = db_session_factory()
+    path: Path | None = None
     try:
-        path = Path(payload["file_path"])
+        path = _safe_upload_path(payload.get("file_path"))
         source_type = payload.get("source_type", "csv_urls")
         name = payload.get("name") or path.name
         content = path.read_bytes()
@@ -115,14 +135,16 @@ def run_import(db_session_factory, job_id, payload, project_id, organization_id)
             "column_mapping": mapping, "errors": errors[:20],
         }
     finally:
+        _remove_upload(path)
         db.close()
 
 
 @register("import_keywords")
 def import_keywords_job(db_session_factory, job_id, payload, project_id, organization_id):
     db = db_session_factory()
+    path: Path | None = None
     try:
-        path = Path(payload["file_path"])
+        path = _safe_upload_path(payload.get("file_path"))
         source_type = payload.get("source_type", "keyword_csv")
         columns, rows = parse_table(path.read_bytes(), path.name)
         mapping = {
@@ -183,4 +205,5 @@ def import_keywords_job(db_session_factory, job_id, payload, project_id, organiz
         progress(job_id, 100, 100, "Keyword import complete")
         return {"imported": len(records), "column_mapping": mapping, "data_source_id": source.id}
     finally:
+        _remove_upload(path)
         db.close()

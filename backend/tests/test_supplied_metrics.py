@@ -1,6 +1,7 @@
 """User-supplied vendor data is stored verbatim and reported honestly."""
 from __future__ import annotations
 
+from app.core.config import settings
 from app.db.session import SessionLocal
 from app.models.operations import Report
 from app.services.import_jobs import run_import
@@ -9,9 +10,10 @@ from app.services.supplied_metrics import supplied_signals
 
 
 def test_imported_gsc_export_changes_signal_status_without_inventing_other_data(
-    db, demo_project, client, auth_headers, tmp_path
+    db, demo_project, client, auth_headers, tmp_path, monkeypatch
 ):
     project_id = demo_project["project_id"]
+    monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
     csv_file = tmp_path / "gsc-sample.csv"
     csv_file.write_text(
         "Top queries,Clicks,Impressions,CTR,Position,Date\n"

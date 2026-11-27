@@ -12,16 +12,16 @@ This is an honest status report. It distinguishes what is implemented, what is o
 
 | Area | Status | Summary |
 | --- | --- | --- |
-| Backend API | Completed | FastAPI application with 119 OpenAPI paths / 134 documented operations, Pydantic validation, SQLAlchemy 2 models, SQLite default and PostgreSQL-ready `DATABASE_URL`. |
+| Backend API | Completed | FastAPI application with an AST-derived route inventory of 130 unique HTTP paths including `/api/health`, 144 `/api/v1` operations (145 including health) and one WebSocket, Pydantic validation, SQLAlchemy 2 models, SQLite default and PostgreSQL-ready `DATABASE_URL`. |
 | Frontend SPA | Completed | React 18 + TypeScript + Vite + Tailwind, 23 registered modules, sidebar navigation, custom Overview / Projects / Crawler / Demo / Settings screens, generic data-driven module screens, action modals and exports. |
 | Database | Completed | Full model set, indexes, JSON provenance fields, Alembic baseline migration and `create_all()` bootstrap for fresh databases. |
-| Jobs | Completed | `jobs` table queue, atomic claim, inline API worker, standalone worker, REST status/cancel/retry and authenticated database-polling WebSocket progress. |
+| Jobs | Completed | `jobs` table queue, atomic claim, inline API worker, standalone worker, REST status/cancel and authenticated database-polling WebSocket progress; there is no REST retry endpoint. |
 | Data honesty | Completed | 7-label provenance vocabulary, nullable vendor metrics, source columns in exports, explainable scores, reviewable suggestions and labelled synthetic demo data. |
-| Crawler | Mostly completed | Conservative HTTP crawler with pre-request robots checks, fail-closed robots errors, crawl delay, SSRF string validation and cooperative cancellation. JS rendering and DNS/egress enforcement are absent. |
+| Crawler | Mostly completed | Conservative HTTP crawler with pre-request robots checks, fail-closed robots errors, crawl delay, DNS-aware SSRF validation, private-DNS rejection, redirect-hop validation, caller-override stripping and cooperative cancellation. JS rendering and network egress enforcement remain absent. |
 | Analysis services | Completed | Issue engine, orphan reconciliation, internal-link graph, keyword clustering/mapping/cannibalisation, content scoring/briefs, domain analyses, reporting, forecasting and workflows. |
 | Import / export | Completed | CSV/TSV/TXT, XML sitemap, JSON and XLSX imports; CSV/JSON/XLSX/text-PDF and editable PPTX exports with spreadsheet-injection escaping. |
 | Demo content | Completed | Deterministic 1,000-URL dataset, planted issues, 12 curated interview scenarios and seeded integration provider declarations. |
-| Tests | Completed | 39 backend tests pass in the fast suite, including public-audit route/export and SQLite crawl-progress regressions; the full suite also covers a 100,000-URL scale test. Frontend typecheck and production build pass. No frontend unit-test runner exists. |
+| Tests | Completed | 74 backend tests pass in the fast suite and 75 in the full suite including the 100,000-URL scale test, with regressions for DNS SSRF, redirect hops, caller overrides, upload cleanup, export validation, cancellation-safe publication and tenant/rate limits. Frontend typecheck and production build pass. No frontend unit-test runner exists. |
 | Documentation | Completed | 16 required documents plus this report; all stale claims about Alembic, imports, WebSocket auth and robots behaviour were corrected. |
 | Screenshots | Completed | 24 PNG captures covering all 23 modules plus a demo-scenario modal. |
 | Hosted demo | Completed | Public GitHub repo, Vercel UI with same-origin API rewrite, Render FastAPI + inline worker + Postgres, seeded synthetic data and public `/api/health`. Backend changes require **Manual Deploy → Deploy latest commit** on Render; Vercel deploys `main` automatically. |
@@ -41,10 +41,10 @@ Run from `backend/`:
 
 ```bash
 .venv/Scripts/python -m pytest -q -m "not slow" --disable-warnings
-# 39 passed, 1 deselected in 14.34s
+# 74 passed, 1 deselected
 
 .venv/Scripts/python -m pytest -q --disable-warnings
-# 40 passed in 39.85s (includes the 100,000-URL scale test)
+# 75 passed (includes the 100,000-URL scale test)
 
 .venv/Scripts/python -m alembic upgrade head
 # Context impl SQLiteImpl; no pending revisions
@@ -75,7 +75,7 @@ Authenticated with `demo@serpscope.local / demo1234`:
 | Check | Result |
 | --- | --- |
 | `GET /api/health` | `{"status":"ok","environment":"development","database":"sqlite"}` |
-| OpenAPI | 119 paths / 134 operations |
+| AST route inventory | 130 unique HTTP paths incl. `/api/health`; 144 `/api/v1` operations (145 incl. health); 1 WebSocket |
 | `GET /api/v1/demo/scenarios` | 12 scenarios with keys `1000_keyword_mapping`, `100k_orphans`, `high_revenue_404`, `enterprise_audit`, `singapore_cybersecurity`, `enterprise_reporting`, `migration`, `local_500`, `ecommerce`, `ai_search`, `multi_client`, `automation` |
 | `GET /api/v1/meta/data-kinds` | 7 labels: `live_crawl`, `imported`, `simulated`, `synthetic`, `derived`, `estimated`, `model_suggestion` |
 | `GET /api/v1/inventory/urls?project_id=1&limit=50` | `total=1000`, 50 items, `has_more=true`, sample `data_kind=synthetic` |
@@ -149,7 +149,7 @@ The 60-URL local sample and the 219-URL hosted run are deliberately bounded and 
 
 | Item | Evidence |
 | --- | --- |
-| FastAPI shell, CORS, health, static frontend mount, OpenAPI docs | `backend/app/main.py` |
+| FastAPI shell, CORS, health, no public static frontend/export mount, OpenAPI docs | `backend/app/main.py` |
 | 23-module registry with tabs, actions, defaults and export paths | `frontend/src/lib/modules.ts` |
 | Data-driven generic module page plus custom pages | `frontend/src/pages/ModulePage.tsx`, `frontend/src/pages/CustomPages.tsx` |
 | SQLAlchemy models, indexes and provenance columns | `backend/app/models/` |
@@ -177,7 +177,7 @@ The 60-URL local sample and the 219-URL hosted run are deliberately bounded and 
 | Robots checked before every request and redirect hop | `backend/app/services/crawler.py::RobotsCache.allowed`, `_fetch()` |
 | Fail-closed robots errors; HTTP 4xx treated as allow-all | `RobotsCache.parser()` |
 | Per-host crawl delay with lock and 30-second sleep cap | `CrawlEngine._throttle()` |
-| SSRF string validation, private/credential rejection, `allow_private` opt-in | `backend/app/core/url_utils.py::validate_target_url` |
+| DNS-aware SSRF validation, numeric-IP/reserved-suffix rejection, private DNS answer rejection and redirect-hop validation; caller `allow_private`/`auth_headers` overrides are stripped | `backend/app/core/url_utils.py::validate_target_url`, `backend/app/services/crawler.py` |
 | Cooperative cancellation between batches | `CrawlEngine.run()`, `POST /api/v1/jobs/{id}/cancel` |
 | robots.txt + sitemap index expansion with sitemap-only URL provenance | `CrawlEngine._discover_sitemaps()`, `Crawl.summary.sitemap`, `UrlRecord.in_sitemap` |
 | AEO evidence extraction (question headings, answer paragraph, FAQ/Organization schema) | `backend/app/services/crawler.py::extract_page` |
@@ -202,7 +202,7 @@ The 60-URL local sample and the 219-URL hosted run are deliberately bounded and 
 
 | Item | Evidence |
 | --- | --- |
-| 39 passing fast backend tests / 40 including the 100k scale test; crawler safety, route registration and PPTX regressions | `backend/tests/` |
+| 74 fast / 75 full backend tests; crawler DNS/redirect/override, upload cleanup, export validation, reset preservation, cancellation-safe publication and tenant/rate-limit regressions | `backend/tests/` |
 | Frontend typecheck and production build | `npm run typecheck`, `npm run build` |
 | CI workflow runs backend tests and frontend checks | `.github/workflows/ci.yml` |
 | Docker and nginx assets | `backend/Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf`, `docker-compose.yml` |
@@ -251,12 +251,12 @@ These are usable but intentionally incomplete. They must be described honestly i
 | Live integrations | Provider registry and encrypted credential records exist; no OAuth handshake, token refresh or vendor API calls are implemented for GSC, GA4, Semrush, Ahrefs, GBP, Merchant Center, Shopify, WordPress or LLM providers. | Medium |
 | Crawler JS rendering | `javascript_rendering` is stored and changes the record note when no HTML is extracted; no Playwright/browser renderer is active. | High |
 | Crawler option coverage | `canonical_handling` and `schedule` are stored but unused by the engine. `mode` only changes `data_kind` between `live_crawl` and `simulated`; it does not change fetch mechanics. | Medium |
-| SSRF enforcement | `validate_target_url()` is string-based. It rejects literal private IPs and local names but does not resolve DNS or enforce network egress, so DNS rebinding/internal DNS is not blocked. | High |
+| SSRF enforcement | `validate_target_url()` is DNS-aware and rejects private DNS answers, numeric IP spellings and unsafe redirect hops. There is still no egress firewall, IP allowlist or rebinding-proof connection layer. | High |
 | Sitemap discovery | `/robots.txt`, `/sitemap.xml` and `/sitemap_index.xml` are fetched and indexes expand one level; deeper nesting, more than 25 candidate/child documents and robots rules for named AI agents on sitemap URLs are not handled. | Low |
 | Public audit coverage | The local verification used a narrow 60-URL sample; the hosted run fetched 219 URLs under the in-app 250-URL default. Neither is exhaustive. No JS-rendered DOM, private pages or vendor metrics are included, and AI visibility is readiness evidence only. The hosted sitemap discovery timed out and is reported as 0 entries. | Medium |
 | Issue rule coverage | Some declared rules (`excessive_depth`, `broken_external_link`) have no detector. | Medium |
 | RBAC | Writes are gated by global role only. Membership roles grant read access through `get_project`, not write access; `project_members` is stored but not consulted. No role-management UI. | Medium |
-| Token security | `decode_access_token()` does not explicitly validate the `alg` header. Tokens are stateless and cannot be revoked before `exp`. `SECRET_KEY` is shared by token signing and Fernet credential encryption. | High |
+| Token security | `decode_access_token()` pins `alg=HS256` and `typ=JWT` before signature verification. Tokens are still stateless and cannot be revoked before `exp`, and `SECRET_KEY` is shared by token signing and Fernet credential encryption. | High |
 | Queue topology | A single `jobs` table with conditional-update claiming is not a distributed broker; there is no visibility timeout, orphaned-job recovery or automatic retry of long-lived `claimed` jobs. | Medium |
 | Pagination consistency | Responses use `items,total,page,page_size,has_more`, while most requests use `offset`/`limit`. | Low |
 | Observability | Basic logging exists; no structured metrics, tracing, alerting or correlation IDs. | Medium |
@@ -285,7 +285,7 @@ These are usable but intentionally incomplete. They must be described honestly i
 ## 5. Pending / not implemented
 
 1. Build and verify `docker compose up --build`, including nginx proxying and the separate worker process.
-2. Add DNS-resolution-aware SSRF checks, resolved-IP allow/deny rules and egress firewall guidance.
+2. Add egress firewall guidance, connection-time address pinning and resolved-IP allow/deny rules; DNS-aware checks and redirect validation already exist.
 3. Implement real JS rendering or remove `javascript_rendering` from the public config.
 4. Implement `canonical_handling` semantics and crawler scheduling, or remove the unused keys.
 5. Add detectors for `excessive_depth` and `broken_external_link`.
@@ -370,7 +370,7 @@ Suggested talking points are expanded in `docs/INTERVIEW_DEMONSTRATIONS.md` and 
 | Classification | Count / scope |
 | --- | --- |
 | Completed | Application shell, 23 module screens, API, database, Alembic baseline, jobs, crawler safety, sitemap/robots evidence, source-tracked public audit with PPTX/PDF/CSV/XLSX/JSON exports and case study, analysis services, demo generator, 12 scenarios, docs, tests, screenshots, GitHub publication, Vercel UI and Render API/database hosting |
-| Partial | Containers (not built), live integrations, JS rendering, one-level sitemap-index expansion, crawler option coverage, DNS-aware SSRF, some issue detectors, global-role RBAC, token hardening, queue topology, pagination consistency, observability, frontend tests, incremental migrations, AI-search/forecasting depth |
-| Pending | Render **Manual Deploy → Deploy latest commit** for the audit endpoints plus hosted audit/export/case-study verification; production hardening, real vendor adapters, per-project RBAC, distributed queue, egress enforcement, full Alembic evolution/backup runbook, long-lived free-tier database (expires after 30 days) |
+| Partial | Containers (not built), live integrations, JS rendering, one-level sitemap-index expansion, crawler option coverage, egress enforcement, some issue detectors, global-role RBAC, token revocation, queue topology, pagination consistency, observability, frontend tests, incremental migrations, AI-search/forecasting depth |
+| Pending | Egress enforcement, production hardening, real vendor adapters, per-project RBAC, distributed queue, full Alembic evolution/backup runbook, long-lived free-tier database (expires after 30 days), and explicit approval before any further deploy or publish |
 
 The deliverable is ready for source-run demonstrations, interviews, the hosted synthetic-data demo at `https://serpscopelive.vercel.app`, and a real public-evidence audit with a stated sample size and missing-data list. It is not ready to be marketed as a production multi-tenant SaaS without the pending hardening work, but hosted audit verification is complete and the full evidence pack is available in `evidence/techmagnate_public_audit_hosted_2026-11-23/`.

@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+import pytest
 from sqlalchemy import func, select
 
+from app.core.config import settings
+from app.db.session import SessionLocal
 from app.models.inventory import SitemapEntry, UrlRecord
 from app.models.projects import DataSource
+from app.services.import_jobs import _safe_upload_path, run_import
 from app.services.imports import parse_sitemap, parse_table, upsert_urls
 
 
@@ -170,3 +174,23 @@ def test_sitemap_entries_are_stored_separately_from_inventory(db, demo_project):
     assert db.scalar(select(func.count()).select_from(DataSource).where(
         DataSource.project_id == demo_project["project_id"]
     )) == 0
+
+
+def test_import_job_removes_uploaded_file_after_processing(monkeypatch, tmp_path, demo_project):
+    monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
+    upload = tmp_path / "rows.csv"
+    upload.write_bytes(CSV)
+
+    result = run_import(
+        SessionLocal, 999001,
+        {"file_path": str(upload), "source_type": "csv_urls", "name": "rows.csv"},
+        demo_project["project_id"], demo_project["organization_id"],
+    )
+    assert result["accepted"] == 2
+    assert not upload.exists()
+
+
+def test_queued_upload_path_must_stay_inside_upload_directory(tmp_path, monkeypatch):
+    monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
+    with pytest.raises(ValueError, match="outside"):
+        _safe_upload_path(tmp_path.parent / "outside.csv")

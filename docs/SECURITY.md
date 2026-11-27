@@ -56,16 +56,16 @@ Rejected inputs:
 - Empty/non-string URLs and URLs longer than 4096 characters.
 - Any scheme other than `http` or `https` (blocks `file://`, `javascript:`, etc.).
 - Missing hostname, or embedded `username`/`password` credentials.
-- Hostnames `localhost`, `metadata`, `metadata.google.internal`, anything ending in `.localhost`, and literal IP addresses classified as private, loopback, link-local, reserved, multicast or unspecified (e.g. `127.0.0.1`, `169.254.169.254`).
+- Hostnames `localhost`, `metadata`, `metadata.google.internal`, anything ending in `.localhost`, `.local`, `.internal`, `.localdomain` or `.home.arpa`, numeric/IPv6/integer/hex IP spellings of forbidden addresses, and literal or DNS-resolved addresses classified as private, loopback, link-local, reserved, multicast or unspecified (e.g. `127.0.0.1`, `169.254.169.254`).
 - Ports outside 1–65535.
 
-`allow_private=False` is the default. `start_crawl` exposes an `allow_private` config switch and the crawler has an `allow_private` setting; enabling it bypasses the private-address check for authorised internal testing. One-click **public audits** cannot use that switch: `sanitize_public_audit_config()` in `app/services/public_audit.py` forces `allow_private=False`, empty `auth_headers`, `mode="live"`, robots respect and a bounded crawl at both the API and job boundary.
+`allow_private=False` is the default. `start_crawl` strips caller-supplied `allow_private` and `auth_headers`, forces `allow_private=False`/`auth_headers={}`, and validates the start URL plus the first 50 seeds with private DNS checks. `CrawlConfig.from_dict()` strips the same overrides in the worker, and `sanitize_public_audit_config()` in `app/services/public_audit.py` forces `allow_private=False`, empty `auth_headers`, `mode="live"`, robots respect and a bounded crawl at both the API and job boundary; `allow_private` is meaningful only for explicit local tooling.
 
 **Limitations:**
 
-- The check inspects the *literal host string*; it does **not** resolve DNS, so a public hostname that resolves to a private address (DNS rebinding / internal DNS) is not blocked, and there is no egress proxy or IP allowlist.
-- Redirect targets are re-validated immediately before each redirect GET by the crawler's manual redirect loop; network-layer egress controls are still advisable because DNS results are not inspected.
-- `allow_private=true` disables the main guard, so it must be restricted to trusted operators.
+- Public hostnames are DNS-resolved and rejected when any checked answer is private, loopback, link-local, reserved, multicast or unspecified; DNS failures fail closed. Network-layer egress controls are still advisable because DNS answers can change before connection.
+- Redirect targets are re-validated on every page, robots and sitemap hop by manual redirect handling; network-layer egress controls are still advisable because validation is not a firewall.
+- `allow_private=True` is reserved for explicit local tooling; REST callers cannot enable it, and embedded credentials are still rejected.
 
 ## 5. Crawler safety — robots.txt, crawl delay and cancellation
 
@@ -77,9 +77,9 @@ Implementation: `backend/app/services/crawler.py`, `backend/app/services/crawl_j
 | Crawl delay | `crawl_delay` defaults to `1.0` seconds; the effective delay is `max(configured delay, robots-provided delay)`, with a lower bound of 0. Configuration clamps `max_urls` to 1–100000 and `crawl_delay` to ≥ 0 |
 | User agent | `SEOAutomationLab/1.0 (+respects robots.txt)`; robots lookup uses the same agent |
 | Cancellation | `POST /api/v1/jobs/{id}/cancel` sets `jobs.cancel_requested`; `jobs.is_cancelled(job_id)` is polled by handlers and the crawler receives a `cancelled` callback. A cancelled crawl is persisted with `crawls.status = "cancelled"` and the job ends as `cancelled` |
-| Scope | Seeds, discovered links and redirect hops are passed through `validate_target_url`; `follow_external` / `allow_private` config controls outbound scope |
+| Scope | Seeds, discovered links and redirect hops are passed through `validate_target_url`; `follow_external` controls outbound scope while `allow_private` and `auth_headers` are stripped from API and worker callers |
 
-**Limitations:** HTTP 4xx on `/robots.txt` is treated as explicit allow-all; other fetch failures fail closed (no URLs are crawled for that host). Sitemap discovery fetches `/sitemap.xml` before robots gating. Cancellation is cooperative — a handler that never calls `is_cancelled` cannot be interrupted by the API; there is no hard timeout or process kill. Crawl speed is bounded by concurrency and delay settings, not by a global rate limiter.
+**Limitations:** HTTP 4xx on `/robots.txt` is treated as explicit allow-all; other fetch failures fail closed (no URLs are crawled for that host). Robots and sitemap fetches use SSRF-validated manual redirects; robots rules gate candidate and child sitemap URLs for the crawler's declared user agent, but redirect hops are not separately robots-gated. Cancellation is cooperative — a handler that never calls `is_cancelled` cannot be interrupted by the API; there is no hard timeout or process kill. Crawl speed is bounded by concurrency and delay settings, not by a global rate limiter.
 
 ## 6. Upload restrictions
 
@@ -91,7 +91,7 @@ Implementation: `backend/app/api/v1/imports.py`, settings in `backend/app/core/c
 - **Data-kind allowlist:** `validated_data_kind()` rejects labels outside `UPLOAD_DATA_KINDS`. A file cannot be declared `live_crawl` (or `observed`), which would otherwise let an arbitrary upload masquerade as a first-party observation.
 - **Filename sanitisation:** only alphanumeric characters plus `.`, `_`, `-` are kept, truncated to 120 characters, prefixed with a millisecond timestamp, and written under `settings.upload_path/<project_id>/`.
 - **Inline alternative:** `POST /api/v1/imports/url-list` accepts at most 10,000 URLs per call (400 above that) and is intended for small lists.
-- Uploads are recorded with an `audit_logs` entry (`import.upload`) and enqueue an `import_file` job; uploaded files are **not** exposed via a static mount.
+- Uploads are recorded with an `audit_logs` entry (`import.upload`), enqueue an `import_file` job, are confined to `settings.upload_path` by `_safe_upload_path()`, are deleted in `finally` after URL and keyword imports, and are **not** exposed via a static mount.
 
 **Limitations:** only the filename suffix and byte length are checked — file content is not deeply validated, and there is no antivirus/malware scanning. XLSX content is parsed with openpyxl; keep that dependency patched. The upload directory must not be web-serving in the container setup.
 
@@ -158,7 +158,7 @@ The throttle reads only `request.client.host` (the socket peer) and reduces it w
 | **Shared `SECRET_KEY`** | Token signing and Fernet credential encryption derive from one secret; separate keys so rotation does not couple tokens and stored credentials |
 | **Token in `localStorage`** | Vulnerable to XSS token theft; prefer `HttpOnly`/`Secure` cookies or a BFF. An edge CSP is now present, but inline legacy snippets mean `script-src` still allows inline scripts |
 | **No CSRF token** | Mitigated today by bearer-token auth (not cookies), but re-evaluate if auth moves to cookies |
-| **SSRF is string-based** | No DNS resolution checks, egress firewall, or redirect-time network enforcement |
+| **SSRF lacks network-layer enforcement** | DNS-aware validation rejects private answers and validates redirect hops, but egress firewall, connection-time address pinning and resolved-IP allow/deny rules are still missing |
 | **RBAC still relies on global write roles** | Tenant membership now gates reads and scoped writes, but write permission is still decided by `global_role`; `project_members` is not consulted. A per-action permission matrix is needed if tenant admins must delegate writes. |
 | **Baseline-only migrations** | Alembic `0001_initial_schema` and `create_all()` create fresh tables but do not alter existing ones; test and author incremental revisions before schema changes reach production |
 | **No Redis/Celery** | The queue is a single `jobs` table with conditional-update claiming; it is not a high-throughput broker, has no visibility timeout or automatic retry of orphaned `claimed` jobs |

@@ -127,3 +127,47 @@ def test_cancellation_stops_before_any_request(monkeypatch, db):
     assert stats["crawled"] == 0
     assert any("Cancelled" in str(item) for item in stats["errors"])
     assert FakeClient.calls == []
+
+
+def test_redirect_to_private_host_is_not_followed(monkeypatch, db):
+    calls: list[str] = []
+
+    class RedirectClient:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def get(self, url: str, **kwargs):
+            calls.append(url)
+            if url.endswith("/robots.txt"):
+                return FakeResponse(200, "User-agent: *\nAllow: /\n")
+            if url == "https://demo.example.com/start":
+                return FakeResponse(302, "", {"location": "http://127.0.0.1/admin"})
+            return FakeResponse(200, "<html><title>Should not be fetched</title></html>",
+                                {"content-type": "text/html"})
+
+    monkeypatch.setattr("app.services.crawler.httpx.Client", RedirectClient)
+    config = CrawlConfig.from_dict({
+        "start_url": "https://demo.example.com/start",
+        "max_urls": 1, "concurrency": 1, "crawl_delay": 0,
+        "respect_robots": True, "sitemap_discovery": False,
+    })
+    stats = CrawlEngine(db, 1, 999999, None, config).run()
+    assert stats["crawled"] == 0
+    assert stats["excluded"] == 1
+    assert calls == ["https://demo.example.com/robots.txt", "https://demo.example.com/start"]
+
+
+def test_crawler_config_ignores_caller_network_overrides():
+    config = CrawlConfig.from_dict({
+        "start_url": "https://demo.example.com/",
+        "allow_private": True,
+        "auth_headers": {"Authorization": "Bearer secret"},
+    })
+    assert config.allow_private is False
+    assert config.auth_headers == {}

@@ -18,7 +18,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for how these tables are used and [DEPLOY
 
 > **Caution:** `create_all()` only creates missing tables. It does not add columns or change types on an existing database. For schema evolution you must currently migrate manually or recreate the database.
 
-There are **42 tables** across eight model modules.
+There are **43 tables** across seven model modules.
 
 ## 2. Identity and access (`app/models/auth.py`)
 
@@ -104,6 +104,7 @@ Explicit indexes: `ix_kw_project_norm` and `ix_mapping_project_primary`.
 | `integrations` | Provider connections with encrypted credentials | `id`, `project_id` (indexed, nullable), `organization_id` (indexed, nullable), `provider` (indexed), `display_name`, `status` (indexed), `mode` (indexed, default `csv_import`), `credentials_encrypted` (Text — Fernet token), `config` (JSON), `last_sync_at`, `notes`, timestamps |
 | `supplied_metrics` | Verbatim user-supplied vendor/private rows | `id`, `project_id` (indexed), `source` (indexed), `signal` (indexed), `data_kind` (indexed), `dimension` (indexed), `period_start`, `period_end`, `metrics` (JSON — original import columns), `meta_info` (JSON), `data_source_id` (indexed), timestamps |
 | `demo_scenarios` | Interview-ready demo content | `id`, `key` (unique, indexed), `title`, `question`, `context`, `challenge`, `steps`/`modules`/`expected_findings` (JSON), `interpretation`, `recommended_actions` (JSON), `limitations`, `interview_explanation`, `dataset_info` (JSON), timestamps |
+| `case_study_views` | Anonymous case-study view | `id`, `project_id` (indexed), `report_id` (indexed), `path`, `source`, timestamps |
 
 ## 9. Foreign keys and cascade behaviour
 

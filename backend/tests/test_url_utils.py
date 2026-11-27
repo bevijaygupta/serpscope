@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import socket
+
 import pytest
 
 from app.core.url_utils import (
@@ -46,6 +48,23 @@ def test_validate_target_url_allows_public_http_targets():
     with pytest.raises(ValueError):
         validate_target_url("http://localhost/", allow_private=False)
     assert validate_target_url("http://localhost:8000/", allow_private=True).endswith(":8000/")
+
+
+def test_validate_target_url_rejects_private_dns_answers_and_numeric_ips(monkeypatch):
+    def private_answer(*args, **kwargs):
+        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", ("10.0.0.5", 0))]
+
+    monkeypatch.setattr("app.core.url_utils.socket.getaddrinfo", private_answer)
+    with pytest.raises(ValueError, match="private"):
+        validate_target_url("https://rebind.example.com/")
+    with pytest.raises(ValueError, match="Private"):
+        validate_target_url("http://2130706433/")
+    with pytest.raises(ValueError, match="Host could not be resolved"):
+        monkeypatch.setattr(
+            "app.core.url_utils.socket.getaddrinfo",
+            lambda *args, **kwargs: (_ for _ in ()).throw(socket.gaierror("blocked")),
+        )
+        validate_target_url("https://unknown.example.com/")
 
 
 def test_helpers_cover_canonical_host_and_classification():
