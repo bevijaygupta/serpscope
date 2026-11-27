@@ -21,7 +21,7 @@ This is an honest status report. It distinguishes what is implemented, what is o
 | Analysis services | Completed | Issue engine, orphan reconciliation, internal-link graph, keyword clustering/mapping/cannibalisation, content scoring/briefs, domain analyses, reporting, forecasting and workflows. |
 | Import / export | Completed | CSV/TSV/TXT, XML sitemap, JSON and XLSX imports; CSV/JSON/XLSX/text-PDF and editable PPTX exports with spreadsheet-injection escaping. |
 | Demo content | Completed | Deterministic 1,000-URL dataset, planted issues, 12 curated interview scenarios and seeded integration provider declarations. |
-| Tests | Completed | 77 backend tests pass in the fast suite and 78 in the full suite including the 100,000-URL scale test, with regressions for DNS SSRF, redirect hops, caller overrides, upload cleanup, export path confinement, cancellation-safe publication/imports/sitemap discovery and tenant/rate limits. Frontend typecheck and production build pass. No frontend unit-test runner exists. |
+| Tests | Completed | 90 backend tests pass in the fast suite and 91 in the full suite including the 100,000-URL scale test, with regressions for DNS SSRF, redirect hops, caller overrides, upload cleanup, export path confinement, cancellation-safe publication/imports/sitemap discovery, persistent/account-wide token revocation and shared tenant/rate limits. Frontend typecheck and production build pass. No frontend unit-test runner exists. |
 | Documentation | Completed | 16 required documents plus this report; all stale claims about Alembic, imports, WebSocket auth and robots behaviour were corrected. |
 | Screenshots | Completed | 24 PNG captures covering all 23 modules plus a demo-scenario modal. |
 | Hosted demo | Completed | Public GitHub repo, Vercel UI with same-origin API rewrite, Render FastAPI + inline worker + Postgres, seeded synthetic data and public `/api/health`. Backend changes require **Manual Deploy → Deploy latest commit** on Render; Vercel deploys `main` automatically. |
@@ -41,10 +41,10 @@ Run from `backend/`:
 
 ```bash
 .venv/Scripts/python -m pytest -q -m "not slow" --disable-warnings
-# 89 passed, 1 deselected
+# 90 passed, 1 deselected
 
 .venv/Scripts/python -m pytest -q --disable-warnings
-# 90 passed (includes the 100,000-URL scale test)
+# 91 passed (includes the 100,000-URL scale test)
 
 .venv/Scripts/python -m alembic upgrade head
 # Context impl SQLiteImpl; no pending revisions
@@ -202,7 +202,7 @@ The 60-URL local sample and the 219-URL hosted run are deliberately bounded and 
 
 | Item | Evidence |
 | --- | --- |
-| 89 fast / 90 full backend tests; crawler DNS/redirect/override, upload cleanup, export path confinement, reset preservation, cancellation-safe publication/imports/sitemap discovery, persistent revocation and tenant/rate-limit regressions | `backend/tests/` |
+| 90 fast / 91 full backend tests; crawler DNS/redirect/override, upload cleanup, export path confinement, reset preservation, cancellation-safe publication/imports/sitemap discovery, persistent/account-wide revocation and shared tenant/rate-limit regressions | `backend/tests/` |
 | Frontend typecheck and production build | `npm run typecheck`, `npm run build` |
 | CI workflow runs backend tests and frontend checks | `.github/workflows/ci.yml` |
 | Docker and nginx assets | `backend/Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf`, `docker-compose.yml` |
@@ -299,6 +299,7 @@ These are usable but intentionally incomplete. They must be described honestly i
 13. Add redirect deployment as a gated, reviewable workflow rather than an automatic action.
 14. Exercise incremental Alembic revisions against production-like data and add a backup/restore runbook.
 15. Remove or guard the automatic demo-account bootstrap and open self-registration before any public deployment.
+16. **Done:** mutating-route throttling now uses a shared `rate_limit_windows` counter instead of a per-process dictionary, so workers share one budget. Still open: gateway/WAF rate limiting and account-level lockout.
 16. **Done for the earlier release:** Render **Manual Deploy → Deploy latest commit** made the public-audit endpoints live and project 2 was verified. Every later backend commit still requires the same manual Render deploy; Vercel deploys `main` automatically.
 
 ---
@@ -369,7 +370,7 @@ Suggested talking points are expanded in `docs/INTERVIEW_DEMONSTRATIONS.md` and 
 
 | Classification | Count / scope |
 | --- | --- |
-| Completed | Application shell, 23 module screens, API, database, Alembic baseline, jobs, crawler safety, sitemap/robots evidence, source-tracked public audit with PPTX/PDF/CSV/XLSX/JSON exports and case study, analysis services, demo generator, 12 scenarios, docs, tests, screenshots, GitHub publication, Vercel UI and Render API/database hosting |
+| Completed | Application shell, 23 module screens, API, database, Alembic baseline, jobs, crawler safety, shared database-backed rate limiting, sitemap/robots evidence, source-tracked public audit with PPTX/PDF/CSV/XLSX/JSON exports and case study, analysis services, demo generator, 12 scenarios, docs, tests, screenshots, GitHub publication, Vercel UI and Render API/database hosting |
 | Partial | Containers (not built), dormant live integrations, JS rendering, three-level sitemap-index expansion, crawler option coverage, egress enforcement, some issue detectors, global-role RBAC, persistent single-token and account-wide revocation (no refresh/short-lived flow), queue topology, pagination consistency, observability, frontend tests, incremental migrations, AI-search/forecasting depth |
 | Pending | Egress enforcement, production hardening, real vendor accounts/credentials, per-project RBAC, distributed queue, full Alembic evolution/backup runbook, long-lived free-tier database (expires after 30 days) |
 

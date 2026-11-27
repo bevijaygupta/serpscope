@@ -1,7 +1,7 @@
 """Organisation, user, membership and audit models."""
 from __future__ import annotations
 
-from sqlalchemy import JSON, Boolean, ForeignKey, Integer, String
+from sqlalchemy import JSON, Boolean, Float, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, IdMixin, TimestampMixin
@@ -54,6 +54,19 @@ class RevokedToken(Base, IdMixin, TimestampMixin):
     __tablename__ = "revoked_tokens"
     token_digest: Mapped[str] = mapped_column(String(64), unique=True, index=True)
     expires_at: Mapped[int] = mapped_column(Integer, index=True)
+
+
+class RateLimitWindow(Base, IdMixin, TimestampMixin):
+    """A shared fixed-window counter keyed by an HMAC digest.
+
+    The digest incorporates only the UTC day, route bucket and socket peer; no
+    IP address, cookie, header, user identity or request content is retained.
+    """
+
+    __tablename__ = "rate_limit_windows"
+    window_key: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    window_start: Mapped[float] = mapped_column(Float, index=True)
+    count: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class AuditLog(Base, IdMixin, TimestampMixin):

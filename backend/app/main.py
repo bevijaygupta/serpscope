@@ -4,7 +4,6 @@ from __future__ import annotations
 import hashlib
 import hmac
 import logging
-import math
 import threading
 import time
 from pathlib import Path
@@ -13,6 +12,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
+from starlette.concurrency import run_in_threadpool
 
 from app.api.v1 import (
     ai,
@@ -45,6 +45,7 @@ from app.core.config import settings
 from app.core.security import hash_password
 from app.db.session import SessionLocal, init_db
 from app.models.auth import Membership, Organization, User
+from app.services.rate_limiting import consume as consume_rate_limit
 
 logging.basicConfig(level=getattr(logging, settings.log_level.upper(), logging.INFO))
 logger = logging.getLogger("serpscope")
@@ -63,11 +64,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-process, per-host abuse throttle. It never stores the client host itself:
-# only a short HMAC digest of (UTC day, route bucket, socket peer host) is kept.
-# The socket peer is read directly, never X-Forwarded-For, cookies, headers,
-# user identity, audited domain or request contents. This is safe for the single
-# Render web process declared in render.yaml; extra workers multiply the budget.
+# Shared, per-peer abuse throttle. It never stores the client host itself:
+# only a short HMAC digest of (UTC day, route bucket, socket peer host) is kept
+# in the shared rate_limit_windows table. The socket peer is read directly,
+# never X-Forwarded-For, cookies, headers, user identity, audited domain or
+# request contents. Extra API workers share one budget instead of multiplying it.
 RATE_LIMIT_WINDOW_SECONDS = 600
 RATE_LIMIT_BUCKET_LIMITS = {
     "login": 10,
@@ -78,14 +79,19 @@ RATE_LIMIT_BUCKET_LIMITS = {
 DEMO_EMAIL = "demo@serpscope.local"
 DEMO_ORG_SLUG = "demo-organisation"
 DEMO_PASSWORD = "demo1234"
-_RATE_WINDOWS: dict[str, tuple[float, int]] = {}
-_RATE_LOCK = threading.Lock()
-_RATE_MAX_KEYS = 10_000
 
 
 def _rate_limit_key(bucket: str, peer: str | None, day: int) -> str:
     material = f"{day}|{bucket}|{peer or ''}".encode("utf-8")
     return hmac.new(settings.secret_key.encode("utf-8"), material, hashlib.sha256).hexdigest()[:32]
+
+
+def _consume_rate_limit(key: str, now: float) -> tuple[int, int]:
+    db = SessionLocal()
+    try:
+        return consume_rate_limit(db, key, now, RATE_LIMIT_WINDOW_SECONDS)
+    finally:
+        db.close()
 
 
 @app.middleware("http")
@@ -102,18 +108,14 @@ async def rate_limit_mutations(request: Request, call_next):
     else:
         bucket = "mutation"
     limit = RATE_LIMIT_BUCKET_LIMITS[bucket]
-    day = int(time.time() // 86_400)
+    now = time.time()
+    day = int(now // 86_400)
     key = _rate_limit_key(bucket, request.client.host if request.client else None, day)
-    now = time.monotonic()
-    with _RATE_LOCK:
-        if len(_RATE_WINDOWS) > _RATE_MAX_KEYS:
-            _RATE_WINDOWS.clear()
-        start, count = _RATE_WINDOWS.get(key, (now, 0))
-        if now - start >= RATE_LIMIT_WINDOW_SECONDS:
-            start, count = now, 0
-        count += 1
-        _RATE_WINDOWS[key] = (start, count)
-        retry_after = max(1, math.ceil(RATE_LIMIT_WINDOW_SECONDS - (now - start)))
+    try:
+        count, retry_after = await run_in_threadpool(_consume_rate_limit, key, now)
+    except Exception:  # noqa: BLE001 - throttling must not take the API down
+        logger.exception("Shared rate-limit store unavailable; allowing request")
+        return await call_next(request)
     if count > limit:
         # No key, peer or path is echoed back; only a numeric retry hint.
         return JSONResponse(

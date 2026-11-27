@@ -16,9 +16,9 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for how these tables are used and [DEPLOY
 | Types | SQLite by default (`sqlite:///./data/serpscope.db`), PostgreSQL URL supported by configuration; no database-specific column types in models |
 | SQLite PRAGMAs | `journal_mode=WAL`, `foreign_keys=ON`, `synchronous=NORMAL` applied on every connection |
 
-> **Caution:** `create_all()` only creates missing tables. It does not add columns or change types on an existing database. For schema evolution, ship and run an explicit idempotent Alembic revision; revisions `0002_supplied_metrics`, `0003_honest_foundation`, `0004_token_revocation` and `0005_user_token_version` cover the changes added after the baseline.
+> **Caution:** `create_all()` only creates missing tables. It does not add columns or change types on an existing database. For schema evolution, ship and run an explicit idempotent Alembic revision; revisions `0002_supplied_metrics`, `0003_honest_foundation`, `0004_token_revocation`, `0005_user_token_version` and `0006_shared_rate_limits` cover the changes added after the baseline.
 
-There are **44 tables** across seven model modules.
+There are **45 tables** across seven model modules.
 
 ## 2. Identity and access (`app/models/auth.py`)
 
@@ -29,6 +29,7 @@ There are **44 tables** across seven model modules.
 | `memberships` | User ↔ organisation role assignment | `id`, `user_id` → `users.id` (CASCADE, indexed), `organization_id` → `organizations.id` (CASCADE, indexed), `role` (default `viewer`), timestamps |
 | `audit_logs` | Action trail | `id`, `organization_id` → `organizations.id` (SET NULL, indexed), `user_id` → `users.id` (SET NULL, indexed), `project_id` (indexed, no FK), `action` (indexed), `target`, `details` (JSON), timestamps |
 | `revoked_tokens` | Logout denylist | `id`, `token_digest` (unique, indexed; HMAC-SHA256 of the bearer token, never the raw token), `expires_at` (indexed, original JWT expiry), timestamps |
+| `rate_limit_windows` | Shared mutating-route counters | `id`, `window_key` (unique, indexed; HMAC-SHA256 of UTC day, route bucket and socket peer, never the raw peer), `window_start` (indexed, epoch seconds), `count`, timestamps |
 
 ## 3. Projects, sources and jobs (`app/models/projects.py`)
 

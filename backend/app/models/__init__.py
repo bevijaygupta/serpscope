@@ -1,6 +1,6 @@
 """All SQLAlchemy models, imported together for metadata registration."""
 from app.db.base import Base
-from app.models.auth import AuditLog, Membership, Organization, RevokedToken, User
+from app.models.auth import AuditLog, Membership, Organization, RateLimitWindow, RevokedToken, User
 from app.models.projects import DataSource, Job, MeetingNote, Project, ProjectMember, Task
 from app.models.inventory import Crawl, CrawlObservation, LinkEdge, SitemapEntry, UrlRecord
 from app.models.keywords import Keyword, KeywordCluster, KeywordMapping
@@ -41,6 +41,8 @@ __all__ = [
     "AuditLog",
     "Membership",
     "Organization",
+    "RateLimitWindow",
+    "RevokedToken",
     "User",
     "DataSource",
     "Job",

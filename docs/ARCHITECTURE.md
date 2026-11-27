@@ -57,7 +57,7 @@ flowchart TB
     end
 
     subgraph data["Persistence"]
-        DB[("SQLAlchemy engine\nSQLite (WAL) or PostgreSQL\n44 tables")]
+        DB[("SQLAlchemy engine\nSQLite (WAL) or PostgreSQL\n45 tables")]
         FILES[("Filesystem\ndata/uploads, data/exports")]
     end
 

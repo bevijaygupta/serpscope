@@ -1,5 +1,7 @@
-"""Tenant isolation and in-process abuse throttling regression tests."""
+"""Tenant isolation and shared database abuse-throttling regression tests."""
 from __future__ import annotations
+
+import time
 
 import pytest
 from fastapi.testclient import TestClient
@@ -7,9 +9,9 @@ from fastapi.testclient import TestClient
 from app.core.config import settings
 from app.core.security import hash_password
 from app.db.session import SessionLocal
-from app.main import RATE_LIMIT_WINDOW_SECONDS, _RATE_WINDOWS
+from app.main import RATE_LIMIT_WINDOW_SECONDS
 from app.models.analysis import ContentBrief, Issue, LinkSuggestion
-from app.models.auth import Membership, Organization, User
+from app.models.auth import Membership, Organization, RateLimitWindow, User
 from app.models.keywords import KeywordCluster
 from app.models.operations import Integration, Workflow
 from app.models.projects import Job, Project, Task
@@ -140,12 +142,10 @@ def test_job_integration_user_and_child_writes_are_scoped(client, db):
     assert client.post("/api/v1/demo/reset", headers=headers_a, json={}).status_code == 403
 
 
-def test_rate_limits_return_generic_429_without_sensitive_keys(client, monkeypatch):
+def test_rate_limits_return_generic_429_without_sensitive_keys(client, db, monkeypatch):
     from app.core.config import settings as live_settings
-    from app.main import _RATE_WINDOWS as windows
 
     monkeypatch.setattr(live_settings, "rate_limit_enabled", True)
-    windows.clear()
     try:
         assert RATE_LIMIT_WINDOW_SECONDS == 600
         status_codes = []
@@ -163,11 +163,33 @@ def test_rate_limits_return_generic_429_without_sensitive_keys(client, monkeypat
         body = blocked.text.lower()
         for secret in ("testclient", "/api/v1/auth/login", "demo@serpscope.local", "wrong"):
             assert secret not in body
-        # The in-memory keys are truncated HMAC digests, never raw peer or path.
-        assert all(len(key) == 32 and all(c in "0123456789abcdef" for c in key) for key in windows)
+        # The shared keys are truncated HMAC digests, never a raw peer or path.
+        rows = db.query(RateLimitWindow).all()
+        assert len(rows) == 1
+        assert all(
+            len(row.window_key) == 32
+            and all(c in "0123456789abcdef" for c in row.window_key)
+            for row in rows
+        )
+        assert rows[0].count == 12
+        with SessionLocal() as other_session:
+            assert other_session.query(RateLimitWindow).count() == 1
     finally:
-        windows.clear()
+        db.query(RateLimitWindow).delete()
+        db.commit()
         monkeypatch.setattr(live_settings, "rate_limit_enabled", False)
+
+
+def test_rate_limit_counter_is_shared_between_sessions(db):
+    from app.services.rate_limiting import consume
+
+    key = "shared-window-test"
+    now = time.time()
+    with SessionLocal() as first, SessionLocal() as second:
+        assert consume(first, key, now, 600)[0] == 1
+        assert consume(second, key, now, 600)[0] == 2
+        assert consume(first, key, now, 600)[0] == 3
+    assert db.query(RateLimitWindow).filter(RateLimitWindow.window_key == key).one().count == 3
 
 
 def test_registration_is_validated_and_can_be_disabled(client, monkeypatch):

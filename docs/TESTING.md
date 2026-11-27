@@ -17,7 +17,7 @@ All commands run from the `backend/` directory:
 ```bash
 cd backend
 
-# Fast suite (89 tests; the full suite has 90 including the slow 100k test)
+# Fast suite (90 tests; the full suite has 91 including the slow 100k test)
 pytest -q -m "not slow"
 
 # Full suite, including the large-dataset acceptance test
@@ -86,7 +86,7 @@ The first column is the `pytest --durations=3` call time for `tests/test_scale_1
 | `test_presence.py` | Anonymous visitor token requirement and distinct-session counting without identity storage |
 | `test_crawler_safety.py` | Robots permission checked before each request and redirect hop, fail-closed robots fetch errors, disallowed URLs excluded, cancellation before sitemap discovery or page requests, private-target and private-redirect rejection, fail-closed DNS checks, stripping of caller `allow_private`/`auth_headers` overrides, and bounded nested sitemap indexes with cycle prevention and depth-limit errors |
 | `test_token_revocation.py` | Logout stores only a token digest in the shared database, revokes only the presented token across sessions and the job WebSocket (`4401`), `logout-all` bumps `token_version` to supersede every earlier session with `401`, and a fresh login still succeeds |
-| `test_tenant_and_rate_limits.py` | Cross-tenant rejection for projects/clients/jobs/integrations/users and child writes, plus generic 429 throttling |
+| `test_tenant_and_rate_limits.py` | Cross-tenant rejection for projects/clients/jobs/integrations/users and child writes, generic 429 throttling with digest-only shared keys, and counter increments visible across DB sessions |
 | `test_scale_100k.py` | `@pytest.mark.slow` acceptance test: 100k Core-batched URL import speed (under 90s), count, bounded paginated API response and `has_more`/`page` correctness; rerun at 1k/10k/100k for the benchmark table above |
 
 ## 5. Frontend checks
@@ -113,5 +113,5 @@ Manual smoke path for the UI:
 - The test database is deleted at **import** time and cleaned before every test; the suite is designed for serial execution. Running tests in parallel with xdist would contend for the same SQLite file and the module-level cleanup.
 - One test temporarily mutates the global `HANDLERS` registry (`test_cancellable`) and removes it afterwards; a failure before cleanup can pollute later tests in the same process.
 - CI (`.github/workflows/ci.yml`) runs the backend suite, frontend typecheck/build, required-file checks and an invariant check that fails if the counts change from **23 modules / 17 docs / 24 screenshots / 12 interview scenarios**.
-- Tests do not cover SSO, distributed rate limiting, PostgreSQL-specific behaviour, real outbound crawling, Alembic revision upgrades, or the container/edge setup described in [DEPLOYMENT.md](DEPLOYMENT.md). Token revocation is tested for database persistence, account-wide version invalidation and job-WebSocket rejection, but not under concurrent multi-worker load. Crawler compliance is tested against local mock servers/parser behaviour rather than public websites.
+- Tests do not cover SSO, gateway/WAF rate limiting, PostgreSQL-specific behaviour, real outbound crawling, Alembic revision upgrades, or the container/edge setup described in [DEPLOYMENT.md](DEPLOYMENT.md). Token revocation is tested for database persistence, account-wide version invalidation and job-WebSocket rejection; shared rate counters are tested across DB sessions but not under concurrent multi-worker load. Crawler compliance is tested against local mock servers/parser behaviour rather than public websites.
 - Security properties are tested at the unit level (SSRF inputs, CSV injection, 401/403 enforcement) rather than through a full penetration test; see the limitations in [SECURITY.md](SECURITY.md).
