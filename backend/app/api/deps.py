@@ -33,6 +33,8 @@ def current_user(
     user = db.get(User, int(payload["sub"]))
     if user is None or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive user")
+    if int(payload.get("ver", 0)) != int(user.token_version):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been superseded")
     return user
 
 

@@ -44,6 +44,7 @@ def init_db() -> None:
 
     Base.metadata.create_all(bind=engine)
     _ensure_ai_observation_columns()
+    _ensure_user_token_version()
 
 
 def _ensure_ai_observation_columns() -> None:
@@ -67,3 +68,21 @@ def _ensure_ai_observation_columns() -> None:
     with engine.begin() as connection:
         for statement in additions:
             connection.execute(text(statement))
+
+
+def _ensure_user_token_version() -> None:
+    """Add the account-wide sign-out column on hosts that skip Alembic.
+
+    Revision 0005 ships the same column. A plain code deploy must still work on
+    an older database, so this idempotent guard closes that gap at startup.
+    """
+    inspector = inspect(engine)
+    if "users" not in inspector.get_table_names():
+        return
+    existing = {column["name"] for column in inspector.get_columns("users")}
+    if "token_version" in existing:
+        return
+    with engine.begin() as connection:
+        connection.execute(
+            text("ALTER TABLE users ADD COLUMN token_version INTEGER NOT NULL DEFAULT 0")
+        )

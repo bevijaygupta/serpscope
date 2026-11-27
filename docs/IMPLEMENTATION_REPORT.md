@@ -290,7 +290,7 @@ These are usable but intentionally incomplete. They must be described honestly i
 4. Implement `canonical_handling` semantics and crawler scheduling, or remove the unused keys.
 5. Add detectors for `excessive_depth` and `broken_external_link`.
 6. Add per-project write roles, role-management UI and role gating in the SPA.
-7. **Done:** `alg == "HS256"` and `typ == "JWT"` are pinned before signature verification; tokens carry a unique `jti`, and `POST /auth/logout` persists a token-digest denylist in the shared `revoked_tokens` table for REST and job WebSockets. Still open: account-wide revocation, separate token-signing and credential-encryption keys, refresh and short-lived tokens.
+7. **Done:** `alg == "HS256"` and `typ == "JWT"` are pinned before signature verification; tokens carry a unique `jti`, `POST /auth/logout` persists a token-digest denylist in the shared `revoked_tokens` table, and `POST /auth/logout-all` bumps `users.token_version` to supersede all earlier tokens. REST and job WebSockets enforce both. Still open: separate token-signing and credential-encryption keys, refresh and short-lived tokens.
 8. Replace the single-table queue with a durable broker or add visibility timeout, orphan recovery and retry policy.
 9. **Partly done:** `/api/health` now probes the database and reports `503 degraded` without credentials. Still open: structured request logging, correlation IDs and job metrics.
 10. Add frontend unit/component tests and end-to-end coverage for the 12 scenarios.
@@ -370,7 +370,7 @@ Suggested talking points are expanded in `docs/INTERVIEW_DEMONSTRATIONS.md` and 
 | Classification | Count / scope |
 | --- | --- |
 | Completed | Application shell, 23 module screens, API, database, Alembic baseline, jobs, crawler safety, sitemap/robots evidence, source-tracked public audit with PPTX/PDF/CSV/XLSX/JSON exports and case study, analysis services, demo generator, 12 scenarios, docs, tests, screenshots, GitHub publication, Vercel UI and Render API/database hosting |
-| Partial | Containers (not built), dormant live integrations, JS rendering, three-level sitemap-index expansion, crawler option coverage, egress enforcement, some issue detectors, global-role RBAC, persistent single-token revocation (no account-wide/refresh flow), queue topology, pagination consistency, observability, frontend tests, incremental migrations, AI-search/forecasting depth |
+| Partial | Containers (not built), dormant live integrations, JS rendering, three-level sitemap-index expansion, crawler option coverage, egress enforcement, some issue detectors, global-role RBAC, persistent single-token and account-wide revocation (no refresh/short-lived flow), queue topology, pagination consistency, observability, frontend tests, incremental migrations, AI-search/forecasting depth |
 | Pending | Egress enforcement, production hardening, real vendor accounts/credentials, per-project RBAC, distributed queue, full Alembic evolution/backup runbook, long-lived free-tier database (expires after 30 days) |
 
 The deliverable is ready for source-run demonstrations, interviews, the hosted synthetic-data demo at `https://serpscopelive.vercel.app`, and a real public-evidence audit with a stated sample size and missing-data list. It is not ready to be marketed as a production multi-tenant SaaS without the pending hardening work, but hosted audit verification is complete and the full evidence pack is available in `evidence/techmagnate_public_audit_hosted_2026-11-23/`.

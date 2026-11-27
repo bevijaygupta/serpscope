@@ -95,6 +95,9 @@ async def job_progress(websocket: WebSocket, job_id: int):
         if user is None or not user.is_active:
             await websocket.close(code=4401)
             return
+        if int(payload.get("ver", 0)) != int(user.token_version):
+            await websocket.close(code=4401)
+            return
         job = auth_db.get(Job, job_id)
         if job is None:
             await websocket.close(code=4404)

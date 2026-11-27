@@ -16,7 +16,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for how these tables are used and [DEPLOY
 | Types | SQLite by default (`sqlite:///./data/serpscope.db`), PostgreSQL URL supported by configuration; no database-specific column types in models |
 | SQLite PRAGMAs | `journal_mode=WAL`, `foreign_keys=ON`, `synchronous=NORMAL` applied on every connection |
 
-> **Caution:** `create_all()` only creates missing tables. It does not add columns or change types on an existing database. For schema evolution, ship and run an explicit idempotent Alembic revision; revisions `0002_supplied_metrics`, `0003_honest_foundation` and `0004_token_revocation` cover the changes added after the baseline.
+> **Caution:** `create_all()` only creates missing tables. It does not add columns or change types on an existing database. For schema evolution, ship and run an explicit idempotent Alembic revision; revisions `0002_supplied_metrics`, `0003_honest_foundation`, `0004_token_revocation` and `0005_user_token_version` cover the changes added after the baseline.
 
 There are **44 tables** across seven model modules.
 
@@ -25,7 +25,7 @@ There are **44 tables** across seven model modules.
 | Table | Purpose | Key columns |
 | --- | --- | --- |
 | `organizations` | Tenant / client organisation | `id`, `name`, `slug` (unique, indexed), `plan` (default `demo`), `is_demo`, `retention_days` (default 365), `created_at`, `updated_at` |
-| `users` | Local accounts | `id`, `email` (unique, indexed), `full_name`, `hashed_password` (PBKDF2 string), `global_role` (default `viewer`), `is_active`, `is_demo`, timestamps |
+| `users` | Local accounts | `id`, `email` (unique, indexed), `full_name`, `hashed_password` (PBKDF2 string), `global_role` (default `viewer`), `is_active`, `is_demo`, `token_version` (default `0`; bumped by `POST /auth/logout-all`), timestamps |
 | `memberships` | User ↔ organisation role assignment | `id`, `user_id` → `users.id` (CASCADE, indexed), `organization_id` → `organizations.id` (CASCADE, indexed), `role` (default `viewer`), timestamps |
 | `audit_logs` | Action trail | `id`, `organization_id` → `organizations.id` (SET NULL, indexed), `user_id` → `users.id` (SET NULL, indexed), `project_id` (indexed, no FK), `action` (indexed), `target`, `details` (JSON), timestamps |
 | `revoked_tokens` | Logout denylist | `id`, `token_digest` (unique, indexed; HMAC-SHA256 of the bearer token, never the raw token), `expires_at` (indexed, original JWT expiry), timestamps |

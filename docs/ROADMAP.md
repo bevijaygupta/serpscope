@@ -18,7 +18,7 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 | Area | Status | Evidence in the current build |
 |---|---|---|
 | FastAPI application shell | Implemented | `backend/app/main.py` wires all `/api/v1` routers, health check, no public static mount, OpenAPI docs, and an inline worker tick. |
-| Local authentication and RBAC | Implemented | Demo login, JWT access tokens with unique `jti`, persisted database-backed logout revocation (REST + job WebSocket), password hashing, role checks, and project-scoped data access are present; account-wide revocation, refresh tokens and SSO are still absent. |
+| Local authentication and RBAC | Implemented | Demo login, JWT access tokens with unique `jti`, persisted single-token and account-wide revocation (REST + job WebSocket), password hashing, role checks, and project-scoped data access are present; refresh tokens and SSO are still absent. |
 | Project, domain, and crawl management | Implemented | CRUD APIs and database-backed projects, domains, and crawl definitions are present. |
 | Deterministic synthetic demo data | Implemented | `backend/app/services/demo.py` generates a labelled, repeatable dataset with planted issue classes. |
 | Scenario catalogue | Implemented | `backend/app/services/scenarios.py` defines twelve curated scenarios, including a full audit preset. |
@@ -32,7 +32,7 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 | Workflows and scheduled jobs | Implemented | Workflow definitions and runs, schedule CRUD, job listing, job details and cancellation are present; no REST retry endpoint exists and claimed jobs have no automatic retry. |
 | Reports | Implemented | Report generation, retrieval, data-gap notes and CSV/JSON/XLSX/PDF exports are present; public audits add editable PPTX decks. |
 | Import jobs | Implemented | CSV/TSV/TXT, XML sitemaps, JSON and XLSX uploads are parsed into URL/keyword inventory with source tracking and bounded batches. |
-| Database migrations | Implemented | Alembic baseline revision `0001_initial_schema.py`, incremental revisions `0002_supplied_metrics`, `0003_honest_foundation` and `0004_token_revocation`, plus `create_all()` bootstrap for fresh databases. |
+| Database migrations | Implemented | Alembic baseline revision `0001_initial_schema.py`, incremental revisions `0002_supplied_metrics`, `0003_honest_foundation`, `0004_token_revocation` and `0005_user_token_version`, plus `create_all()` bootstrap for fresh databases. |
 | Frontend application | Implemented | React/Vite SPA with 23 module pages, API client, auth state, project state, Demo Centre and in-app documentation index. |
 | Test suite | Implemented | Backend pytest suite passes with `89 passed` using `-m "not slow"` and `90 passed` for the full suite; the 100,000-URL scale test is included, with 1k/10k/100k benchmarks recorded in [TESTING.md](TESTING.md). |
 

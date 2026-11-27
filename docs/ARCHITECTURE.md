@@ -88,7 +88,7 @@ flowchart TB
 
 1. **Transport** — The browser sends an axios request with `baseURL = /api/v1`. The request interceptor in `frontend/src/lib/api.ts` attaches `Authorization: Bearer <token>` from `localStorage` (`serpscope-token`). A 120-second axios timeout is configured.
 2. **Routing** — FastAPI matches the path to one of the v1 routers defined in `app/main.py`. `CORSMiddleware` applies the configured origin list with credentials, all methods and all headers.
-3. **Authentication** — Most endpoints depend on `current_user` (`app/api/deps.py`), which uses `HTTPBearer(auto_error=False)`, checks the shared `revoked_tokens` denylist via `is_token_revoked`, decodes the HMAC-signed token via `decode_access_token`, loads the `User` by the `sub` claim and rejects missing, invalid, expired or inactive users with 401. The job WebSocket performs the same revocation check and closes with `4401`.
+3. **Authentication** — Most endpoints depend on `current_user` (`app/api/deps.py`), which uses `HTTPBearer(auto_error=False)`, checks the shared `revoked_tokens` denylist via `is_token_revoked`, decodes the HMAC-signed token via `decode_access_token`, loads the `User` by the `sub` claim, compares the token `ver` with `users.token_version`, and rejects missing, invalid, expired, revoked, superseded or inactive users with 401. The job WebSocket performs the same checks and closes with `4401`.
 4. **Authorisation** — Project-scoped endpoints take `ProjectDep = Depends(get_project)`: owners/admins may access any project; everyone else needs a `Membership` row for the project's organisation, otherwise 403. Mutating endpoints additionally call `check_write(user)` (roles `owner`, `admin`, `editor`). A few admin-only routes use `require_roles(*roles)`; note that owners/admins short-circuit that check.
 5. **Handler / service** — The route delegates to an `app.services.*` function that performs the database work through a SQLAlchemy `Session` yielded by `get_db()` (autoflush off, `expire_on_commit=False`). Sessions are closed in a `finally` block.
 6. **Response** — Pydantic models or serialised dictionaries are returned. An `Exception` handler logs the traceback server-side and returns only `500 {"detail": "Internal server error"}`; internal values are never echoed to the caller.
@@ -100,6 +100,7 @@ flowchart TB
 | --- | --- |
 | `POST /api/v1/auth/login` | Verify PBKDF2 password, return an HMAC-SHA256 bearer token (24 h by default) carrying `sub`, `jti` and `role` claims |
 | `POST /api/v1/auth/logout` | Revoke the presented bearer token until its original expiry via a persistent, shared denylist of token digests |
+| `POST /api/v1/auth/logout-all` | Increment the caller's token version so all earlier tokens are superseded |
 | `GET /api/v1/auth/me` | Return the current user's id, email, name and global role |
 | `POST /api/v1/auth/register` | **Local-development** account creation (validated email/password, new users get `viewer` with no membership); returns `403` by default in production unless explicitly opted in; production should use SSO/admin provisioning |
 | `GET /api/v1/auth/users` | List up to 1000 users (requires authentication) |

@@ -40,6 +40,29 @@ def test_logout_revokes_only_the_presented_token(client, auth_headers, db):
     assert client.get("/api/v1/auth/me", headers=headers).status_code == 200
     assert client.get("/api/health").status_code == 200
 
+    # A second live session is invalidated by the account-wide control too.
+    second = client.post("/api/v1/auth/login", json={
+        "email": "demo@serpscope.local", "password": "demo1234",
+    })
+    second_headers = {"Authorization": "Bearer " + second.json()["access_token"]}
+    assert client.get("/api/v1/auth/me", headers=second_headers).status_code == 200
+
+    all_out = client.post("/api/v1/auth/logout-all", headers=headers)
+    assert all_out.status_code == 200, all_out.text
+    assert all_out.json()["detail"] == "All sessions signed out"
+    for stale in (headers, second_headers):
+        denied = client.get("/api/v1/auth/me", headers=stale)
+        assert denied.status_code == 401
+        assert denied.json()["detail"] == "Token has been superseded"
+
+    after = client.post("/api/v1/auth/login", json={
+        "email": "demo@serpscope.local", "password": "demo1234",
+    })
+    assert after.status_code == 200
+    assert client.get(
+        "/api/v1/auth/me", headers={"Authorization": "Bearer " + after.json()["access_token"]}
+    ).status_code == 200
+
 
 def test_revocation_is_shared_across_sessions_and_rejects_the_job_websocket(
     client, auth_headers, demo_project, db

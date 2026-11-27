@@ -24,7 +24,9 @@ def login(payload: LoginRequest, db: DB):
         raise HTTPException(401, "Invalid email or password")
     if not user.is_active:
         raise HTTPException(403, "User is inactive")
-    return TokenResponse(access_token=create_access_token(str(user.id), {"role": user.global_role}))
+    return TokenResponse(access_token=create_access_token(
+        str(user.id), {"role": user.global_role, "ver": user.token_version}
+    ))
 
 
 @router.get("/me", response_model=UserResponse)
@@ -43,6 +45,14 @@ def logout(
         raise HTTPException(401, "Authentication required")
     revoke_token(db, credentials.credentials)
     return {"detail": "Token revoked", "token_type": "bearer"}
+
+
+@router.post("/logout-all")
+def logout_all(db: DB, user: UserDep):
+    """Invalidate every previously issued token for the current account."""
+    user.token_version += 1
+    db.commit()
+    return {"detail": "All sessions signed out", "token_type": "bearer"}
 
 
 @router.post("/register", response_model=UserResponse, status_code=201)
