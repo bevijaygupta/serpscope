@@ -120,7 +120,7 @@ VITE_API_TARGET=http://127.0.0.1:9000 npm run dev
 
 Other scripts: `npm run build` (`tsc -b && vite build`, output in `frontend/dist`), `npm run preview`, `npm run typecheck`.
 
-The browser stores the bearer token in `localStorage` under `serpscope-token` and the active project id under `serpscope-project`. A `401` response clears the token and redirects to `/login`.
+The browser stores the bearer token in `localStorage` under `serpscope-token` and the active project id under `serpscope-project`. A `401` response clears the token and redirects to `/login`. The workspace **Sign out** button first calls `POST /api/v1/auth/logout` to revoke the token server-side (best-effort), then clears local state and returns to `/login`.
 
 ---
 

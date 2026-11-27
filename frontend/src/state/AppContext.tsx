@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { clearToken, errorMessage, get, hasToken, patch, post, unwrapList, type Job } from '../lib/api';
+import { errorMessage, get, hasToken, logout as revokeToken, patch, post, unwrapList, type Job } from '../lib/api';
 
 export type Project = { id: number; name: string; domain: string; status: string; is_demo?: boolean };
 
@@ -136,7 +136,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     runAction,
     toast,
     notify,
-    logout: () => clearToken(),
+    logout: () => { void revokeToken(); },
   }), [projects, projectId, setProjectId, loadingProjects, refreshProjects, jobs, refreshJobs, dataVersion, bumpData, runAction, toast, notify]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

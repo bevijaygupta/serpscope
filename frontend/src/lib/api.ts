@@ -52,6 +52,16 @@ export async function post<T = unknown>(path: string, body?: unknown, config?: A
   return response.data;
 }
 
+/** Best-effort server-side revocation, then always clear the local token. */
+export async function logout(): Promise<void> {
+  try {
+    await post('/auth/logout');
+  } catch {
+    // Sign-out still succeeds locally if the API is offline; the token expires on its own.
+  }
+  clearToken();
+}
+
 export async function patch<T = unknown>(path: string, body?: unknown, config?: AxiosRequestConfig): Promise<T> {
   const response: AxiosResponse<T> = await api.patch(path, body ?? {}, config);
   return response.data;

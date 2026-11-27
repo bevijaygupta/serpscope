@@ -5,7 +5,7 @@ import {
   AlertTriangle, Loader2, LogOut, ShieldCheck,
 } from 'lucide-react';
 import { MODULES, MODULE_GROUPS } from '../lib/modules';
-import { clearToken, get } from '../lib/api';
+import { get, logout } from '../lib/api';
 import { useApp } from '../state/AppContext';
 import { Badge } from './ui';
 import { LiveVisitors } from './LiveVisitors';
@@ -200,7 +200,7 @@ export function Layout() {
                   <div className="text-xs font-medium text-ink">{user?.full_name || 'Demo user'}</div>
                   <div className="text-[10px] uppercase tracking-wider text-muted">{user?.global_role || 'viewer'}</div>
                 </div>
-                <button className="btn btn-ghost p-1.5" title="Sign out" onClick={() => { clearToken(); navigate('/login'); }}><LogOut className="h-4 w-4" /></button>
+                <button className="btn btn-ghost p-1.5" title="Sign out" onClick={() => { void logout().then(() => navigate('/login')); }}><LogOut className="h-4 w-4" /></button>
               </div>
             </div>
           </div>
