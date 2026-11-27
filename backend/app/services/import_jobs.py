@@ -44,12 +44,25 @@ def _remove_upload(path: Path | None) -> None:
         pass
 
 
+def _cancelled_import_result(mapping: dict | None = None, accepted: int = 0, rejected: int = 0) -> dict:
+    return {
+        "data_source_id": None, "accepted": accepted, "rejected": rejected,
+        "supplied_metric_rows": 0, "column_mapping": mapping or {}, "errors": [],
+    }
+
+
+def _cancelled_keyword_result(mapping: dict | None = None) -> dict:
+    return {"imported": 0, "column_mapping": mapping or {}, "data_source_id": None}
+
+
 @register("import_file")
 def run_import(db_session_factory, job_id, payload, project_id, organization_id):
     db = db_session_factory()
     path: Path | None = None
     try:
         path = _safe_upload_path(payload.get("file_path"))
+        if is_cancelled(job_id):
+            return _cancelled_import_result()
         source_type = payload.get("source_type", "csv_urls")
         name = payload.get("name") or path.name
         content = path.read_bytes()
@@ -60,6 +73,8 @@ def run_import(db_session_factory, job_id, payload, project_id, organization_id)
         if source_type in {"sitemap", "sitemap_index"}:
             entries, kind = parse_sitemap(content)
             urls = [e["loc"] for e in entries]
+            if is_cancelled(job_id):
+                return _cancelled_import_result({"loc": "url"})
             if kind == "sitemap":
                 store_sitemap_entries(db, project_id, entries, name)
                 accepted, rejected, errors = upsert_urls(
@@ -114,6 +129,8 @@ def run_import(db_session_factory, job_id, payload, project_id, organization_id)
                 if index % 500 == 0:
                     progress(job_id, index, total, f"Imported {index}/{total} rows")
                     db.commit()
+        if is_cancelled(job_id):
+            return _cancelled_import_result(mapping, accepted, rejected)
         source = DataSource(
             project_id=project_id, source_type=source_type, name=name,
             file_name=path.name, row_count=accepted, rejected_count=rejected,
@@ -122,6 +139,8 @@ def run_import(db_session_factory, job_id, payload, project_id, organization_id)
         )
         db.add(source)
         db.flush()
+        if is_cancelled(job_id):
+            return _cancelled_import_result(mapping, accepted, rejected)
         supplied_rows = store_supplied_metrics(
             db, project_id, source_type, name, rows,
             payload.get("data_kind", "imported"), source.id,
@@ -145,6 +164,8 @@ def import_keywords_job(db_session_factory, job_id, payload, project_id, organiz
     path: Path | None = None
     try:
         path = _safe_upload_path(payload.get("file_path"))
+        if is_cancelled(job_id):
+            return _cancelled_keyword_result()
         source_type = payload.get("source_type", "keyword_csv")
         columns, rows = parse_table(path.read_bytes(), path.name)
         mapping = {
@@ -165,6 +186,8 @@ def import_keywords_job(db_session_factory, job_id, payload, project_id, organiz
             raise ValueError("No keyword column found. Columns: " + ", ".join(columns[:30]))
         records = []
         for index, row in enumerate(rows):
+            if is_cancelled(job_id):
+                break
             keyword = (row.get(mapping["keyword"]) or "").strip()
             if not keyword or len(keyword) > 300:
                 continue
@@ -191,8 +214,12 @@ def import_keywords_job(db_session_factory, job_id, payload, project_id, organiz
             })
             if index % 1000 == 0:
                 progress(job_id, index, len(rows), f"Imported {index}/{len(rows)} keywords")
+        if is_cancelled(job_id):
+            return _cancelled_keyword_result(mapping)
         for start in range(0, len(records), 4000):
             db.bulk_insert_mappings(Keyword, records[start:start + 4000])
+        if is_cancelled(job_id):
+            return _cancelled_keyword_result(mapping)
         source = DataSource(
             project_id=project_id, source_type=source_type, name=path.name,
             file_name=path.name, row_count=len(records), status="ready",
@@ -200,6 +227,8 @@ def import_keywords_job(db_session_factory, job_id, payload, project_id, organiz
         )
         db.add(source)
         db.flush()
+        if is_cancelled(job_id):
+            return _cancelled_keyword_result(mapping)
         store_supplied_metrics(db, project_id, source_type, path.name, rows, "imported", source.id)
         db.commit()
         progress(job_id, 100, 100, "Keyword import complete")

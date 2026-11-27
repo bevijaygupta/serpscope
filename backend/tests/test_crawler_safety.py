@@ -120,7 +120,7 @@ def test_cancellation_stops_before_any_request(monkeypatch, db):
     config = CrawlConfig.from_dict({
         "start_url": "https://demo.example.com/",
         "max_urls": 5, "concurrency": 1, "crawl_delay": 0,
-        "respect_robots": True, "sitemap_discovery": False,
+        "respect_robots": True, "sitemap_discovery": True,
     })
     engine = CrawlEngine(db, 1, 999999, None, config, cancelled=lambda: True)
     stats = engine.run()

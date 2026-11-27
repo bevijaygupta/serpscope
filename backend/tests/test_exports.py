@@ -3,9 +3,12 @@ from __future__ import annotations
 import io
 import json
 import zipfile
+from pathlib import Path
 
 import pytest
 
+from app.api.v1._helpers import download, export_path
+from app.core.config import settings
 from app.services.exports import (
     export_csv, export_json, export_pdf_report, export_pptx_report,
     export_xlsx, make_export,
@@ -65,3 +68,19 @@ def test_make_export_dispatches_formats():
     assert make_export("pdf", ROWS, COLUMNS, "base")[2] == "base.pdf"
     with pytest.raises(ValueError, match="Unsupported"):
         make_export("xml", ROWS, COLUMNS, "base")
+
+
+def test_export_path_and_download_confine_caller_supplied_base(monkeypatch, tmp_path):
+    monkeypatch.setattr(settings, "export_dir", str(tmp_path))
+
+    generated = export_path("../../escape", "csv")
+    assert generated.resolve().parent == tmp_path.resolve()
+    assert generated.name.startswith("escape_")
+    assert ".." not in generated.name
+
+    response = download(ROWS, COLUMNS, "../../escape", "csv")
+    saved = Path(response.path).resolve()
+    assert saved.parent == tmp_path.resolve()
+    assert saved.name.startswith("escape_")
+    assert ".." not in saved.name
+    assert response.filename == "escape.csv"

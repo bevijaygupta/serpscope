@@ -6,8 +6,10 @@ from sqlalchemy import func, select
 from app.core.config import settings
 from app.db.session import SessionLocal
 from app.models.inventory import SitemapEntry, UrlRecord
-from app.models.projects import DataSource
-from app.services.import_jobs import _safe_upload_path, run_import
+from app.models.keywords import Keyword
+from app.models.operations import SuppliedMetric
+from app.models.projects import DataSource, Job
+from app.services.import_jobs import _safe_upload_path, import_keywords_job, run_import
 from app.services.imports import parse_sitemap, parse_table, upsert_urls
 
 
@@ -194,3 +196,80 @@ def test_queued_upload_path_must_stay_inside_upload_directory(tmp_path, monkeypa
     monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
     with pytest.raises(ValueError, match="outside"):
         _safe_upload_path(tmp_path.parent / "outside.csv")
+
+
+def _cancelled_job(project_id: int, organization_id: int) -> int:
+    db = SessionLocal()
+    try:
+        job = Job(
+            name="Cancelled import", job_type="import_file", status="running",
+            project_id=project_id, organization_id=organization_id,
+            cancel_requested=True,
+        )
+        db.add(job)
+        db.commit()
+        return job.id
+    finally:
+        db.close()
+
+
+def test_cancelled_url_import_does_not_persist_rows_or_metrics(monkeypatch, tmp_path, demo_project):
+    monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
+    upload = tmp_path / "cancelled_urls.csv"
+    upload.write_bytes(CSV)
+    project_id = demo_project["project_id"]
+    job_id = _cancelled_job(project_id, demo_project["organization_id"])
+
+    result = run_import(
+        SessionLocal, job_id,
+        {"file_path": str(upload), "source_type": "csv_urls", "name": upload.name},
+        project_id, demo_project["organization_id"],
+    )
+
+    assert result["data_source_id"] is None
+    assert result["accepted"] == 0
+    assert not upload.exists()
+    fresh = SessionLocal()
+    try:
+        assert fresh.scalar(select(func.count()).select_from(UrlRecord).where(
+            UrlRecord.url == "https://demo.example.com/three/"
+        )) == 0
+        assert fresh.scalar(select(func.count()).select_from(DataSource).where(
+            DataSource.file_name == upload.name
+        )) == 0
+        assert fresh.scalar(select(func.count()).select_from(SuppliedMetric).where(
+            SuppliedMetric.project_id == project_id
+        )) == 0
+    finally:
+        fresh.close()
+
+
+def test_cancelled_keyword_import_does_not_persist_rows_or_metrics(monkeypatch, tmp_path, demo_project):
+    monkeypatch.setattr(settings, "upload_dir", str(tmp_path))
+    upload = tmp_path / "cancelled_keywords.csv"
+    upload.write_bytes(b"keyword,volume\nalpha,100\nbeta,200\n")
+    project_id = demo_project["project_id"]
+    job_id = _cancelled_job(project_id, demo_project["organization_id"])
+
+    result = import_keywords_job(
+        SessionLocal, job_id,
+        {"file_path": str(upload), "source_type": "keyword_csv"},
+        project_id, demo_project["organization_id"],
+    )
+
+    assert result["data_source_id"] is None
+    assert result["imported"] == 0
+    assert not upload.exists()
+    fresh = SessionLocal()
+    try:
+        assert fresh.scalar(select(func.count()).select_from(Keyword).where(
+            Keyword.project_id == project_id, Keyword.keyword.in_(["alpha", "beta"])
+        )) == 0
+        assert fresh.scalar(select(func.count()).select_from(DataSource).where(
+            DataSource.file_name == upload.name
+        )) == 0
+        assert fresh.scalar(select(func.count()).select_from(SuppliedMetric).where(
+            SuppliedMetric.project_id == project_id
+        )) == 0
+    finally:
+        fresh.close()

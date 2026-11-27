@@ -163,7 +163,7 @@ See [DEMO_GUIDE.md](DEMO_GUIDE.md) for the full walkthrough and planted-issue in
 From `backend/`:
 
 ```bash
-# Fast suite: 74 passed; full suite: 75 passed including the slow 100k test
+# Fast suite: 77 passed; full suite: 78 passed including the slow 100k test
 .venv/Scripts/python -m pytest -q -m "not slow"     # Windows
 .venv/bin/python -m pytest -q -m "not slow"         # macOS/Linux
 
@@ -180,7 +180,7 @@ npm run typecheck
 npm run build
 ```
 
-Test areas: auth/RBAC and project scoping, WebSocket authentication, pagination and bounded responses, CSV/JSON/XLSX exports, CSV/JSON/XLSX/sitemap imports and URL normalisation, planted issues and high-value 404s, orphan classification, link suggestions, keyword clustering/mapping/cannibalisation, priority scoring, URL utilities, crawler compliance/cancellation and the 100k inventory path.
+Test areas: auth/RBAC and project scoping, WebSocket authentication, pagination and bounded responses, CSV/JSON/XLSX exports with filename confinement, CSV/JSON/XLSX/sitemap imports and URL normalisation with cancellation guards, planted issues and high-value 404s, orphan classification, link suggestions, keyword clustering/mapping/cannibalisation, priority scoring, URL utilities, crawler compliance/cancellation and the 100k inventory path.
 
 ---
 

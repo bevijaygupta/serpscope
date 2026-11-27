@@ -34,7 +34,7 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 | Import jobs | Implemented | CSV/TSV/TXT, XML sitemaps, JSON and XLSX uploads are parsed into URL/keyword inventory with source tracking and bounded batches. |
 | Database migrations | Implemented | Alembic baseline revision `0001_initial_schema.py` plus `create_all()` bootstrap for fresh databases. |
 | Frontend application | Implemented | React/Vite SPA with 23 module pages, API client, auth state, project state, Demo Centre and in-app documentation index. |
-| Test suite | Implemented | Backend pytest suite passes with `74 passed` using `-m "not slow"` and `75 passed` for the full suite; the 100,000-URL scale test is included. |
+| Test suite | Implemented | Backend pytest suite passes with `77 passed` using `-m "not slow"` and `78 passed` for the full suite; the 100,000-URL scale test is included, with 1k/10k/100k benchmarks recorded in [TESTING.md](TESTING.md). |
 
 ### Partial
 

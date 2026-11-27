@@ -21,7 +21,7 @@ This is an honest status report. It distinguishes what is implemented, what is o
 | Analysis services | Completed | Issue engine, orphan reconciliation, internal-link graph, keyword clustering/mapping/cannibalisation, content scoring/briefs, domain analyses, reporting, forecasting and workflows. |
 | Import / export | Completed | CSV/TSV/TXT, XML sitemap, JSON and XLSX imports; CSV/JSON/XLSX/text-PDF and editable PPTX exports with spreadsheet-injection escaping. |
 | Demo content | Completed | Deterministic 1,000-URL dataset, planted issues, 12 curated interview scenarios and seeded integration provider declarations. |
-| Tests | Completed | 74 backend tests pass in the fast suite and 75 in the full suite including the 100,000-URL scale test, with regressions for DNS SSRF, redirect hops, caller overrides, upload cleanup, export validation, cancellation-safe publication and tenant/rate limits. Frontend typecheck and production build pass. No frontend unit-test runner exists. |
+| Tests | Completed | 77 backend tests pass in the fast suite and 78 in the full suite including the 100,000-URL scale test, with regressions for DNS SSRF, redirect hops, caller overrides, upload cleanup, export path confinement, cancellation-safe publication/imports/sitemap discovery and tenant/rate limits. Frontend typecheck and production build pass. No frontend unit-test runner exists. |
 | Documentation | Completed | 16 required documents plus this report; all stale claims about Alembic, imports, WebSocket auth and robots behaviour were corrected. |
 | Screenshots | Completed | 24 PNG captures covering all 23 modules plus a demo-scenario modal. |
 | Hosted demo | Completed | Public GitHub repo, Vercel UI with same-origin API rewrite, Render FastAPI + inline worker + Postgres, seeded synthetic data and public `/api/health`. Backend changes require **Manual Deploy → Deploy latest commit** on Render; Vercel deploys `main` automatically. |
@@ -41,10 +41,10 @@ Run from `backend/`:
 
 ```bash
 .venv/Scripts/python -m pytest -q -m "not slow" --disable-warnings
-# 74 passed, 1 deselected
+# 77 passed, 1 deselected
 
 .venv/Scripts/python -m pytest -q --disable-warnings
-# 75 passed (includes the 100,000-URL scale test)
+# 78 passed (includes the 100,000-URL scale test)
 
 .venv/Scripts/python -m alembic upgrade head
 # Context impl SQLiteImpl; no pending revisions
@@ -178,12 +178,12 @@ The 60-URL local sample and the 219-URL hosted run are deliberately bounded and 
 | Fail-closed robots errors; HTTP 4xx treated as allow-all | `RobotsCache.parser()` |
 | Per-host crawl delay with lock and 30-second sleep cap | `CrawlEngine._throttle()` |
 | DNS-aware SSRF validation, numeric-IP/reserved-suffix rejection, private DNS answer rejection and redirect-hop validation; caller `allow_private`/`auth_headers` overrides are stripped | `backend/app/core/url_utils.py::validate_target_url`, `backend/app/services/crawler.py` |
-| Cooperative cancellation between batches | `CrawlEngine.run()`, `POST /api/v1/jobs/{id}/cancel` |
+| Cooperative cancellation between batches and before/during sitemap discovery | `CrawlEngine.run()`, `CrawlEngine._discover_sitemaps()`, `POST /api/v1/jobs/{id}/cancel` |
 | robots.txt + sitemap index expansion with sitemap-only URL provenance | `CrawlEngine._discover_sitemaps()`, `Crawl.summary.sitemap`, `UrlRecord.in_sitemap` |
 | AEO evidence extraction (question headings, answer paragraph, FAQ/Organization schema) | `backend/app/services/crawler.py::extract_page` |
 | One-click public audit, roadmap and source registry | `backend/app/services/public_audit.py`, `public_audit_jobs.py` |
 | CSV/TSV/TXT, XML sitemap, JSON and XLSX parsing | `backend/app/services/imports.py::parse_table`, `parse_sitemap` |
-| Bounded batches, source merging and Core-batched inserts | `upsert_urls()`, `/imports/url-list` cap of 10,000 rows; 100k URL import now completes inside the 90-second acceptance budget |
+| Bounded batches, source merging and Core-batched inserts | `upsert_urls()`, `/imports/url-list` cap of 10,000 rows; 100k URL import now completes inside the 90-second acceptance budget. Local 1k/10k/100k import/export benchmarks are recorded in [TESTING.md](TESTING.md) |
 
 ### 3.4 Demo and reporting
 
@@ -202,7 +202,7 @@ The 60-URL local sample and the 219-URL hosted run are deliberately bounded and 
 
 | Item | Evidence |
 | --- | --- |
-| 74 fast / 75 full backend tests; crawler DNS/redirect/override, upload cleanup, export validation, reset preservation, cancellation-safe publication and tenant/rate-limit regressions | `backend/tests/` |
+| 77 fast / 78 full backend tests; crawler DNS/redirect/override, upload cleanup, export path confinement, reset preservation, cancellation-safe publication/imports/sitemap discovery and tenant/rate-limit regressions | `backend/tests/` |
 | Frontend typecheck and production build | `npm run typecheck`, `npm run build` |
 | CI workflow runs backend tests and frontend checks | `.github/workflows/ci.yml` |
 | Docker and nginx assets | `backend/Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf`, `docker-compose.yml` |

@@ -576,6 +576,8 @@ class CrawlEngine:
             "declared_sitemaps": [], "sitemap_files": [], "sitemap_urls": 0,
             "robots_ai_rules": {}, "document": "", "errors": [],
         }
+        if self.cancelled():
+            return info
         headers = {"User-Agent": self.config.user_agent}
         headers.update(self.config.auth_headers or {})
         parser: RobotFileParser | None = None
@@ -610,6 +612,8 @@ class CrawlEngine:
                 for candidate in candidates:
                     if len(seen_files) >= 25 or len(all_entries) >= self.config.max_urls:
                         break
+                    if self.cancelled():
+                        break
                     try:
                         if parser and self.config.respect_robots and not parser.can_fetch(self.config.user_agent, candidate):
                             continue
@@ -631,6 +635,8 @@ class CrawlEngine:
                                 loc = (child.get("loc") or "").strip()
                                 if not loc or loc in seen_files or len(seen_files) >= 25:
                                     continue
+                                if self.cancelled():
+                                    break
                                 try:
                                     if parser and self.config.respect_robots and not parser.can_fetch(self.config.user_agent, loc):
                                         continue
@@ -655,6 +661,8 @@ class CrawlEngine:
                     except Exception as exc:  # noqa: BLE001
                         info["errors"].append(f"{candidate}: {type(exc).__name__}: {exc}"[:300])
 
+                if self.cancelled():
+                    return info
                 deduped: list[dict] = []
                 seen_urls: set[str] = set()
                 for entry in all_entries[: self.config.max_urls]:
@@ -698,7 +706,7 @@ class CrawlEngine:
             seeds.append((self.config.start_url, 0))
         for url in self.config.seed_urls:
             seeds.append((url, 0))
-        if self.config.sitemap_discovery and self.config.start_url:
+        if self.config.sitemap_discovery and self.config.start_url and not self.cancelled():
             sitemap_info = self._discover_sitemaps(self.config.start_url)
             self.stats["sitemap"] = sitemap_info
             if self.robots is not None:

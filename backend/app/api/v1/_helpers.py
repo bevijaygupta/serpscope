@@ -1,6 +1,7 @@
 """Shared API helpers for pagination, serialisation and exports."""
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -50,14 +51,27 @@ def paged(items: list, total: int, offset: int, limit: int) -> dict:
     }
 
 
+def _safe_export_base(base: str) -> str:
+    """Collapse a caller-supplied export name into one safe filename stem."""
+    stem = re.sub(r"[^A-Za-z0-9._-]+", "_", str(base or "export")).strip("._-")[:120]
+    return stem or "export"
+
+
+def _safe_export_suffix(suffix: str) -> str:
+    clean = re.sub(r"[^A-Za-z0-9]+", "", str(suffix or "").lstrip(".").lower())[:10]
+    return clean or "bin"
+
+
 def export_path(base: str, suffix: str) -> Path:
-    """Return a collision-free on-disk path for a generated export."""
+    """Return a collision-free on-disk path confined to the export directory."""
+    safe_base = _safe_export_base(base)
+    safe_suffix = _safe_export_suffix(suffix)
     settings.export_path.mkdir(parents=True, exist_ok=True)
-    clean_suffix = suffix.lstrip(".").lower() or "bin"
-    return settings.export_path / f"{base}_{uuid4().hex[:12]}.{clean_suffix}"
+    return settings.export_path / f"{safe_base}_{uuid4().hex[:12]}.{safe_suffix}"
 
 
 def download(rows, columns: list[str], base: str, fmt: str = "csv", pdf_sections=None) -> FileResponse:
+    base = _safe_export_base(base)
     try:
         content, media_type, filename = make_export(fmt, rows, columns, base, pdf_sections)
     except ValueError as exc:

@@ -22,7 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 - Real end-to-end audit of `https://www.techmagnate.com/` recorded in the documentation: 303 discovered URLs, 60 fetched from a deliberately narrow sample, 0 failures, 60 sitemap entries from 9 documents, 6 finding groups and a 6-month roadmap. Demo metrics remain labelled synthetic; public-audit data is labelled as observed or derived public evidence.
 - Hosted public audit completed on the same domain (job 17, report 2, crawl 1): 497 discovered, 219 fetched, 0 failed, 1 excluded, 12 finding groups and 6 roadmap months. Sitemap discovery timed out in the hosted run, so the hosted evidence states 0 sitemap entries; the local sample's 60 sitemap entries are kept separate rather than blended.
-- Test counts updated to 74 fast / 75 full; hardening regressions now cover DNS SSRF, redirect hops, caller overrides, upload cleanup, export validation and cancellation-safe publication.
+- Test counts updated to 77 fast / 78 full; hardening regressions now cover DNS SSRF, redirect hops, caller overrides, upload cleanup, export path confinement, cancellation-safe publication/imports/sitemap discovery and tenant/rate limits. Local 1k/10k/100k URL import/export benchmarks are recorded in `docs/TESTING.md`.
 
 ### Fixed
 
@@ -32,6 +32,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Audit view no longer fails before the first crawl, and the start endpoint accepts an optional body.
 - Scheduled workflows no longer crash with "can't subtract offset-naive and offset-aware datetimes"; the scheduler now ticks in both the standalone worker and the inline API worker.
 - The derived health score now returns "not enough evidence" below 10 fetched URLs, so a one-page smoke-test crawl is never shown as a misleading 0/100 site-wide score.
+- Caller-supplied export names are collapsed to a safe filename stem and suffix, so `kind` query values cannot escape `EXPORT_DIR` or alter the download filename.
+- Cancellation is checked before sitemap discovery and at each sitemap/page request, so a cancelled crawl no longer performs robots/sitemap fetches.
+- URL and keyword import handlers stop before persisting rows, data sources or supplied metrics when their job has been cancelled.
 
 ### Added (documentation set)
 
