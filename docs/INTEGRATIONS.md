@@ -237,12 +237,12 @@ Public-audit outputs never call GSC, GA4, rank tracking or LLM APIs. The audit r
 
 The note returned by the endpoint is explicit: *"CSV import works without credentials. API modes require configured credentials and permissions."* CSV import is always available. The OAuth/API-key modes now have **dormant adapters** (see "Dormant live connectors" below); they stay off until an operator opts in and supplies real credentials through the deployment environment.
 
-`POST /api/v1/integrations` creates or upserts a connection (unique by provider + project + organisation), validates provider and mode, and sets a status:
+`POST /api/v1/integrations` creates or upserts a connection (unique by provider + project + organisation), validates provider and mode, and sets a status. Caller-supplied status is restricted to `csv_ready`, `not_configured` or `configured` (the last only when credentials are stored); plain `config` accepts only short allowlisted keys (`site_url`, `property_id`, `start_date`, `end_date`, `row_limit`):
 
 - `csv_ready` — default for `csv_import` mode;
 - `not_configured` — default for non-CSV modes or seeded demo records;
 - `configured` — credentials were stored encrypted; **not proof of a connection**;
-- `connected` — set only after an explicit live sync actually returned provider rows and recorded `last_sync_at`.
+- `connected` — cannot be set by the caller; it is set only after an explicit live sync actually returned provider rows and recorded `last_sync_at`.
 
 `GET /api/v1/integrations` and `GET /api/v1/integrations/{id}` expose `id`, `provider`, `display_name`, `status`, `mode`, `config`, `last_sync_at`, `notes` — but never credentials.
 
@@ -253,7 +253,8 @@ The note returned by the endpoint is explicit: *"CSV import works without creden
 `backend/app/core/crypto.py` uses Fernet symmetric encryption:
 
 ```python
-key = base64.urlsafe_b64encode(hashlib.sha256(settings.secret_key.encode()).digest())
+material = settings.credential_encryption_key or settings.secret_key
+key = base64.urlsafe_b64encode(hashlib.sha256(material.encode()).digest())
 credentials_encrypted = Fernet(key).encrypt(str(credentials).encode()).decode()
 ```
 
@@ -261,7 +262,7 @@ When `POST /api/v1/integrations` receives a `credentials` field, it stores `cred
 
 Operational notes:
 
-- The encryption key is derived from `SECRET_KEY`. **Changing `SECRET_KEY` makes previously stored credentials unreadable**; they are not migrated.
+- The encryption key is derived from `CREDENTIAL_ENCRYPTION_KEY` when set, otherwise `SECRET_KEY`. **Changing the effective key makes previously stored credentials unreadable**; they are not migrated. Setting a dedicated key lets token-signing key rotation proceed independently.
 - For a real deployment, prefer injecting secrets from a secret manager/environment rather than pasting them into a demo UI. The frontend action hint says exactly this.
 - Encryption at rest is not the same as OAuth token management, rotation, scope validation or provider consent. None of those are implemented by the connect endpoint. The dormant sync path does use `decrypt()` to exchange a stored refresh token, but only after all the gates below pass.
 

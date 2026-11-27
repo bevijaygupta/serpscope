@@ -45,7 +45,7 @@ from app.core.config import settings
 from app.core.security import hash_password
 from app.db.session import SessionLocal, init_db
 from app.models.auth import Membership, Organization, User
-from app.services.rate_limiting import consume as consume_rate_limit
+from app.services.rate_limiting import WINDOW_SECONDS, consume as consume_rate_limit
 
 logging.basicConfig(level=getattr(logging, settings.log_level.upper(), logging.INFO))
 logger = logging.getLogger("serpscope")
@@ -69,14 +69,16 @@ app.add_middleware(
 # in the shared rate_limit_windows table. The socket peer is read directly,
 # never X-Forwarded-For, cookies, headers, user identity, audited domain or
 # request contents. Extra API workers share one budget instead of multiplying it.
-RATE_LIMIT_WINDOW_SECONDS = 600
+# Login is deliberately excluded: the hosted UI reaches the API through one
+# edge rewrite, so a peer-only login budget could throttle every demo visitor.
+# Login instead uses a per-account digest bucket in the auth endpoint.
+RATE_LIMIT_WINDOW_SECONDS = WINDOW_SECONDS
 RATE_LIMIT_BUCKET_LIMITS = {
-    "login": 10,
     "presence": 60,
     "register": 5,
     "mutation": 120,
 }
-DEMO_EMAIL = "demo@serpscope.local"
+DEMO_EMAIL = settings.demo_email
 DEMO_ORG_SLUG = "demo-organisation"
 DEMO_PASSWORD = "demo1234"
 
@@ -100,8 +102,9 @@ async def rate_limit_mutations(request: Request, call_next):
         return await call_next(request)
     path = request.url.path
     if path == "/api/v1/auth/login":
-        bucket = "login"
-    elif path == "/api/v1/auth/register":
+        # Per-account throttling happens in /auth/login; no peer bucket here.
+        return await call_next(request)
+    if path == "/api/v1/auth/register":
         bucket = "register"
     elif path == "/api/v1/presence/ping":
         bucket = "presence"

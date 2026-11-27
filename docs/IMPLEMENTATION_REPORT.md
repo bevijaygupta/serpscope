@@ -21,7 +21,7 @@ This is an honest status report. It distinguishes what is implemented, what is o
 | Analysis services | Completed | Issue engine, orphan reconciliation, internal-link graph, keyword clustering/mapping/cannibalisation, content scoring/briefs, domain analyses, reporting, forecasting and workflows. |
 | Import / export | Completed | CSV/TSV/TXT, XML sitemap, JSON and XLSX imports; CSV/JSON/XLSX/text-PDF and editable PPTX exports with spreadsheet-injection escaping. |
 | Demo content | Completed | Deterministic 1,000-URL dataset, planted issues, 12 curated interview scenarios and seeded integration provider declarations. |
-| Tests | Completed | 90 backend tests pass in the fast suite and 91 in the full suite including the 100,000-URL scale test, with regressions for DNS SSRF, redirect hops, caller overrides, upload cleanup, export path confinement, cancellation-safe publication/imports/sitemap discovery, persistent/account-wide token revocation and shared tenant/rate limits. Frontend typecheck and production build pass. No frontend unit-test runner exists. |
+| Tests | Completed | 98 backend tests pass in the fast suite and 99 in the full suite including the 100,000-URL scale test, with regressions for DNS SSRF, redirect hops, caller overrides, upload cleanup, export path confinement, cancellation-safe publication/imports/sitemap discovery, persistent/account-wide token revocation, malformed claim types, integration forgery and shared tenant/rate limits. Frontend typecheck and production build pass. No frontend unit-test runner exists. |
 | Documentation | Completed | 16 required documents plus this report; all stale claims about Alembic, imports, WebSocket auth and robots behaviour were corrected. |
 | Screenshots | Completed | 24 PNG captures covering all 23 modules plus a demo-scenario modal. |
 | Hosted demo | Completed | Public GitHub repo, Vercel UI with same-origin API rewrite, Render FastAPI + inline worker + Postgres, seeded synthetic data and public `/api/health`. Backend changes require **Manual Deploy → Deploy latest commit** on Render; Vercel deploys `main` automatically. |
@@ -41,10 +41,10 @@ Run from `backend/`:
 
 ```bash
 .venv/Scripts/python -m pytest -q -m "not slow" --disable-warnings
-# 90 passed, 1 deselected
+# 98 passed, 1 deselected
 
 .venv/Scripts/python -m pytest -q --disable-warnings
-# 91 passed (includes the 100,000-URL scale test)
+# 99 passed (includes the 100,000-URL scale test)
 
 .venv/Scripts/python -m alembic upgrade head
 # Context impl SQLiteImpl; no pending revisions
@@ -202,7 +202,7 @@ The 60-URL local sample and the 219-URL hosted run are deliberately bounded and 
 
 | Item | Evidence |
 | --- | --- |
-| 90 fast / 91 full backend tests; crawler DNS/redirect/override, upload cleanup, export path confinement, reset preservation, cancellation-safe publication/imports/sitemap discovery, persistent/account-wide revocation and shared tenant/rate-limit regressions | `backend/tests/` |
+| 98 fast / 99 full backend tests; crawler DNS/redirect/override, upload cleanup, export path confinement, reset preservation, cancellation-safe publication/imports/sitemap discovery, persistent/account-wide revocation, malformed claims, integration forgery and shared tenant/rate-limit regressions | `backend/tests/` |
 | Frontend typecheck and production build | `npm run typecheck`, `npm run build` |
 | CI workflow runs backend tests and frontend checks | `.github/workflows/ci.yml` |
 | Docker and nginx assets | `backend/Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf`, `docker-compose.yml` |
@@ -256,7 +256,7 @@ These are usable but intentionally incomplete. They must be described honestly i
 | Public audit coverage | The local verification used a narrow 60-URL sample; the hosted run fetched 219 URLs under the in-app 250-URL default. Neither is exhaustive. No JS-rendered DOM, private pages or vendor metrics are included, and AI visibility is readiness evidence only. The hosted sitemap discovery timed out and is reported as 0 entries. | Medium |
 | Issue rule coverage | Some declared rules (`excessive_depth`, `broken_external_link`) have no detector. | Medium |
 | RBAC | Writes are gated by global role only. Membership roles grant read access through `get_project`, not write access; `project_members` is stored but not consulted. No role-management UI. | Medium |
-| Token security | `decode_access_token()` pins `alg=HS256` and `typ=JWT` before signature verification; each token has a unique `jti`, and `POST /auth/logout` persists a token digest in the shared `revoked_tokens` table until `exp` (visible to all workers and after restarts). REST and the job WebSocket both check it. `SECRET_KEY` is still shared by token signing and Fernet credential encryption. | Medium |
+| Token security | `decode_access_token()` pins `alg=HS256` and `typ=JWT`, validates `exp`/`iat`/`ver`/`sub` types, and each token has a unique `jti`. `POST /auth/logout` persists a token digest in the shared `revoked_tokens` table until `exp`; REST and the job WebSocket both check it, and the socket rechecks every 10 seconds. Optional `TOKEN_SIGNING_KEY` and `CREDENTIAL_ENCRYPTION_KEY` can separate the two keys; empty values still fall back to `SECRET_KEY`. Refresh-token rotation remains absent. | Medium |
 | Queue topology | A single `jobs` table with conditional-update claiming is not a distributed broker; there is no visibility timeout, orphaned-job recovery or automatic retry of long-lived `claimed` jobs. | Medium |
 | Pagination consistency | Responses use `items,total,page,page_size,has_more`, while most requests use `offset`/`limit`. | Low |
 | Observability | Basic logging exists; no structured metrics, tracing, alerting or correlation IDs. | Medium |
@@ -290,7 +290,7 @@ These are usable but intentionally incomplete. They must be described honestly i
 4. Implement `canonical_handling` semantics and crawler scheduling, or remove the unused keys.
 5. Add detectors for `excessive_depth` and `broken_external_link`.
 6. Add per-project write roles, role-management UI and role gating in the SPA.
-7. **Done:** `alg == "HS256"` and `typ == "JWT"` are pinned before signature verification; tokens carry a unique `jti`, `POST /auth/logout` persists a token-digest denylist in the shared `revoked_tokens` table, and `POST /auth/logout-all` bumps `users.token_version` to supersede all earlier tokens. REST and job WebSockets enforce both. Still open: separate token-signing and credential-encryption keys, refresh and short-lived tokens.
+7. **Done:** `alg == "HS256"` and `typ == "JWT"` are pinned before signature verification; claim types are validated; tokens carry a unique `jti`; `POST /auth/logout` persists a token-digest denylist in the shared `revoked_tokens` table; and `POST /auth/logout-all` bumps `users.token_version` to supersede all earlier tokens. REST and job WebSockets enforce both, including mid-stream rechecks. Optional independent signing/encryption keys are supported. Still open: refresh and short-lived tokens.
 8. Replace the single-table queue with a durable broker or add visibility timeout, orphan recovery and retry policy.
 9. **Partly done:** `/api/health` now probes the database and reports `503 degraded` without credentials. Still open: structured request logging, correlation IDs and job metrics.
 10. Add frontend unit/component tests and end-to-end coverage for the 12 scenarios.
@@ -299,8 +299,9 @@ These are usable but intentionally incomplete. They must be described honestly i
 13. Add redirect deployment as a gated, reviewable workflow rather than an automatic action.
 14. Exercise incremental Alembic revisions against production-like data and add a backup/restore runbook.
 15. Remove or guard the automatic demo-account bootstrap and open self-registration before any public deployment.
-16. **Done:** mutating-route throttling now uses a shared `rate_limit_windows` counter instead of a per-process dictionary, so workers share one budget. Still open: gateway/WAF rate limiting and account-level lockout.
-16. **Done for the earlier release:** Render **Manual Deploy → Deploy latest commit** made the public-audit endpoints live and project 2 was verified. Every later backend commit still requires the same manual Render deploy; Vercel deploys `main` automatically.
+16. **Done:** mutating-route throttling now uses a shared `rate_limit_windows` counter instead of a per-process dictionary, so workers share one budget. Login uses a per-account digest bucket and exempts the public demo account so one edge egress cannot block every visitor. Still open: gateway/WAF rate limiting and account lockout.
+17. **Done:** integration writes now allowlist statuses and config keys; `connected` is earned only by a successful sync, so a caller cannot forge a live-connection claim or hide secrets in plain config.
+18. **Done for the earlier release:** Render **Manual Deploy → Deploy latest commit** made the public-audit endpoints live and project 2 was verified. Every later backend commit still requires the same manual Render deploy; Vercel deploys `main` automatically.
 
 ---
 
@@ -370,7 +371,7 @@ Suggested talking points are expanded in `docs/INTERVIEW_DEMONSTRATIONS.md` and 
 
 | Classification | Count / scope |
 | --- | --- |
-| Completed | Application shell, 23 module screens, API, database, Alembic baseline, jobs, crawler safety, shared database-backed rate limiting, sitemap/robots evidence, source-tracked public audit with PPTX/PDF/CSV/XLSX/JSON exports and case study, analysis services, demo generator, 12 scenarios, docs, tests, screenshots, GitHub publication, Vercel UI and Render API/database hosting |
+| Completed | Application shell, 23 module screens, API, database, Alembic baseline, jobs, crawler safety, shared peer/per-account rate limiting, claim-validated tokens with optional separate keys and mid-stream WebSocket revocation, forged-integration-status protection, sitemap/robots evidence, source-tracked public audit with PPTX/PDF/CSV/XLSX/JSON exports and case study, analysis services, demo generator, 12 scenarios, docs, tests, screenshots, GitHub publication, Vercel UI and Render API/database hosting |
 | Partial | Containers (not built), dormant live integrations, JS rendering, three-level sitemap-index expansion, crawler option coverage, egress enforcement, some issue detectors, global-role RBAC, persistent single-token and account-wide revocation (no refresh/short-lived flow), queue topology, pagination consistency, observability, frontend tests, incremental migrations, AI-search/forecasting depth |
 | Pending | Egress enforcement, production hardening, real vendor accounts/credentials, per-project RBAC, distributed queue, full Alembic evolution/backup runbook, long-lived free-tier database (expires after 30 days) |
 

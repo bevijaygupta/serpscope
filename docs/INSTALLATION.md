@@ -44,13 +44,17 @@ Important variables (defaults shown):
 
 | Variable | Default | Purpose |
 | --- | --- | --- |
-| `SECRET_KEY` | `dev-only-secret-change-before-deployment` | Signs access tokens and derives the Fernet key for encrypted integration credentials. **Change in any shared deployment.** |
+| `SECRET_KEY` | `dev-only-secret-change-before-deployment` | Legacy fallback for token signing and credential encryption. **Change in any shared deployment.** |
+| `TOKEN_SIGNING_KEY` | empty | Optional dedicated HMAC key for access tokens and revocation digests; falls back to `SECRET_KEY`. |
+| `CREDENTIAL_ENCRYPTION_KEY` | empty | Optional dedicated Fernet key for stored integration credentials; falls back to `SECRET_KEY`. |
+| `DEMO_EMAIL` | `demo@serpscope.local` | Account exempted from the per-account login throttle so the mandated auto-demo flow stays available. |
 | `DATABASE_URL` | `sqlite:///./data/serpscope.db` | SQLAlchemy database URL. Tests override it with `data/test_serpscope.db`. |
 | `UPLOAD_DIR` | `./data/uploads` | Staging area for uploaded CSV/XML files. |
 | `EXPORT_DIR` | `./data/exports` | Generated CSV/JSON/XLSX/PDF downloads. |
 | `ACCESS_TOKEN_EXPIRE_MINUTES` | `1440` | Bearer-token lifetime. |
 | `CORS_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | Comma-separated browser origins. |
 | `RUN_JOBS_IN_API` | `true` | Start the inline job thread inside the API process. Set `false` for a separate worker. |
+| `RATE_LIMIT_ENABLED` | `true` | Enable shared peer-window throttling and per-account login throttling. |
 | `JOB_POLL_SECONDS` | `0.5` | Worker poll interval. |
 | `MAX_UPLOAD_MB` | `50` | Upload size cap enforced by `POST /api/v1/imports/upload`. |
 | `LOG_LEVEL` | `INFO` | Python logging level. |
@@ -163,7 +167,7 @@ See [DEMO_GUIDE.md](DEMO_GUIDE.md) for the full walkthrough and planted-issue in
 From `backend/`:
 
 ```bash
-# Fast suite: 90 passed; full suite: 91 passed including the slow 100k test
+# Fast suite: 98 passed; full suite: 99 passed including the slow 100k test
 .venv/Scripts/python -m pytest -q -m "not slow"     # Windows
 .venv/bin/python -m pytest -q -m "not slow"         # macOS/Linux
 

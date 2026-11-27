@@ -10,7 +10,9 @@ from app.core.config import settings
 
 
 def _key() -> bytes:
-    return base64.urlsafe_b64encode(hashlib.sha256(settings.secret_key.encode()).digest())
+    """Use a dedicated credential key when configured, otherwise the legacy secret."""
+    material = settings.credential_encryption_key or settings.secret_key
+    return base64.urlsafe_b64encode(hashlib.sha256(material.encode()).digest())
 
 
 def encrypt(secret: str) -> str:

@@ -145,35 +145,60 @@ def test_job_integration_user_and_child_writes_are_scoped(client, db):
 def test_rate_limits_return_generic_429_without_sensitive_keys(client, db, monkeypatch):
     from app.core.config import settings as live_settings
 
+    email = "brute-force@tenant.example"
     monkeypatch.setattr(live_settings, "rate_limit_enabled", True)
     try:
         assert RATE_LIMIT_WINDOW_SECONDS == 600
         status_codes = []
         for _ in range(11):
             response = client.post("/api/v1/auth/login", json={
-                "email": "demo@serpscope.local", "password": "wrong",
+                "email": email, "password": "wrong",
             })
             status_codes.append(response.status_code)
         assert status_codes[:10] == [401] * 10
         blocked = client.post("/api/v1/auth/login", json={
-            "email": "demo@serpscope.local", "password": "wrong",
+            "email": email, "password": "wrong",
         })
         assert blocked.status_code == 429
         assert blocked.headers["Retry-After"].isdigit()
         body = blocked.text.lower()
-        for secret in ("testclient", "/api/v1/auth/login", "demo@serpscope.local", "wrong"):
+        for secret in ("testclient", "/api/v1/auth/login", email, "wrong"):
             assert secret not in body
-        # The shared keys are truncated HMAC digests, never a raw peer or path.
-        rows = db.query(RateLimitWindow).all()
+
+        # Login uses a per-account digest key so one shared proxy egress
+        # cannot throttle every public demo visitor. No raw email is stored.
+        rows = db.query(RateLimitWindow).filter(
+            RateLimitWindow.window_key.startswith("acct-")
+        ).all()
         assert len(rows) == 1
-        assert all(
-            len(row.window_key) == 32
-            and all(c in "0123456789abcdef" for c in row.window_key)
-            for row in rows
-        )
+        assert rows[0].window_key.startswith("acct-")
+        assert all(c in "0123456789abcdef" for c in rows[0].window_key[5:])
+        assert email not in rows[0].window_key
         assert rows[0].count == 12
         with SessionLocal() as other_session:
-            assert other_session.query(RateLimitWindow).count() == 1
+            assert other_session.query(RateLimitWindow).filter(
+                RateLimitWindow.window_key.startswith("acct-")
+            ).count() == 1
+    finally:
+        db.query(RateLimitWindow).delete()
+        db.commit()
+        monkeypatch.setattr(live_settings, "rate_limit_enabled", False)
+
+
+def test_demo_login_is_exempt_from_account_throttle(client, db, monkeypatch):
+    """The mandated one-field auto-login must not trip a shared edge bucket."""
+    from app.core.config import settings as live_settings
+
+    monkeypatch.setattr(live_settings, "rate_limit_enabled", True)
+    try:
+        for _ in range(12):
+            response = client.post("/api/v1/auth/login", json={
+                "email": "demo@serpscope.local", "password": "demo1234",
+            })
+            assert response.status_code == 200, response.text
+        assert db.query(RateLimitWindow).filter(
+            RateLimitWindow.window_key.startswith("acct-")
+        ).count() == 0
     finally:
         db.query(RateLimitWindow).delete()
         db.commit()

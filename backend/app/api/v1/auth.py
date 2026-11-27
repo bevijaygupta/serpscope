@@ -1,6 +1,7 @@
 """Authentication endpoints."""
 from __future__ import annotations
 
+import time
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -11,6 +12,12 @@ from app.api.deps import DB, UserDep, bearer, current_user
 from app.core.config import settings
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.auth import Membership, User
+from app.services.rate_limiting import (
+    LOGIN_ACCOUNT_LIMIT,
+    WINDOW_SECONDS,
+    account_login_key,
+    consume as consume_rate_limit,
+)
 from app.services.token_revocation import revoke_token
 from app.schemas.common import LoginRequest, RegisterRequest, TokenResponse, UserResponse
 
@@ -19,7 +26,18 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post("/login", response_model=TokenResponse)
 def login(payload: LoginRequest, db: DB):
-    user = db.scalar(select(User).where(User.email == payload.email.strip().lower()))
+    email = payload.email.strip().lower()
+    # The demo account is intentionally public and must remain available from
+    # a shared edge egress; a per-account limit here would block every visitor.
+    if settings.rate_limit_enabled and email != settings.demo_email:
+        count, retry_after = consume_rate_limit(
+            db, account_login_key(email), time.time(), WINDOW_SECONDS
+        )
+        if count > LOGIN_ACCOUNT_LIMIT:
+            raise HTTPException(
+                429, "Too many requests", headers={"Retry-After": str(retry_after)}
+            )
+    user = db.scalar(select(User).where(User.email == email))
     if user is None or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(401, "Invalid email or password")
     if not user.is_active:

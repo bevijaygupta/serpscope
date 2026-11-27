@@ -29,7 +29,7 @@ There are **45 tables** across seven model modules.
 | `memberships` | User ↔ organisation role assignment | `id`, `user_id` → `users.id` (CASCADE, indexed), `organization_id` → `organizations.id` (CASCADE, indexed), `role` (default `viewer`), timestamps |
 | `audit_logs` | Action trail | `id`, `organization_id` → `organizations.id` (SET NULL, indexed), `user_id` → `users.id` (SET NULL, indexed), `project_id` (indexed, no FK), `action` (indexed), `target`, `details` (JSON), timestamps |
 | `revoked_tokens` | Logout denylist | `id`, `token_digest` (unique, indexed; HMAC-SHA256 of the bearer token, never the raw token), `expires_at` (indexed, original JWT expiry), timestamps |
-| `rate_limit_windows` | Shared mutating-route counters | `id`, `window_key` (unique, indexed; HMAC-SHA256 of UTC day, route bucket and socket peer, never the raw peer), `window_start` (indexed, epoch seconds), `count`, timestamps |
+| `rate_limit_windows` | Shared abuse counters | `id`, `window_key` (unique, indexed; an HMAC digest of UTC day plus either route bucket/socket peer or, for login, normalized account email — never the raw peer or email), `window_start` (indexed, epoch seconds), `count`, timestamps |
 
 ## 3. Projects, sources and jobs (`app/models/projects.py`)
 

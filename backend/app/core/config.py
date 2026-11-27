@@ -12,6 +12,11 @@ class Settings(BaseSettings):
     app_name: str = "SERPScope"
     environment: str = "development"
     secret_key: str = "dev-only-secret-change-before-deployment"
+    # Optional independent keys. Empty values fall back to SECRET_KEY so an
+    # existing deployment keeps working; set them separately to allow rotation.
+    token_signing_key: str = ""
+    credential_encryption_key: str = ""
+    demo_email: str = "demo@serpscope.local"
     database_url: str = "sqlite:///./data/serpscope.db"
     upload_dir: str = "./data/uploads"
     export_dir: str = "./data/exports"
@@ -57,6 +62,12 @@ class Settings(BaseSettings):
         problems: list[str] = []
         if len(self.secret_key.strip()) < 32 or "change-before-deployment" in self.secret_key:
             problems.append("SECRET_KEY must be a unique deployment secret of at least 32 characters")
+        for name, value in (
+            ("TOKEN_SIGNING_KEY", self.token_signing_key),
+            ("CREDENTIAL_ENCRYPTION_KEY", self.credential_encryption_key),
+        ):
+            if value and len(value.strip()) < 32:
+                problems.append(f"{name} must be at least 32 characters when set")
         origins = self.cors_origin_list
         if not origins or "*" in origins or any(
             "localhost" in origin or "127.0.0.1" in origin for origin in origins

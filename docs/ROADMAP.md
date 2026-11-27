@@ -18,8 +18,8 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 | Area | Status | Evidence in the current build |
 |---|---|---|
 | FastAPI application shell | Implemented | `backend/app/main.py` wires all `/api/v1` routers, health check, no public static mount, OpenAPI docs, and an inline worker tick. |
-| Local authentication and RBAC | Implemented | Demo login, JWT access tokens with unique `jti`, persisted single-token and account-wide revocation (REST + job WebSocket), password hashing, role checks, and project-scoped data access are present; refresh tokens and SSO are still absent. |
-| Abuse throttling | Implemented | Mutating routes use a shared database-backed fixed-window counter keyed by an HMAC digest of UTC day, bucket and socket peer; workers share one budget. Edge/WAF limits and account lockout remain absent. |
+| Local authentication and RBAC | Implemented | Demo login, JWT access tokens with unique `jti` and type-checked claims, persisted single-token and account-wide revocation (REST + job WebSocket, including mid-stream sockets), password hashing, role checks, and project-scoped data access are present; optional independent token/credential keys are supported. Refresh tokens and SSO are still absent. |
+| Abuse throttling | Implemented | Mutating routes use a shared database-backed fixed-window counter keyed by an HMAC digest of UTC day, bucket and socket peer; login uses a separate per-account digest so one edge egress cannot block the public demo. Edge/WAF limits and account lockout remain absent. |
 | Project, domain, and crawl management | Implemented | CRUD APIs and database-backed projects, domains, and crawl definitions are present. |
 | Deterministic synthetic demo data | Implemented | `backend/app/services/demo.py` generates a labelled, repeatable dataset with planted issue classes. |
 | Scenario catalogue | Implemented | `backend/app/services/scenarios.py` defines twelve curated scenarios, including a full audit preset. |
@@ -35,7 +35,7 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 | Import jobs | Implemented | CSV/TSV/TXT, XML sitemaps, JSON and XLSX uploads are parsed into URL/keyword inventory with source tracking and bounded batches. |
 | Database migrations | Implemented | Alembic baseline revision `0001_initial_schema.py`, incremental revisions `0002_supplied_metrics`, `0003_honest_foundation`, `0004_token_revocation`, `0005_user_token_version` and `0006_shared_rate_limits`, plus `create_all()` bootstrap for fresh databases. |
 | Frontend application | Implemented | React/Vite SPA with 23 module pages, API client, auth state, project state, Demo Centre and in-app documentation index. |
-| Test suite | Implemented | Backend pytest suite passes with `90 passed` using `-m "not slow"` and `91 passed` for the full suite; the 100,000-URL scale test is included, with 1k/10k/100k benchmarks recorded in [TESTING.md](TESTING.md). |
+| Test suite | Implemented | Backend pytest suite passes with `98 passed` using `-m "not slow"` and `99 passed` for the full suite; the 100,000-URL scale test is included, with 1k/10k/100k benchmarks recorded in [TESTING.md](TESTING.md). |
 
 ### Partial
 

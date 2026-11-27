@@ -16,6 +16,17 @@ from app.services.vendor_sync import sync_integration
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
 
+# Callers may label a row as ready/configured, but "connected" is earned only
+# by a successful live sync. Config is an allowlist so arbitrary values (and
+# especially secrets) cannot be stored in the plain-text config column.
+CALLER_ALLOWED_STATUSES = {"csv_ready", "not_configured", "configured"}
+CONFIG_STRING_LIMITS = {
+    "site_url": 500,
+    "property_id": 100,
+    "start_date": 40,
+    "end_date": 40,
+}
+
 PROVIDERS = [
     {"provider": "google_search_console", "display_name": "Google Search Console", "modes": ["csv_import", "oauth_api"]},
     {"provider": "google_analytics_4", "display_name": "Google Analytics 4", "modes": ["csv_import", "oauth_api"]},
@@ -28,6 +39,31 @@ PROVIDERS = [
     {"provider": "ahrefs", "display_name": "Ahrefs", "modes": ["csv_import", "api_key"]},
     {"provider": "llm_provider", "display_name": "Optional LLM provider", "modes": ["api_key"]},
 ]
+
+
+def _sanitized_config(raw: object) -> dict:
+    """Keep only short, known config values out of the plain-text column."""
+    if raw is None:
+        return {}
+    if not isinstance(raw, dict):
+        raise HTTPException(400, "config must be an object")
+    clean: dict = {}
+    for key, value in raw.items():
+        if key == "row_limit":
+            try:
+                limit = int(value)
+            except (TypeError, ValueError):
+                raise HTTPException(400, "Invalid config value")
+            if not 1 <= limit <= 10_000:
+                raise HTTPException(400, "Invalid config value")
+            clean[key] = limit
+            continue
+        if key not in CONFIG_STRING_LIMITS or not isinstance(value, str):
+            raise HTTPException(400, "Unsupported config value")
+        if len(value) > CONFIG_STRING_LIMITS[key]:
+            raise HTTPException(400, "Config value is too long")
+        clean[key] = value.strip()
+    return clean
 
 
 @router.get("/providers")
@@ -76,18 +112,37 @@ def upsert_integration(payload: dict, db: DB, user: UserDep):
         organization_id=organization_id,
         display_name=payload.get("display_name", provider),
     )
+    requested_status = payload.get("status")
+    if requested_status is not None and requested_status not in CALLER_ALLOWED_STATUSES:
+        raise HTTPException(400, "connected is earned only by a successful sync")
     item.mode = mode
-    item.status = payload.get("status", "csv_ready" if mode == "csv_import" else "not_configured")
-    item.config = payload.get("config") or {}
+    item.config = _sanitized_config(payload.get("config"))
     item.notes = payload.get("notes", "")
     if payload.get("credentials"):
         # Credentials are encrypted at rest and never returned by the API.
         item.credentials_encrypted = encrypt(str(payload["credentials"]))
         item.status = "configured"
+    elif requested_status == "configured":
+        if existing is None or not existing.credentials_encrypted:
+            raise HTTPException(400, "configured requires stored credentials")
+        item.status = "configured"
+    elif requested_status is not None:
+        item.status = requested_status
+    elif existing is not None and existing.status == "connected" and existing.credentials_encrypted:
+        item.status = "connected"
+    else:
+        item.status = "csv_ready" if mode == "csv_import" else "not_configured"
     if existing is None:
         db.add(item)
     db.commit()
-    return {"id": item.id, "status": item.status, "note": "Credentials stored encrypted; values are not returned."}
+    return {
+        "id": item.id,
+        "status": item.status,
+        "note": (
+            "Credentials stored encrypted; values are not returned. "
+            "connected is set only by a successful sync."
+        ),
+    }
 
 
 @router.get("/connectors")

@@ -16,6 +16,7 @@ from app.models.projects import Job, Project
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 COLUMNS = ["id", "project_id", "job_type", "name", "status", "progress", "total", "message", "error", "created_at", "started_at", "finished_at", "result"]
+WS_AUTH_RECHECK_EVERY = 10  # seconds; reconnect if logout happens mid-stream
 
 
 @router.get("")
@@ -117,9 +118,21 @@ async def job_progress(websocket: WebSocket, job_id: int):
 
     await websocket.accept()
     try:
-        for _ in range(7200):
+        for iteration in range(7200):
             db = SessionLocal()
             try:
+                # A token may be revoked or superseded after the socket opened.
+                # Recheck periodically so an active stream cannot outlive logout.
+                if iteration and iteration % WS_AUTH_RECHECK_EVERY == 0:
+                    current = db.get(User, int(payload["sub"]))
+                    if (
+                        current is None
+                        or not current.is_active
+                        or is_token_revoked(db, token)
+                        or int(payload.get("ver", 0)) != int(current.token_version)
+                    ):
+                        await websocket.close(code=4401)
+                        return
                 job = db.get(Job, job_id)
                 if job is None:
                     await websocket.send_json({"error": "Job not found"})

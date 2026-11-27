@@ -30,10 +30,15 @@ def current_user(
     payload = decode_access_token(credentials.credentials)
     if not payload or not payload.get("sub"):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
-    user = db.get(User, int(payload["sub"]))
+    try:
+        subject = int(payload["sub"])
+        token_version = int(payload.get("ver", 0))
+    except (ValueError, TypeError):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired token")
+    user = db.get(User, subject)
     if user is None or not user.is_active:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Inactive user")
-    if int(payload.get("ver", 0)) != int(user.token_version):
+    if token_version != int(user.token_version):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Token has been superseded")
     return user
 

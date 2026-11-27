@@ -63,6 +63,34 @@ def test_connectors_are_dormant_until_explicitly_opted_in(db, demo_project, clie
     assert db.query(SuppliedMetric).filter(SuppliedMetric.source == "gsc_live").count() == 0
 
 
+def test_integration_status_and_config_cannot_be_forged(db, demo_project, client, auth_headers):
+    base = {
+        "project_id": demo_project["project_id"],
+        "provider": "google_search_console",
+        "mode": "oauth_api",
+    }
+    for status in ("connected", "api_live", "succeeded"):
+        forged = client.post("/api/v1/integrations", headers=auth_headers,
+                             json={**base, "status": status})
+        assert forged.status_code == 400, forged.text
+    secret_config = client.post("/api/v1/integrations", headers=auth_headers,
+                                json={**base, "config": {"api_key": "secret-value"}})
+    assert secret_config.status_code == 400
+    unearned = client.post("/api/v1/integrations", headers=auth_headers,
+                           json={**base, "status": "configured"})
+    assert unearned.status_code == 400
+
+    created = client.post("/api/v1/integrations", headers=auth_headers, json={
+        **base,
+        "config": {"site_url": "https://example.com/", "row_limit": 25},
+    })
+    assert created.status_code == 201, created.text
+    item = db.get(Integration, created.json()["id"])
+    assert item.status == "not_configured"
+    assert item.config == {"site_url": "https://example.com/", "row_limit": 25}
+    assert "secret-value" not in str(item.config)
+
+
 def test_gsc_sync_stores_verbatim_rows_and_is_idempotent(
     db, demo_project, client, auth_headers, monkeypatch
 ):

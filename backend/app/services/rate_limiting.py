@@ -7,6 +7,8 @@ the key; no IP address or request content is written to the table.
 """
 from __future__ import annotations
 
+import hashlib
+import hmac
 import math
 import secrets
 
@@ -14,9 +16,23 @@ from sqlalchemy import case, delete, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.config import settings
 from app.models.auth import RateLimitWindow
 
+WINDOW_SECONDS = 600
+LOGIN_ACCOUNT_LIMIT = 10
 _PRUNE_EVERY = 64
+
+
+def account_login_key(email: str) -> str:
+    """Digest-only login bucket key; the email itself is never persisted.
+
+    Login is keyed by account rather than socket peer because the hosted UI is
+    served through one edge rewrite, where all visitors can share a peer.
+    """
+    material = b"login-account|" + email.strip().lower().encode("utf-8")
+    digest = hmac.new(settings.secret_key.encode(), material, hashlib.sha256).hexdigest()[:32]
+    return f"acct-{digest}"
 
 
 def _retry_after(now: float, start: float, window_seconds: int) -> int:

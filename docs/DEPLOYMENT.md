@@ -14,7 +14,10 @@ All settings are read from environment variables (or a `.env` file in the workin
 | --- | --- | --- |
 | `APP_NAME` | `SERPScope` | Application label |
 | `ENVIRONMENT` | `development` | Reported by `/api/health`; `production` enables fail-fast config validation |
-| `SECRET_KEY` | `dev-only-secret-change-before-deployment` | HMAC token signing **and** Fernet key derivation for integration credentials — must be overridden with ≥32 characters in production |
+| `SECRET_KEY` | `dev-only-secret-change-before-deployment` | Legacy fallback for HMAC token signing and Fernet key derivation — must be overridden with ≥32 characters in production |
+| `TOKEN_SIGNING_KEY` | empty | Optional dedicated token-signing key; falls back to `SECRET_KEY` |
+| `CREDENTIAL_ENCRYPTION_KEY` | empty | Optional dedicated Fernet key for stored credentials; falls back to `SECRET_KEY` |
+| `DEMO_EMAIL` | `demo@serpscope.local` | Login bucket exemption for the mandatory public demo flow |
 | `DATABASE_URL` | `sqlite:///./data/serpscope.db` | SQLAlchemy URL; PostgreSQL URLs are supported by config (driver must be installed separately) |
 | `UPLOAD_DIR` | `./data/uploads` | Uploaded imports, organised as `<project_id>/<timestamp>_<safe-name>` |
 | `EXPORT_DIR` | `./data/exports` | Temporary storage for files streamed by authenticated export endpoints; no public static mount |
@@ -22,7 +25,7 @@ All settings are read from environment variables (or a `.env` file in the workin
 | `CORS_ORIGINS` | `http://localhost:5173,http://127.0.0.1:5173` | Comma-separated allowed origins (credentials enabled) |
 | `JOB_POLL_SECONDS` | `0.5` | Worker idle poll interval |
 | `RUN_JOBS_IN_API` | `true` | Start the inline worker daemon thread in the API process; set `false` when running the separate worker |
-| `RATE_LIMIT_ENABLED` | `true` | Enable the database-backed fixed-window throttle on mutating API routes; the test suite disables it |
+| `RATE_LIMIT_ENABLED` | `true` | Enable the database-backed peer throttle on mutating routes and per-account login throttle; the test suite disables both |
 | `MAX_UPLOAD_MB` | `50` | Per-file upload limit |
 | `LOG_LEVEL` | `INFO` | Root logging level used by `app.main` |
 
@@ -181,7 +184,7 @@ flowchart LR
 Shared-state requirements:
 
 - `api` and `worker` **must** point at the same `DATABASE_URL`. With SQLite this means a shared, writable volume and a single writer host; PostgreSQL is the safer multi-process choice.
-- Both processes need the same `SECRET_KEY` (token verification and credential encryption) and the same `UPLOAD_DIR` / `EXPORT_DIR` paths so file-based import and export jobs can find files created by the API.
+- Both processes need the same `SECRET_KEY` and the same optional `TOKEN_SIGNING_KEY` / `CREDENTIAL_ENCRYPTION_KEY` values (token verification and credential decryption, respectively), plus the same `UPLOAD_DIR` / `EXPORT_DIR` paths so file-based import and export jobs can find files created by the API.
 - Bind uploaded/exported directories to persistent volumes; otherwise generated reports and imported files are lost on container recreation.
 - Set `CORS_ORIGINS` to the public frontend origin. When nginx proxies `/api` on the same origin, CORS is largely moot, but the default list must still be changed if the SPA is served from a different host/port.
 
@@ -190,6 +193,8 @@ Example environment block for both backend services (values are illustrative —
 ```dotenv
 ENVIRONMENT=production
 SECRET_KEY=<generate-a-long-random-value>
+TOKEN_SIGNING_KEY=<optional-separate-random-value>
+CREDENTIAL_ENCRYPTION_KEY=<optional-separate-random-value>
 DATABASE_URL=postgresql+psycopg://<user>:<password>@<host>:5432/<db>
 RUN_JOBS_IN_API=false
 CORS_ORIGINS=https://serpscope.example.com
@@ -211,7 +216,7 @@ MAX_UPLOAD_MB=50
 ## 6. Operational notes
 
 - **Schema changes:** run `alembic upgrade head` from `backend/` on each deploy. The baseline revision and `init_db()` both call `create_all()` for fresh tables; neither alters columns of an existing database. Revision `0003_honest_foundation` adds `case_study_views` plus `answer_url`/`locale` on `ai_visibility_records`; revision `0004_token_revocation` adds the shared `revoked_tokens` denylist; revision `0005_user_token_version` adds `users.token_version`; revision `0006_shared_rate_limits` adds the shared `rate_limit_windows` counter table. All four are idempotent and safe to run after `create_all()` has already created them. Because Render's start command does not invoke Alembic, `init_db()` also carries idempotent compatibility shims for the missing AI-observation columns and `users.token_version` on an older database; `create_all()` adds missing tables such as `rate_limit_windows`. Running Alembic remains the canonical path. Any future change must ship as an explicit incremental revision and be tested against a copy of production data.
-- **Backups:** back up the database and the upload/export volumes together. Integration credentials are Fernet-encrypted with a key derived from `SECRET_KEY`, so **losing or rotating `SECRET_KEY` makes stored credentials unreadable and invalidates all tokens**.
+- **Backups:** back up the database and the upload/export volumes together, and preserve the encryption key used for stored credentials. With no `CREDENTIAL_ENCRYPTION_KEY`, Fernet uses a key derived from `SECRET_KEY`; **losing or rotating the effective credential key makes stored credentials unreadable**, while rotating `TOKEN_SIGNING_KEY` invalidates tokens without affecting ciphertext. Record the key version alongside each backup; there is no automatic re-encryption routine.
 - **Retention:** `organizations.retention_days` exists (default 365) but no automated purge job was found in the code; retention must be handled operationally.
 - **Job failures:** failed jobs persist `status="failed"`, an `error` string and `finished_at`; the traceback is returned at runtime but not stored. Monitor `jobs` with `status='failed'` or long-lived `status='claimed'`/`running'` rows (there is no visibility timeout or automatic retry).
 - **Worker scheduler:** the `scheduler_tick` job is enqueued roughly every 60 seconds by the standalone worker and, when `RUN_JOBS_IN_API=true`, by the inline API worker too. `due_workflows()` normalises timezone-aware and naive timestamps, so a scheduled workflow that has already run is no longer treated as permanently due. Ensure only one queue owner is active if you rely on scheduled workflows.
@@ -246,7 +251,15 @@ Commit `860ddf7` was pushed to `main`. Local checks: **64 backend tests passed**
 Commit `dc29ff5` was pushed to `main`. Local checks: **67 backend tests passed**, including three new tenant/rate-limit regression tests; `npm run typecheck` and `npm run build` were clean (`assets/index-nyAorvzx.js`, `assets/index-D7uPGQbf.css`). Invariant counts remain **23 modules, 17 docs, 24 screenshots and 12 interview scenarios**. Render required **Manual Deploy → Deploy latest commit** on `serpscope-api`; deploy `dep-dc2oolrrjlhs73dbrcm0` for `dc29ff5` succeeded in **1m 16s**. `render.yaml` was unchanged, so **no Blueprint sync was needed**.
 
 - Tenant scoping now uses `get_project()`/`ProjectDep` and the new `require_org()` helper. Project creation defaults to the caller's own membership and rejects a supplied `organization_id` outside it; overview counters are organisation/project scoped; client organisation projects/members, project permissions, jobs, integrations, `/auth/users`, and child PATCH endpoints verify membership. Platform `owner`/`admin` remains the only global bypass. The global demo generate/reset endpoints are now platform-admin-only.
-- The throttler's route mapping lives in `backend/app/main.py`; its counters live in the shared `rate_limit_windows` table via `backend/app/services/rate_limiting.py`. A 600-second fixed window is keyed by an HMAC digest of UTC day, route bucket and the socket peer host. Buckets are login `10`, presence ping `60`, other mutations `120`; excess requests get `429` with a numeric `Retry-After`. It never reads or stores `X-Forwarded-For`, cookies, authorisation headers, referrer, user identity, audited domain, query, body or path IDs. Tests set `RATE_LIMIT_ENABLED=false`; regression tests verify the generic `429` body, digest-only keys and counter sharing across DB sessions. It was not hammered against the shared public egress path.
+- The throttler's historical route mapping lived in `backend/app/main.py`; counters live in the shared `rate_limit_windows` table via `backend/app/services/rate_limiting.py`. Later releases moved login to a per-account digest bucket and exempted the public demo account (see section 10); the original 600-second peer buckets were presence `60`, registration `5`, login `10` and other mutations `120`, with a generic `429` and numeric `Retry-After`. It never reads or stores `X-Forwarded-For`, cookies, authorisation headers, referrer, user identity, audited domain, query, body or path IDs. Tests set `RATE_LIMIT_ENABLED=false`; regression tests verify the generic `429` body, digest-only keys and counter sharing across DB sessions. It was not hammered against the shared public egress path.
 - Live checks after the deploy: `/api/health` returned `{"status":"ok","environment":"production","database":"postgresql"}`; the legacy alias returned `308` to the canonical root; a canonical `Origin` received `Access-Control-Allow-Origin: https://serpscopelive.vercel.app` while `https://evil.example` received no CORS header. Case study 2 still reports `meta.publication_scope=public_evidence_only`, `supplied_data.gsc.supplied=false` with zero rows, and `ai_visibility.status=not_sampled` with all four engines `not_sampled`. Browser console error counts were zero on `/` and `/case-studies/2`.
 - The book offer from commit `4365998` is live on `assets/index-nyAorvzx.js`. Its Google Play cover loads at **375×600**, both links point to `https://play.google.com/store/books/details?id=PNEwEgAAQBAJ`, and the copy states the review condition and that SERPScope collects neither email nor review text.
 - **Known caveat unchanged:** the default GA4 `page_view` tag in `GTM-NZ3DFL7C` still adds `dt` (document title) and `dl` (page location). SERPScope's own `dataLayer` events remain free of those fields; the tag still needs reconfiguration in the GTM UI.
+
+## 10. Live verification record — persistent revocation and shared rate limits (2026-11-27)
+
+Commits `3af2f6c` and `5722602` added persistent single-token and account-wide revocation; commit `03db542` added shared database-backed rate counters. Local checks for `03db542`: **90 fast / 91 full backend tests passed**, `compileall` clean, a fresh Alembic upgrade through `0006_shared_rate_limits` created `rate_limit_windows` with both indexes, the `0005 → init_db()` shim added the table, metadata contained 45 tables (46 including `alembic_version`), and frontend `typecheck`/`build` were clean. Invariant counts remained **23 modules, 17 docs, 24 screenshots and 12 interview scenarios**.
+
+- Deploy `dep-dc4oe4m1egvs7397u3j0` from `5722602` succeeded (`Deploy succeeded|Live`, 1m 11s). Two logins and `/auth/me` returned 200; `POST /auth/logout-all` returned `200 All sessions signed out`; both earlier tokens then returned `401 Token has been superseded`; `POST /auth/logout` returned `200 Token revoked` and its token returned `401 Token has been revoked`; a fresh login and `/auth/me` returned 200. `/api/health` returned 200 and all three connectors stayed `ready=false`.
+- Deploy `dep-dc4oral6e07s7383l4kg` from `03db542` succeeded (`Deploy succeeded|Live`, 59.6s, source `03db542`). Live checks after that deploy: `/api/health` 200, login 200, `/auth/me` 200, `/auth/logout` `200 Token revoked`, revoked token `401`, fresh login and `/auth/me` 200. Connectors remained `google_search_console=false`, `google_analytics_4=false`, `llm_provider=false`. Canonical `https://serpscopelive.vercel.app/` returned 200; `https://serpscope-six.vercel.app/` returned `308` to canonical. The shared public egress was not hammered to provoke a 429.
+- The shared counters are fail-open if the store is unavailable, are keyed only by HMAC digests, and do not replace edge/WAF rate limiting. Render is still connected to the public repository, so every backend commit requires **Manual Deploy → Deploy latest commit**; Vercel auto-deploys `main`.

@@ -44,6 +44,11 @@ def _unb64url(value: str) -> bytes:
     return base64.urlsafe_b64decode(value + "=" * (-len(value) % 4))
 
 
+def _signing_key() -> bytes:
+    """Use a dedicated token key when configured, otherwise the legacy secret."""
+    return (settings.token_signing_key or settings.secret_key).encode()
+
+
 def create_access_token(subject: str, claims: dict | None = None) -> str:
     now = int(time.time())
     payload = {
@@ -59,13 +64,11 @@ def create_access_token(subject: str, claims: dict | None = None) -> str:
     header = _b64url(b'{"alg":"HS256","typ":"JWT"}')
     body = _b64url(json.dumps(payload, separators=(",", ":")).encode())
     signing_input = f"{header}.{body}".encode()
-    signature = hmac.new(settings.secret_key.encode(), signing_input, hashlib.sha256).digest()
+    signature = hmac.new(_signing_key(), signing_input, hashlib.sha256).digest()
     return f"{header}.{body}.{_b64url(signature)}"
 
 
 def decode_access_token(token: str) -> dict | None:
-    import time
-
     try:
         header, body, signature = token.split(".")
         header_data = json.loads(_unb64url(header))
@@ -74,12 +77,27 @@ def decode_access_token(token: str) -> dict | None:
         if header_data.get("alg") != "HS256" or header_data.get("typ", "JWT") != "JWT":
             return None
         expected = hmac.new(
-            settings.secret_key.encode(), f"{header}.{body}".encode(), hashlib.sha256
+            _signing_key(), f"{header}.{body}".encode(), hashlib.sha256
         ).digest()
         if not hmac.compare_digest(expected, _unb64url(signature)):
             return None
         payload = json.loads(_unb64url(body))
-        if payload.get("exp", 0) < int(time.time()):
+        if not isinstance(payload, dict):
+            return None
+
+        # A valid signature is not enough: claim types must also be trusted.
+        now = int(time.time())
+        exp = payload.get("exp")
+        if not isinstance(exp, int) or isinstance(exp, bool) or exp <= now:
+            return None
+        iat = payload.get("iat")
+        if iat is not None and (not isinstance(iat, int) or isinstance(iat, bool)):
+            return None
+        ver = payload.get("ver", 0)
+        if not isinstance(ver, int) or isinstance(ver, bool) or ver < 0:
+            return None
+        sub = payload.get("sub")
+        if not isinstance(sub, str) or not sub:
             return None
         return payload
     except (ValueError, KeyError, TypeError, json.JSONDecodeError):
@@ -88,4 +106,4 @@ def decode_access_token(token: str) -> dict | None:
 
 def token_digest(token: str) -> str:
     """Key the persistent revocation record without retaining a raw token."""
-    return hmac.new(settings.secret_key.encode(), token.encode(), hashlib.sha256).hexdigest()
+    return hmac.new(_signing_key(), token.encode(), hashlib.sha256).hexdigest()
