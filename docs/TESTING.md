@@ -17,7 +17,7 @@ All commands run from the `backend/` directory:
 ```bash
 cd backend
 
-# Fast suite (80 tests; the full suite has 81 including the slow 100k test)
+# Fast suite (86 tests; the full suite has 87 including the slow 100k test)
 pytest -q -m "not slow"
 
 # Full suite, including the large-dataset acceptance test

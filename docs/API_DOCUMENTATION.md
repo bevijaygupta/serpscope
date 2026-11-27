@@ -337,11 +337,13 @@ Clustering methods advertised by the API: `exact, normalized, token, semantic, i
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
 | GET | `/api/v1/integrations/providers` | Bearer | Declared providers and modes. |
+| GET | `/api/v1/integrations/connectors` | Bearer | Per-provider live-adapter readiness (`ready` booleans only; no secrets). All off by default. |
 | GET | `/api/v1/integrations` | Bearer | Connection records; optional `project_id` filter. |
-| POST | `/api/v1/integrations` | Bearer (write) | Create/upsert a connection; encrypts credentials (201). |
+| POST | `/api/v1/integrations` | Bearer (write) | Create/upsert a connection; encrypts credentials (201). `configured` is not proof of a connection. |
+| POST | `/api/v1/integrations/{integration_id}/sync` | Bearer (write) | Explicit dormant live sync; returns verbatim row counts (`503` when gated off). |
 | GET | `/api/v1/integrations/{integration_id}` | Bearer | Connection metadata; **never returns secrets**. |
-| GET | `/api/v1/integrations/supplied-signals` | Bearer + `project_id` | Per-signal supply status plus `status_explanations` for "Not supplied", "Supplied" and "Synthetic". Statuses are earned by uploaded rows; no provider API is called. |
-| GET | `/api/v1/integrations/supplied-records` | Bearer + `project_id`, `signal` | Verbatim uploaded rows for a signal. |
+| GET | `/api/v1/integrations/supplied-signals` | Bearer + `project_id` | Per-signal supply status plus `status_explanations` for "Not supplied", "Supplied", "Synthetic" and "api_live". Statuses are earned by uploaded or explicitly synced rows; no provider API is called unless a connector is enabled and configured. |
+| GET | `/api/v1/integrations/supplied-records` | Bearer + `project_id`, `signal` | Verbatim uploaded or live-synced rows for a signal. |
 
 The UI's **Google Search Overview** combines these two authenticated endpoints into one read-only panel. It never computes or invents a Search Console metric; a project without rows remains `Not supplied`, and a supplied project shows only the verbatim cells plus their `data_kind`. Public case studies use the sanitised `supplied_data` object already present in the case-study response and never call `supplied-records`.
 

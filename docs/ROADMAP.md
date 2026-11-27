@@ -41,7 +41,7 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 | Area | Status | Current limitation | Priority |
 |---|---|---|---|
 | Container deployment | Partial | All Compose assets are present, but the stack has not been built in this environment; local source setup is the verified path. | Medium |
-| Integration providers | Partial | Provider registry, encrypted credential records and connection declarations exist, but no live vendor API calls are implemented. | Medium |
+| Integration providers | Partial | Provider registry, encrypted credential records and dormant GSC/GA4/LLM adapters exist, but all live calls are gated off and no provider credentials/accounts are configured in this deployment. | Medium |
 | Crawler depth | Partial | `canonical_handling` and `schedule` config keys are stored but unused; JS rendering/Playwright is not implemented; DNS validation and redirect-hop checks exist but egress firewall/connection-time enforcement is still absent; sitemap indexes expand only one level. | High |
 | Public-audit coverage | Partial | Local verification used a deliberately narrow 60-URL sample; the hosted run fetched 219 URLs under the 250-URL default. Neither is exhaustive. Robots rules for named AI agents are evidence of declared policy only; no GSC/GA4, rank or AI-answer visibility data is used. The hosted sitemap discovery timed out and is reported as 0 entries. | Medium |
 | Issue rule coverage | Partial | Some declared rules (`excessive_depth`, `broken_external_link`) have no detector. | Medium |
@@ -65,8 +65,8 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 
 **Priority: Medium**
 
-1. Add explicit provider adapters for declared integrations, with clear capability flags for implemented versus simulated operations.
-2. Replace placeholder connection checks with safe, read-only validation calls where live credentials are configured.
+1. Keep the dormant GSC/GA4/LLM adapters disabled until real provider accounts exist; then add read-only validation calls and capability flags for implemented versus simulated operations.
+2. Supply real OAuth clients, refresh tokens and property identifiers as deployment secrets, then enable a single provider at a time and verify verbatim row storage and public-case-study exclusion.
 3. Add audit metadata showing whether each result came from live data, cached data, or synthetic generation.
 
 ### Phase 3 — Enterprise operability

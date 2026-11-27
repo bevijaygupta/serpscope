@@ -170,6 +170,7 @@ Implemented provenance rules:
 - **Human review preserved** — Recommendations remain proposals (`ContentBrief.approval_status="draft"`, `KeywordMapping.status="suggested"`, `LinkSuggestion.status="proposed"`, `Issue.validation_status="unvalidated"`). Migrations and AI observations are never deployed automatically.
 - **Bounded reads** — List endpoints paginate (`page_query`, `paginate` with `page_size` capped at 500; inventory `limit` capped at 500 → 422 above that). Crawl observation exports explicitly cap at 200,000 rows. This is what makes the 100k-URL acceptance test possible without loading the whole inventory.
 - **Outbound access is guarded** — `validate_target_url()` is called at the crawler API boundary and again inside the crawler engine for seeds and discovered links, with caller overrides stripped. `allow_private` and `auth_headers` cannot be supplied through the API or job payload. See [SECURITY.md](SECURITY.md).
+- **Live vendor connectors are dormant** — GSC/GA4 adapters call fixed provider endpoints only after `LIVE_CONNECTORS_ENABLED=true`, environment credentials, an `oauth_api` integration and an explicit authenticated sync all pass. Returned rows are stored verbatim with `data_kind=api_live:*` and are still stripped from public case studies; LLM output is labelled generated and is never evidence. See [INTEGRATIONS.md](INTEGRATIONS.md).
 
 ## 6. Database and configuration notes
 

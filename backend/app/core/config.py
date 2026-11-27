@@ -24,6 +24,23 @@ class Settings(BaseSettings):
     max_upload_mb: int = 50
     log_level: str = "INFO"
 
+    # Dormant live vendor connectors. Every value is empty/off by default; no
+    # provider request can be made until an operator opts in and supplies real
+    # credentials through the deployment environment (never through the repo).
+    live_connectors_enabled: bool = False
+    gsc_client_id: str = ""
+    gsc_client_secret: str = ""
+    gsc_redirect_uri: str = ""
+    gsc_site_url: str = ""
+    ga4_client_id: str = ""
+    ga4_client_secret: str = ""
+    ga4_redirect_uri: str = ""
+    ga4_property_id: str = ""
+    llm_api_key: str = ""
+    llm_model: str = "gpt-4o-mini"
+    vendor_request_timeout_seconds: float = 15.0
+    vendor_max_rows: int = 1000
+
     @field_validator("database_url")
     @classmethod
     def normalise_database_url(cls, value: str) -> str:

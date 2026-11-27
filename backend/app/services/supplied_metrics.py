@@ -1,9 +1,10 @@
-"""Storage and reporting for user-supplied vendor/private datasets.
+"""Storage and reporting for supplied vendor/private datasets.
 
-SERPScope never calls a vendor API on the user's behalf and never invents a
-private metric. When a user uploads an export, its rows are stored verbatim in
-``supplied_metrics`` and grouped into a signal so the audit can honestly change
-a status from ``Not supplied`` to ``Supplied by user``.
+Rows arrive either from a user upload or, only when a live connector is
+explicitly enabled and configured, from a real provider response. Both paths
+store values verbatim and never invent a private metric. A signal changes from
+``Not supplied`` only when rows are actually stored; ``data_kind`` records
+whether they came from a file or a live API.
 """
 from __future__ import annotations
 
@@ -16,7 +17,9 @@ from app.models.operations import SuppliedMetric
 
 SOURCE_SIGNALS: dict[str, tuple[str, str]] = {
     "gsc": ("gsc", "Search Console queries, impressions, CTR and position"),
+    "gsc_live": ("gsc", "Search Console rows fetched by an explicitly enabled live connector"),
     "ga4": ("ga4", "GA4 sessions, conversions and revenue"),
+    "ga4_live": ("ga4", "GA4 rows fetched by an explicitly enabled live connector"),
     "analytics": ("ga4", "Analytics sessions, conversions and revenue"),
     "rank_tracking": ("rank", "Rank tracking positions over time"),
     "backlinks": ("backlinks", "Inbound backlinks and referring domains"),
@@ -69,6 +72,17 @@ def _lookup(row: dict[str, Any], aliases: Iterable[str]) -> str:
     return ""
 
 
+def row_identity(row: dict[str, Any], name: str) -> tuple[str, str | None]:
+    """The exact dimension/period pair used when a row is stored.
+
+    Keeping this in one place prevents a live sync from re-inserting rows that
+    an earlier sync already recorded under a different alias preference.
+    """
+    dimension = (_lookup(row, _DIMENSION_ALIASES) or name)[:2000]
+    period = _lookup(row, _DATE_ALIASES)[:20] or None
+    return dimension, period
+
+
 def store_supplied_metrics(
     db: Session,
     project_id: int,
@@ -77,22 +91,25 @@ def store_supplied_metrics(
     rows: list[dict[str, Any]],
     data_kind: str = "imported",
     data_source_id: int | None = None,
+    meta: dict[str, Any] | None = None,
 ) -> int:
     signal, label = signal_for_source(source_type)
     records: list[dict[str, Any]] = []
     for row in rows:
-        dimension = _lookup(row, _DIMENSION_ALIASES) or name
-        period = _lookup(row, _DATE_ALIASES)
+        dimension, period = row_identity(row, name)
         records.append({
             "project_id": project_id,
             "source": source_type,
             "signal": signal,
             "data_kind": data_kind,
-            "dimension": dimension[:2000],
-            "period_start": period[:20] or None,
-            "period_end": period[:20] or None,
+            "dimension": dimension,
+            "period_start": period,
+            "period_end": period,
             "metrics": {str(k): ("" if v is None else str(v)) for k, v in row.items()},
-            "meta_info": {"label": label, "file": name, "import_convention": "verbatim_user_supplied"},
+            "meta_info": {
+                "label": label, "file": name,
+                "import_convention": "verbatim_user_supplied", **(meta or {}),
+            },
             "data_source_id": data_source_id,
         })
     for start in range(0, len(records), 2000):
@@ -103,24 +120,40 @@ def store_supplied_metrics(
 
 def supplied_signals(db: Session, project_id: int) -> dict[str, dict[str, Any]]:
     """Return a compact status object for every signal the audit talks about."""
-    grouped: dict[str, dict[str, Any]] = {
-        key: {"supplied": False, "rows": 0, "sources": [], "latest_period": "", "sample": []}
-        for key in SIGNAL_LABELS
-    }
+    def blank() -> dict[str, Any]:
+        return {
+            "supplied": False, "rows": 0, "live_rows": 0, "status": "not_supplied",
+            "sources": [], "latest_period": "", "sample": [],
+        }
+
+    grouped: dict[str, dict[str, Any]] = {key: blank() for key in SIGNAL_LABELS}
     for source, signal, count in db.execute(
         select(SuppliedMetric.source, SuppliedMetric.signal, func.count())
         .where(SuppliedMetric.project_id == project_id)
         .group_by(SuppliedMetric.source, SuppliedMetric.signal)
     ).all():
-        entry = grouped.setdefault(signal, {"supplied": False, "rows": 0, "sources": [], "latest_period": "", "sample": []})
+        entry = grouped.setdefault(signal, blank())
         entry["supplied"] = True
         entry["rows"] += int(count)
         if source not in entry["sources"]:
             entry["sources"].append(source)
 
+    for signal, count in db.execute(
+        select(SuppliedMetric.signal, func.count())
+        .where(
+            SuppliedMetric.project_id == project_id,
+            SuppliedMetric.data_kind.like("api_live:%"),
+        )
+        .group_by(SuppliedMetric.signal)
+    ).all():
+        grouped.setdefault(signal, blank())["live_rows"] = int(count)
+
     for signal in grouped:
         if not grouped[signal]["supplied"]:
             continue
+        grouped[signal]["status"] = (
+            "api_live" if grouped[signal]["live_rows"] else "supplied"
+        )
         rows = db.scalars(
             select(SuppliedMetric)
             .where(SuppliedMetric.project_id == project_id, SuppliedMetric.signal == signal)

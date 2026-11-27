@@ -1,4 +1,4 @@
-"""Integration registry. No provider API is called unless explicitly configured."""
+"""Integration registry and dormant, explicitly gated live connectors."""
 from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
@@ -11,6 +11,8 @@ from app.models.auth import Membership
 from app.models.operations import Integration
 from app.models.projects import Project
 from app.services.supplied_metrics import SIGNAL_LABELS, supplied_record_rows, supplied_signals
+from app.services.vendor_connectors import ConnectorUnavailable, connector_readiness
+from app.services.vendor_sync import sync_integration
 
 router = APIRouter(prefix="/integrations", tags=["integrations"])
 
@@ -88,6 +90,38 @@ def upsert_integration(payload: dict, db: DB, user: UserDep):
     return {"id": item.id, "status": item.status, "note": "Credentials stored encrypted; values are not returned."}
 
 
+@router.get("/connectors")
+def connector_status(user: UserDep):
+    """Which live adapters are enabled. Never returns credential values."""
+    return {
+        "items": [
+            {"provider": provider, "ready": ready}
+            for provider, ready in connector_readiness().items()
+        ],
+        "note": (
+            "All live connectors are off by default. A provider is ready only when "
+            "LIVE_CONNECTORS_ENABLED=true and its credentials exist in the deployment "
+            "environment. No credential value is returned by this endpoint."
+        ),
+    }
+
+
+@router.post("/{integration_id}/sync")
+def sync_live_integration(integration_id: int, db: DB, user: UserDep):
+    """Explicitly fetch real provider rows for a project-scoped integration."""
+    check_write(user)
+    item = db.get(Integration, integration_id)
+    if item is None:
+        raise HTTPException(404, "Integration not found")
+    if item.project_id is None:
+        raise HTTPException(400, "Live sync requires a project-scoped integration")
+    get_project(db, item.project_id, user)
+    try:
+        return sync_integration(db, item)
+    except ConnectorUnavailable as exc:
+        raise HTTPException(503, str(exc)) from exc
+
+
 @router.get("/supplied-signals")
 def supplied_signal_status(db: DB, user: UserDep, project_id: int):
     """Which vendor signals have real user-supplied rows, and how many."""
@@ -98,11 +132,16 @@ def supplied_signal_status(db: DB, user: UserDep, project_id: int):
             {"signal": key, "label": SIGNAL_LABELS[key], **value}
             for key, value in status.items()
         ],
-        "note": "Statuses are earned by real uploaded rows. No provider API is called and no private metric is inferred.",
+        "note": (
+            "Statuses are earned by real uploaded or explicitly synced live rows. "
+            "No provider API is called unless a live connector is enabled and "
+            "configured; no private metric is inferred."
+        ),
         "status_explanations": {
             "not_supplied": "No real export was supplied for this signal. The audit says 'Not supplied' instead of guessing.",
             "supplied": "Verbatim rows from a file you uploaded. Stored with its source and data-kind label; not a live API connection.",
             "synthetic": "Labelled demo/verification rows. Never presented as real client or vendor performance.",
+            "api_live": "Verbatim rows fetched by an explicitly enabled live connector. The data-kind label names the provider; these rows are excluded from public case studies.",
         },
     }
 

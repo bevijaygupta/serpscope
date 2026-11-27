@@ -111,14 +111,15 @@ Implementation: `backend/app/core/crypto.py`, `backend/app/api/v1/integrations.p
 
 - Encryption uses `cryptography.fernet.Fernet` (AES-CBC + HMAC under the hood).
 - The key is derived as `base64.urlsafe_b64encode(sha256(settings.secret_key.encode()).digest())` — i.e. it comes from `SECRET_KEY`, not a separate stored key.
-- The connect endpoint stores `encrypt(str(payload["credentials"]))` and returns only `{"id", "status", "note"}` with the explicit note that values are not returned. List/detail responses select columns that exclude `credentials_encrypted`.
-- Default integration mode is `csv_import`; no live third-party API provider is called by this code.
+- The connect endpoint stores `encrypt(str(payload["credentials"]))` and returns only `{"id", "status", "note"}` with the explicit note that values are not returned. List/detail responses and `GET /integrations/connectors` never expose a credential value.
+- Default integration mode is `csv_import`; no live third-party API provider is called by that path. `configured` means only that credentials were stored, not that a provider was reached; `connected` is set only after an explicit successful sync.
+- Dormant adapters (`services/vendor_connectors.py`, `services/vendor_sync.py`) require `LIVE_CONNECTORS_ENABLED=true`, provider credentials in the deployment environment, an `oauth_api` integration for that project, and an authenticated write call to `POST /integrations/{id}/sync`. Without all four, no request is made. Provider URLs are fixed constants; GSC site URLs are percent-encoded and GA4 property IDs are restricted to numeric values.
 
 **Limitations:**
 
 - There is no KMS/HSM, per-tenant data key, or key rotation path. Rotating `SECRET_KEY` invalidates **both** all bearer tokens and all stored integration credentials, with no re-encryption routine.
 - `credentials_encrypted` is `Text`; a database dump contains ciphertext, so database backups still need protection.
-- The provider registry describes possible integrations; it does not implement OAuth token refresh or secret fetching from a vault.
+- The dormant sync path decrypts a stored refresh token to obtain a short-lived access token, but it has no OAuth consent screen, token vault, per-tenant key, refresh scheduler or provider-scope validation. Generated LLM text is labelled assistive and is never verified evidence. No provider credential exists in this repository or its current deployment, so all adapters remain off.
 
 ## 9. Secrets and configuration hygiene
 

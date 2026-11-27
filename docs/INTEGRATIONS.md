@@ -235,13 +235,14 @@ Public-audit outputs never call GSC, GA4, rank tracking or LLM APIs. The audit r
 | `ahrefs` | `csv_import`, `api_key` |
 | `llm_provider` | `api_key` |
 
-The note returned by the endpoint is explicit: *"CSV import works without credentials. API modes require configured credentials and permissions."* In this implementation, **only the CSV path has code behind it**; the other modes are metadata for a future connector layer.
+The note returned by the endpoint is explicit: *"CSV import works without credentials. API modes require configured credentials and permissions."* CSV import is always available. The OAuth/API-key modes now have **dormant adapters** (see "Dormant live connectors" below); they stay off until an operator opts in and supplies real credentials through the deployment environment.
 
 `POST /api/v1/integrations` creates or upserts a connection (unique by provider + project + organisation), validates provider and mode, and sets a status:
 
 - `csv_ready` — default for `csv_import` mode;
 - `not_configured` — default for non-CSV modes or seeded demo records;
-- `configured` — set when credentials are supplied.
+- `configured` — credentials were stored encrypted; **not proof of a connection**;
+- `connected` — set only after an explicit live sync actually returned provider rows and recorded `last_sync_at`.
 
 `GET /api/v1/integrations` and `GET /api/v1/integrations/{id}` expose `id`, `provider`, `display_name`, `status`, `mode`, `config`, `last_sync_at`, `notes` — but never credentials.
 
@@ -262,7 +263,34 @@ Operational notes:
 
 - The encryption key is derived from `SECRET_KEY`. **Changing `SECRET_KEY` makes previously stored credentials unreadable**; they are not migrated.
 - For a real deployment, prefer injecting secrets from a secret manager/environment rather than pasting them into a demo UI. The frontend action hint says exactly this.
-- Encryption at rest is not the same as OAuth token management, rotation, scope validation or provider consent. None of those are implemented.
+- Encryption at rest is not the same as OAuth token management, rotation, scope validation or provider consent. None of those are implemented by the connect endpoint. The dormant sync path does use `decrypt()` to exchange a stored refresh token, but only after all the gates below pass.
+
+---
+
+## Dormant live connectors
+
+Implementation: `backend/app/services/vendor_connectors.py`, `backend/app/services/vendor_sync.py`, `backend/app/api/v1/integrations.py`, `backend/app/core/config.py`.
+
+A provider request is possible **only when every gate holds**:
+
+1. `LIVE_CONNECTORS_ENABLED=true` is set in the deployment environment;
+2. that provider's OAuth client ID, secret and redirect URI (or `LLM_API_KEY`) are present there;
+3. a project-scoped `Integration` exists with `mode="oauth_api"` and a stored encrypted refresh token;
+4. an authenticated caller with write access explicitly calls `POST /api/v1/integrations/{integration_id}/sync`.
+
+| Adapter | Real endpoint | Stored rows |
+| --- | --- | --- |
+| `google_search_console` | `POST .../sites/{site}/searchAnalytics/query` after an OAuth refresh-token exchange | `source=gsc_live`, `data_kind=api_live:gsc` |
+| `google_analytics_4` | `POST .../properties/{id}/runReport` after an OAuth refresh-token exchange | `source=ga4_live`, `data_kind=api_live:ga4` |
+| `llm_provider` | `POST https://api.openai.com/v1/chat/completions` | **None.** `assistive_llm_text()` returns generated text labelled `generated: true`; it is never an observation, finding or measured metric. |
+
+Row handling:
+
+- Responses are stored **verbatim** as strings through `store_supplied_metrics`; no value is synthesised, inferred or back-filled. Dates are bounded to a 90-day range and rows to `VENDOR_MAX_ROWS` (default 1000).
+- Repeating a sync skips rows already recorded for the same source, dimension and period instead of duplicating them; it never deletes prior rows.
+- `GET /api/v1/integrations/connectors` reports only per-provider `ready` booleans and never a credential value.
+- `GET /api/v1/integrations/supplied-signals` adds `live_rows` and a `status` of `not_supplied`, `supplied` or `api_live`, plus an `api_live` explanation. The workspace audit can use those verbatim rows; published case studies still strip **all** supplied data, including live rows.
+- There is no background scheduler, consent screen, token vault, per-tenant key or provider-scope validation here. No credentials exist in this repository or its current deployment, so every adapter is currently dormant.
 
 ---
 
@@ -284,12 +312,12 @@ These rows are evidence of the intended integration surface, **not** proof of a 
 
 Be explicit about these in interviews:
 
-1. **No live vendor API calls.** There is no OAuth handshake, token refresh, provider client, rate-limit handling, or GSC/GA4/Semrush/Ahrefs/GBP/Merchant request code.
+1. **No live vendor API call is active.** The dormant GSC/GA4 adapters make a request only through the explicit gates above; there is no OAuth consent screen, background refresh scheduler, or Semrush/Ahrefs/GBP/Merchant request code. `llm_provider` has a gated assistive adapter but no evidence-producing sync.
 2. **JSON and XLSX parsing is structural only.** `parse_table()` reads the first XLSX worksheet with `openpyxl` and accepts JSON arrays of objects or objects with `items`/`rows`/`data`; all values are converted to strings before header mapping. Nested JSON values are stringified, so provider-specific payload shapes still need a dedicated adapter. XLSX is also fully supported for **exports** via `openpyxl`.
 3. **AnalyticsRecord rows are not created by file imports.** URL-level metrics from CSV land on `UrlRecord`, and verbatim private rows land on `SuppliedMetric`. The demo generator creates GSC/GA4-style `AnalyticsRecord` rows directly for reporting demonstrations.
 4. **No JavaScript rendering** in the crawler (`javascript_rendering: false` in defaults).
 5. **No automatic sitemap fetching**, no incremental recrawl scheduling beyond the workflow tick, and no deployment of redirects.
-6. **No LLM provider call.** `llm_provider` is a registry entry only; AI-search observations are manual or synthetic, and readiness is rule-based. No answer-engine inclusion or traffic outcome is guaranteed.
+6. **No live LLM evidence.** The gated `llm_provider` adapter produces labelled assistive drafts only. AI-search observations remain manual or synthetic, readiness is rule-based, and no answer-engine inclusion or traffic outcome is guaranteed.
 7. **No inference of private metrics.** Volume, rank, traffic, backlink authority, Core Web Vitals and local visibility are never guessed from public HTML. They change from `Not supplied` only when labelled rows are actually stored.
 
 See [ROADMAP.md](ROADMAP.md) for prioritised next steps and [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for the endpoint catalogue.
