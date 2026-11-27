@@ -49,7 +49,7 @@ On startup the API:
 
 1. Creates `UPLOAD_DIR` and `EXPORT_DIR`.
 2. Runs `init_db()` → `Base.metadata.create_all()`, creating all 43 tables if absent.
-3. If the `users` table is empty, creates the demo organisation `Demo Organisation` (`demo-organisation`) and owner `demo@serpscope.local` with password `demo1234`, plus an owner `Membership`.
+3. On every startup, ensures the demo organisation `Demo Organisation` (`demo-organisation`) and owner `demo@serpscope.local` with password `demo1234` exist, plus an owner `Membership`, even if other users were created first. Existing demo rows are never overwritten.
 4. Starts the inline worker thread if `RUN_JOBS_IN_API=true`.
 
 Check with:
@@ -203,7 +203,7 @@ MAX_UPLOAD_MB=50
 
 1. Start the database/volumes, then `api`, then `worker`, then `frontend`.
 2. Confirm `GET /api/health` returns `{"status":"ok", ...}` through the same public origin as the SPA.
-3. Log in at `/login` with an account created through `/api/v1/auth/register` (local) or provisioned in the database. Remove/rotate the seeded demo account for real deployments.
+3. Log in at `/login` with an account created through `/api/v1/auth/register` (local only; disabled by default in production) or provisioned in the database. Remove/rotate the seeded demo account for real deployments; rotation must include the landing-page auto-login and existing user rows.
 4. Queue a small job from the UI (e.g. "Add keyword" is synchronous; "Detect issues" is queued) and verify the job panel transitions to `succeeded`.
 5. Run the backend test suite as described in [TESTING.md](TESTING.md) against a deployed-equivalent configuration where practical.
 

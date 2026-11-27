@@ -100,7 +100,7 @@ flowchart TB
 | --- | --- |
 | `POST /api/v1/auth/login` | Verify PBKDF2 password, return an HMAC-SHA256 bearer token (24 h by default) carrying `sub` and `role` claims |
 | `GET /api/v1/auth/me` | Return the current user's id, email, name and global role |
-| `POST /api/v1/auth/register` | **Local-development** account creation (new users get `viewer`); production should use SSO/admin provisioning |
+| `POST /api/v1/auth/register` | **Local-development** account creation (validated email/password, new users get `viewer` with no membership); returns `403` by default in production unless explicitly opted in; production should use SSO/admin provisioning |
 | `GET /api/v1/auth/users` | List up to 1000 users (requires authentication) |
 | `GET /api/health` | Unauthenticated liveness probe with environment and database scheme |
 
@@ -176,7 +176,7 @@ Implemented provenance rules:
 - The engine is created from `settings.database_url` with `pool_pre_ping=True` and `future=True`. SQLite additionally gets `check_same_thread=False`, a 30-second timeout, and the `WAL`, `foreign_keys=ON`, `synchronous=NORMAL` pragmas on connect.
 - `init_db()` calls `Base.metadata.create_all(bind=engine)` after importing `app.models`, so a fresh database is self-initialising. An Alembic baseline (`backend/migrations/versions/0001_initial_schema.py`) also calls `create_all()`; future schema changes must be written as explicit incremental revisions. Run `alembic upgrade head` from `backend/` in deployment. See [DATABASE_SCHEMA.md](DATABASE_SCHEMA.md).
 - All settings are environment-driven through `Settings` in `app/core/config.py` (`.env` supported, extra keys ignored). Key settings: `database_url`, `secret_key`, `cors_origins`, `access_token_expire_minutes`, `upload_dir`, `export_dir`, `max_upload_mb`, `job_poll_seconds`, `run_jobs_in_api`, `log_level`.
-- On startup the API creates the upload and export directories and, if the `users` table is empty, seeds a demo organisation and owner account (`demo@serpscope.local` / `demo1234`). This bootstrap is for demos and local development and should be removed/disabled for real deployments.
+- On startup the API creates the upload and export directories and ensures a demo organisation and owner account (`demo@serpscope.local` / `demo1234`) exist, including when other users were created first. Existing demo rows are not overwritten. This bootstrap is for demos and local development; real deployments should replace it with provisioned accounts.
 - The frontend module registry in `frontend/src/lib/modules.ts` is data-driven: each module declares tabs and actions with API paths containing `{projectId}` / `{id}` placeholders, resolved by `resolvePath()`. The `ModulePage` renders custom views for `overview`, `projects`, `crawler`, `demo` and `settings` and generic tab views for the rest.
 
 ## 7. Related documents

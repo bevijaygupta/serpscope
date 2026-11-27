@@ -303,6 +303,30 @@ def test_bootstrap_reuses_existing_demo_organisation(db):
     assert db.query(Membership).count() == 1
 
 
+def test_bootstrap_creates_demo_owner_when_other_users_exist(db):
+    from app.main import bootstrap
+
+    db.query(Membership).delete()
+    db.query(User).delete()
+    db.query(Organization).delete()
+    db.add(User(email="first@tenant.example", hashed_password=hash_password("tenant1234"), global_role="viewer"))
+    db.commit()
+
+    bootstrap()
+    db.expire_all()
+
+    admin = db.query(User).filter(User.email == "demo@serpscope.local").one()
+    assert admin.global_role == "owner"
+    assert admin.is_demo is True
+    assert db.query(Membership).filter(
+        Membership.user_id == admin.id,
+        Membership.organization_id == db.query(Organization).filter(
+            Organization.slug == "demo-organisation"
+        ).one().id,
+        Membership.role == "owner",
+    ).count() == 1
+
+
 def test_auto_published_case_study_excludes_private_data_and_says_not_sampled(client, db, auth_headers, demo_project):
     from app.services.public_audit import publish_case_study
 

@@ -168,3 +168,48 @@ def test_rate_limits_return_generic_429_without_sensitive_keys(client, monkeypat
     finally:
         windows.clear()
         monkeypatch.setattr(live_settings, "rate_limit_enabled", False)
+
+
+def test_registration_is_validated_and_can_be_disabled(client, monkeypatch):
+    from app.api.v1 import auth as auth_router
+
+    assert client.post("/api/v1/auth/register", json={
+        "email": "not-an-email", "password": "long-enough-password",
+    }).status_code == 422
+    assert client.post("/api/v1/auth/register", json={
+        "email": "short@tenant.example", "password": "short",
+    }).status_code == 422
+
+    created = client.post("/api/v1/auth/register", json={
+        "email": "new.user@tenant.example", "password": "long-enough-password",
+    })
+    assert created.status_code == 201, created.text
+    assert created.json()["global_role"] == "viewer"
+
+    monkeypatch.setattr(auth_router.settings, "allow_self_registration", False)
+    blocked = client.post("/api/v1/auth/register", json={
+        "email": "blocked@tenant.example", "password": "long-enough-password",
+    })
+    assert blocked.status_code == 403
+    assert blocked.json()["detail"] == "Self-registration is disabled"
+
+
+def test_self_registration_defaults_off_in_production():
+    from app.core.config import Settings
+
+    production = Settings(
+        environment="production",
+        secret_key="production-test-secret-1234567890abcdef",
+        cors_origins="https://serpscopelive.vercel.app",
+        database_url="postgresql+psycopg2://user:pass@db.example.com/serpscope",
+    )
+    development = Settings(environment="development")
+    assert production.self_registration_enabled is False
+    assert development.self_registration_enabled is True
+    assert Settings(
+        environment="production",
+        secret_key="production-test-secret-1234567890abcdef",
+        cors_origins="https://serpscopelive.vercel.app",
+        database_url="postgresql+psycopg2://user:pass@db.example.com/serpscope",
+        allow_self_registration=True,
+    ).self_registration_enabled is True

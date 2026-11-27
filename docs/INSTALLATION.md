@@ -55,7 +55,7 @@ Important variables (defaults shown):
 | `MAX_UPLOAD_MB` | `50` | Upload size cap enforced by `POST /api/v1/imports/upload`. |
 | `LOG_LEVEL` | `INFO` | Python logging level. |
 
-> The demo login is created by `bootstrap()` in `backend/app/main.py` only when the `users` table is empty. Changing `DATABASE_URL` to a fresh file therefore recreates `demo@serpscope.local / demo1234`.
+> The demo login is ensured on every startup by `bootstrap()` in `backend/app/main.py`, even when other users already exist. Changing `DATABASE_URL` to a fresh file therefore recreates `demo@serpscope.local / demo1234`; existing demo rows are left untouched.
 
 ---
 

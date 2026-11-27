@@ -27,7 +27,7 @@ Implementation: `backend/app/core/security.py::hash_password` / `verify_password
 - Stored format: `pbkdf2_sha256$210000$<salt-hex>$<digest-hex>` in `users.hashed_password`.
 - Verification parses the encoded rounds/salt, recomputes the digest and compares with `hmac.compare_digest` (constant time). A wrong algorithm tag or malformed value returns `False`.
 - Login normalises email with `.strip().lower()` and returns the same generic `401 Invalid email or password` for unknown users and wrong passwords.
-- The seeded demo owner (`demo@serpscope.local` / `demo1234`) is created only when the `users` table is empty, via `app.main.bootstrap()`.
+- The seeded demo owner (`demo@serpscope.local` / `demo1234`) is ensured on every startup by `app.main.bootstrap()`; an existing row is never silently overwritten. This keeps the one-field landing flow working even if other users were created first.
 
 ## 3. Authorisation — RBAC helpers
 
@@ -126,7 +126,7 @@ Implementation: `backend/app/core/crypto.py`, `backend/app/api/v1/integrations.p
 - `SECRET_KEY` has the development default `dev-only-secret-change-before-deployment` and **must** be overridden (a long random value, e.g. generated with `secrets.token_urlsafe(48)`).
 - `CORS_ORIGINS` defaults to `http://localhost:5173,http://127.0.0.1:5173` with `allow_credentials=True`; restrict it to the real frontend origin in production. Methods and headers are currently wildcarded.
 - `Settings.validate_production_settings()` fails fast when `ENVIRONMENT=production` with the default/weak `SECRET_KEY`, localhost or wildcard `CORS_ORIGINS`, or a SQLite `DATABASE_URL`.
-- No third-party API keys, tokens or provider credentials are hardcoded in source. The demo account credentials are deliberately hardcoded for local/demo bootstrap only.
+- No third-party API keys, tokens or provider credentials are hardcoded in source. The demo account credentials are deliberately hardcoded for local/demo bootstrap only; rotating them requires a coordinated API, landing-page and existing-database change, not a source-only edit.
 - The global exception handler logs the exception server-side and returns only `{"detail": "Internal server error"}`; raw SQL, paths and supplied values are never echoed to the caller.
 
 ## 10. Hardening implemented in this release
@@ -143,7 +143,7 @@ Implementation: `backend/app/core/crypto.py`, `backend/app/api/v1/integrations.p
 | Edge security headers | `vercel.json` | HSTS, `nosniff`, `X-Frame-Options`, referrer/permissions policies and a CSP restricting scripts, connections, fonts, frames and object/base/form targets |
 | CI invariant checks | `.github/workflows/ci.yml` | CI verifies 23 modules, 17 docs, 24 screenshots and 12 interview scenarios |
 | Tenant-scoped reads and writes | `backend/app/api/deps.py`, `backend/app/api/v1/*.py` | `get_project`/`ProjectDep` and `require_org` guard project, organisation, job, integration, user, client and child-resource endpoints; project creation defaults to a caller's own membership; overview counters are scoped; platform owner/admin is the only global bypass |
-| In-process mutating-rate throttle | `backend/app/main.py`, `backend/app/core/config.py` | A 600-second fixed window keyed by an HMAC digest of UTC day, route bucket and socket peer host; login `10`, presence `60`, other mutations `120` per window; `429` plus numeric `Retry-After`; disabled by `RATE_LIMIT_ENABLED=false` in tests |
+| In-process mutating-rate throttle | `backend/app/main.py`, `backend/app/core/config.py` | A 600-second fixed window keyed by an HMAC digest of UTC day, route bucket and socket peer host; login `10`, presence `60`, registration `5`, other mutations `120` per window; `429` plus numeric `Retry-After`; disabled by `RATE_LIMIT_ENABLED=false` in tests |
 
 The throttle reads only `request.client.host` (the socket peer) and reduces it with `HMAC-SHA256(SECRET_KEY, "day|bucket|peer")` to a 32-character digest. It never reads `X-Forwarded-For`, cookies, authorisation headers, referrer, query strings, request bodies, user IDs, path IDs or audited domains, and the `429` response contains no key, peer or path. It is correct for the single Render web process declared in `render.yaml`; horizontal scaling multiplies the effective budget unless an edge limiter is added.
 
@@ -153,7 +153,7 @@ The throttle reads only `request.client.host` (the socket peer) and reduces it w
 
 | Gap | Impact / recommendation |
 | --- | --- |
-| **No SSO / external IdP** | `POST /api/v1/auth/register` is open and creates `viewer` users; production should use SSO/admin provisioning and disable self-registration |
+| **No SSO / external IdP** | `POST /api/v1/auth/register` is dev/local only: validated email/password, 5 requests per 600 s, and `403` by default when `ENVIRONMENT=production` unless `ALLOW_SELF_REGISTRATION=true` is an explicit opt-in. Production should still use SSO/admin provisioning; registered users are `viewer` with no organisation membership |
 | **Rate limiting is in-process only** | Mutating routes are throttled by socket peer (10 logins, 60 presence pings, 120 other mutations per 600 seconds), but there is no gateway/WAF limit, distributed store or account-level lockout. Behind a shared proxy, all visitors can share one bucket; multiple workers multiply the budget. Add edge rate limiting and failed-login backoff for real production. |
 | **No token revocation or refresh** | Tokens live 24 h and cannot be invalidated server-side; add a denylist or short-lived tokens with refresh |
 | **Shared `SECRET_KEY`** | Token signing and Fernet credential encryption derive from one secret; separate keys so rotation does not couple tokens and stored credentials |

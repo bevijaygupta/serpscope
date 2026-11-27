@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     job_poll_seconds: float = 0.5
     run_jobs_in_api: bool = True
     rate_limit_enabled: bool = True
+    allow_self_registration: bool | None = None
     max_upload_mb: int = 50
     log_level: str = "INFO"
 
@@ -49,6 +50,13 @@ class Settings(BaseSettings):
         if problems:
             raise ValueError("Invalid production configuration: " + "; ".join(problems))
         return self
+
+    @property
+    def self_registration_enabled(self) -> bool:
+        """Explicit opt-in wins; otherwise registration is dev/local only."""
+        if self.allow_self_registration is not None:
+            return self.allow_self_registration
+        return self.environment.strip().lower() not in {"prod", "production"}
 
     @property
     def cors_origin_list(self) -> list[str]:

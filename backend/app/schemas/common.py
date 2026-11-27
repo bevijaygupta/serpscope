@@ -1,14 +1,32 @@
 """Request/response schemas used across the API."""
 from __future__ import annotations
 
+import re
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+_EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class LoginRequest(BaseModel):
     email: str
     password: str
+
+
+class RegisterRequest(BaseModel):
+    """Validated payload for the optional local-development self-registration route."""
+
+    email: str = Field(min_length=3, max_length=254)
+    password: str = Field(min_length=12, max_length=128)
+
+    @field_validator("email")
+    @classmethod
+    def normalise_email(cls, value: str) -> str:
+        email = value.strip().lower()
+        if not _EMAIL_PATTERN.fullmatch(email):
+            raise ValueError("Enter a valid email address")
+        return email
 
 
 class TokenResponse(BaseModel):

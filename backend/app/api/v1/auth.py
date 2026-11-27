@@ -5,9 +5,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 
 from app.api.deps import DB, UserDep, current_user
+from app.core.config import settings
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models.auth import Membership, User
-from app.schemas.common import LoginRequest, TokenResponse, UserResponse
+from app.schemas.common import LoginRequest, RegisterRequest, TokenResponse, UserResponse
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -28,9 +29,11 @@ def me(user: UserDep):
 
 
 @router.post("/register", response_model=UserResponse, status_code=201)
-def register(payload: LoginRequest, db: DB):
-    """Local-development account creation. Production deployments should use SSO/admin provisioning."""
-    email = payload.email.strip().lower()
+def register(payload: RegisterRequest, db: DB):
+    """Optional local-development account creation. Disabled by default in production."""
+    if not settings.self_registration_enabled:
+        raise HTTPException(403, "Self-registration is disabled")
+    email = payload.email
     if db.scalar(select(User).where(User.email == email)):
         raise HTTPException(409, "Email already registered")
     user = User(email=email, hashed_password=hash_password(payload.password), global_role="viewer")

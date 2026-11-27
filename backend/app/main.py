@@ -69,7 +69,15 @@ app.add_middleware(
 # user identity, audited domain or request contents. This is safe for the single
 # Render web process declared in render.yaml; extra workers multiply the budget.
 RATE_LIMIT_WINDOW_SECONDS = 600
-RATE_LIMIT_BUCKET_LIMITS = {"login": 10, "presence": 60, "mutation": 120}
+RATE_LIMIT_BUCKET_LIMITS = {
+    "login": 10,
+    "presence": 60,
+    "register": 5,
+    "mutation": 120,
+}
+DEMO_EMAIL = "demo@serpscope.local"
+DEMO_ORG_SLUG = "demo-organisation"
+DEMO_PASSWORD = "demo1234"
 _RATE_WINDOWS: dict[str, tuple[float, int]] = {}
 _RATE_LOCK = threading.Lock()
 _RATE_MAX_KEYS = 10_000
@@ -87,6 +95,8 @@ async def rate_limit_mutations(request: Request, call_next):
     path = request.url.path
     if path == "/api/v1/auth/login":
         bucket = "login"
+    elif path == "/api/v1/auth/register":
+        bucket = "register"
     elif path == "/api/v1/presence/ping":
         bucket = "presence"
     else:
@@ -200,26 +210,32 @@ def bootstrap():
     init_db()
     db = SessionLocal()
     try:
-        if db.query(User).count() == 0:
-            # A database can already contain the demo organisation (for example a
-            # seeded dataset) while having no users. Reuse it instead of inserting
-            # a duplicate slug.
-            org = db.query(Organization).filter(
-                Organization.slug == "demo-organisation"
-            ).first()
-            if org is None:
-                org = Organization(name="Demo Organisation", slug="demo-organisation", is_demo=True)
-                db.add(org)
-                db.flush()
+        # Ensure the deterministic demo login exists even when other users were
+        # created first (for example through the local self-registration route).
+        # Existing accounts are never overwritten: an operator can replace the
+        # demo user deliberately without startup silently restoring a password.
+        org = db.query(Organization).filter(Organization.slug == DEMO_ORG_SLUG).first()
+        if org is None:
+            org = Organization(name="Demo Organisation", slug=DEMO_ORG_SLUG, is_demo=True)
+            db.add(org)
+            db.flush()
+
+        admin = db.query(User).filter(User.email == DEMO_EMAIL).first()
+        if admin is None:
             admin = User(
-                email="demo@serpscope.local", full_name="Demo SEO Lead",
-                hashed_password=hash_password("demo1234"), global_role="owner", is_demo=True,
+                email=DEMO_EMAIL, full_name="Demo SEO Lead",
+                hashed_password=hash_password(DEMO_PASSWORD), global_role="owner", is_demo=True,
             )
             db.add(admin)
             db.flush()
+
+        membership = db.query(Membership).filter(
+            Membership.user_id == admin.id, Membership.organization_id == org.id
+        ).first()
+        if membership is None:
             db.add(Membership(user_id=admin.id, organization_id=org.id, role="owner"))
-            db.commit()
-            logger.info("Created demo owner account demo@serpscope.local")
+        db.commit()
+        logger.info("Demo owner account available: %s", DEMO_EMAIL)
     finally:
         db.close()
     if settings.run_jobs_in_api:

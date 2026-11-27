@@ -17,12 +17,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - GTM container `GTM-NZ3DFL7C` with a `gtag()`/`dataLayer` shim and privacy-safe `serpscope_*` events for page views, landing search, audit lifecycle, exports, AI imports, case-study views, module tabs and login. Events carry only route paths and fixed labels, never audited domains, emails, search-box values or user identity; DNT/local opt-out suppresses them.
 - Anonymous on-site presence endpoints (`POST /api/v1/presence/ping`, `GET /api/v1/presence/count`) and a live visitor badge in the public and workspace headers. The backend stores only a SHA-256 hash of a random per-tab token for 60 seconds; no IP, cookie, referrer or Google identifier is used, and counts reset on API restart. This is explicitly not GA4 Realtime.
 - **Google Search Overview** as the single Search Console interpretation surface in the authenticated Overview and published case studies. Workspace mode reads only `supplied-signals` and `supplied-records?signal=gsc`, shows verbatim labelled cells, and stays `Not supplied` without rows; public mode uses only the sanitised case-study payload and says **Private data excluded**. No client-side totals, averages, CTR, rankings, forecasts or trends are calculated.
+- `ALLOW_SELF_REGISTRATION` configuration switch: self-registration is dev/local by default and returns `403` in production unless explicitly opted in. Registered accounts use validated email/password, role `viewer`, no organisation membership and a dedicated 5/600 s rate bucket.
 
 ### Changed
 
 - Real end-to-end audit of `https://www.techmagnate.com/` recorded in the documentation: 303 discovered URLs, 60 fetched from a deliberately narrow sample, 0 failures, 60 sitemap entries from 9 documents, 6 finding groups and a 6-month roadmap. Demo metrics remain labelled synthetic; public-audit data is labelled as observed or derived public evidence.
 - Hosted public audit completed on the same domain (job 17, report 2, crawl 1): 497 discovered, 219 fetched, 0 failed, 1 excluded, 12 finding groups and 6 roadmap months. Sitemap discovery timed out in the hosted run, so the hosted evidence states 0 sitemap entries; the local sample's 60 sitemap entries are kept separate rather than blended.
-- Test counts updated to 77 fast / 78 full; hardening regressions now cover DNS SSRF, redirect hops, caller overrides, upload cleanup, export path confinement, cancellation-safe publication/imports/sitemap discovery and tenant/rate limits. Local 1k/10k/100k URL import/export benchmarks are recorded in `docs/TESTING.md`.
+- Test counts updated to 80 fast / 81 full; hardening regressions now cover DNS SSRF, redirect hops, caller overrides, upload cleanup, export path confinement, cancellation-safe publication/imports/sitemap discovery, tenant/rate limits, demo bootstrap with pre-existing users and validated/disableable self-registration. Local 1k/10k/100k URL import/export benchmarks are recorded in `docs/TESTING.md`.
 
 ### Fixed
 
@@ -35,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Caller-supplied export names are collapsed to a safe filename stem and suffix, so `kind` query values cannot escape `EXPORT_DIR` or alter the download filename.
 - Cancellation is checked before sitemap discovery and at each sitemap/page request, so a cancelled crawl no longer performs robots/sitemap fetches.
 - URL and keyword import handlers stop before persisting rows, data sources or supplied metrics when their job has been cancelled.
+- Demo owner bootstrap no longer depends on an empty `users` table, so a self-registered account cannot suppress the deterministic demo login needed by the one-field landing flow.
 
 ### Added (documentation set)
 
