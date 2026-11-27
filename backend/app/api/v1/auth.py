@@ -1,12 +1,15 @@
 """Authentication endpoints."""
 from __future__ import annotations
 
+from typing import Annotated
+
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy import select
 
-from app.api.deps import DB, UserDep, current_user
+from app.api.deps import DB, UserDep, bearer, current_user
 from app.core.config import settings
-from app.core.security import create_access_token, hash_password, verify_password
+from app.core.security import create_access_token, hash_password, revoke_token, verify_password
 from app.models.auth import Membership, User
 from app.schemas.common import LoginRequest, RegisterRequest, TokenResponse, UserResponse
 
@@ -26,6 +29,18 @@ def login(payload: LoginRequest, db: DB):
 @router.get("/me", response_model=UserResponse)
 def me(user: UserDep):
     return UserResponse(id=user.id, email=user.email, full_name=user.full_name, global_role=user.global_role)
+
+
+@router.post("/logout")
+def logout(
+    user: UserDep,
+    credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)] = None,
+):
+    """Revoke the presented bearer token until its original expiry."""
+    if credentials is None or not credentials.credentials:
+        raise HTTPException(401, "Authentication required")
+    revoke_token(credentials.credentials)
+    return {"detail": "Token revoked", "token_type": "bearer"}
 
 
 @router.post("/register", response_model=UserResponse, status_code=201)

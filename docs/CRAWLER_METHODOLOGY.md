@@ -106,7 +106,7 @@ if sitemap_discovery and start_url:
     seeds += [(entry.loc, 1) for entry in entries[:max_urls]]
 ```
 
-The engine expands **sitemap indexes recursively one level** (index → child sitemap → URL). It stores each fetched sitemap document in `CrawlObservation`, records `declared_sitemaps`, `sitemap_files`, `sitemap_urls` and `errors` in `Crawl.summary.sitemap`, and copies the robots document plus extracted agent rules into `Crawl.summary.robots`. Sitemap writes are committed before progress callbacks so SQLite does not lock when the job row is updated through a separate session.
+The engine expands **nested sitemap indexes breadth-first up to depth 3** (index → child index → … → sitemap → URL). Every candidate is validated by `_safe_get` and robots-gated, a visited set prevents cycles, at most 25 documents are fetched, and reaching the depth limit is recorded as an explicit error. Each entry in `sitemap_files` carries its `depth`. It stores each fetched sitemap document in `CrawlObservation`, records `declared_sitemaps`, `sitemap_files`, `sitemap_urls`, `sitemap_index_depth_limit` and `errors` in `Crawl.summary.sitemap`, and copies the robots document plus extracted agent rules into `Crawl.summary.robots`. Sitemap writes are committed before progress callbacks so SQLite does not lock when the job row is updated through a separate session.
 
 Seed de-duplication uses `_canonical_for_crawl(url)` as the `seen` key. Discovered links are appended at `depth + 1` only when:
 
@@ -234,7 +234,7 @@ Cancellation:
 - Sitemap/robots redirect hops are SSRF-validated; candidate and child sitemap URLs are robots-gated for the crawler's declared user agent, but redirect hops are not separately robots-gated and named AI-agent rules are evidence only.
 - `validate_target_url()` is DNS-aware and rejects private DNS answers, numeric IP spellings and unsafe redirect hops; no egress firewall or rebinding-proof connection layer is applied.
 - `canonical_handling` and `schedule` are stored but not acted upon by the engine.
-- Sitemap indexes are expanded one level (index → child sitemap → URL); deeper nesting is not followed, and at most 25 candidate and 25 child documents are fetched.
+- Sitemap indexes are expanded breadth-first up to depth 3 (index → child indexes → sitemap → URL); deeper indexes are skipped with an explicit error, cycles are visited once, and at most 25 documents are fetched.
 - The `UrlRecord` hash is based on the requested URL, so redirects can create separate records for old and final URLs.
 - Imported/synthetic records can be updated by a crawl without changing their `data_kind`.
 - Private-network targets are rejected; REST callers cannot set `allow_private` or `auth_headers`, and the crawler has no native user authentication beyond those empty headers.

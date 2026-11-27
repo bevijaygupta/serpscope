@@ -607,58 +607,53 @@ class CrawlEngine:
                     f"{base.scheme}://{base.netloc}/sitemap.xml",
                     f"{base.scheme}://{base.netloc}/sitemap_index.xml",
                 ]
+                # Bounded breadth-first expansion of nested sitemap indexes.
+                # Every hop is validated by _safe_get and visited files are
+                # remembered, so a cyclic index cannot stall the crawl.
+                index_depth_limit = 3
+                info["sitemap_index_depth_limit"] = index_depth_limit
+                queue: list[tuple[str, int]] = [(url, 0) for url in candidates]
                 seen_files: set[str] = set()
                 all_entries: list[dict] = []
-                for candidate in candidates:
+                while queue:
                     if len(seen_files) >= 25 or len(all_entries) >= self.config.max_urls:
                         break
                     if self.cancelled():
                         break
+                    candidate, depth = queue.pop(0)
+                    if not candidate or candidate in seen_files:
+                        continue
                     try:
                         if parser and self.config.respect_robots and not parser.can_fetch(self.config.user_agent, candidate):
-                            continue
-                        if candidate in seen_files:
                             continue
                         seen_files.add(candidate)
                         resp, _ = self._safe_get(client, candidate)
                         if resp.status_code != 200:
                             continue
-                        text = resp.text
                         self._add_evidence_observation(
-                            candidate, resp.status_code, text[:20000],
+                            candidate, resp.status_code, resp.text[:20000],
                             resp.headers.get("content-type", "application/xml"),
                         )
                         entries, kind = parse_sitemap(resp.content)
-                        info["sitemap_files"].append({"url": candidate, "kind": kind, "entries": len(entries)})
+                        info["sitemap_files"].append({
+                            "url": candidate, "kind": kind, "entries": len(entries), "depth": depth,
+                        })
                         if kind == "sitemap_index":
+                            if depth >= index_depth_limit:
+                                info["errors"].append(
+                                    f"{candidate}: sitemap index depth limit {index_depth_limit} reached"[:300]
+                                )
+                                continue
                             for child in entries[:25]:
                                 loc = (child.get("loc") or "").strip()
-                                if not loc or loc in seen_files or len(seen_files) >= 25:
+                                if not loc or loc in seen_files:
                                     continue
-                                if self.cancelled():
-                                    break
-                                try:
-                                    if parser and self.config.respect_robots and not parser.can_fetch(self.config.user_agent, loc):
-                                        continue
-                                    seen_files.add(loc)
-                                    child_resp, _ = self._safe_get(client, loc)
-                                    if child_resp.status_code != 200:
-                                        continue
-                                    self._add_evidence_observation(
-                                        loc, child_resp.status_code, child_resp.text[:20000],
-                                        child_resp.headers.get("content-type", "application/xml"),
-                                    )
-                                    child_entries, child_kind = parse_sitemap(child_resp.content)
-                                    info["sitemap_files"].append({
-                                        "url": loc, "kind": child_kind, "entries": len(child_entries),
-                                    })
-                                    if child_kind == "sitemap":
-                                        all_entries.extend(child_entries)
-                                except Exception as exc:  # noqa: BLE001 - one broken sitemap must not stop the crawl
-                                    info["errors"].append(f"{loc}: {type(exc).__name__}: {exc}"[:300])
+                                if parser and self.config.respect_robots and not parser.can_fetch(self.config.user_agent, loc):
+                                    continue
+                                queue.append((loc, depth + 1))
                         elif kind == "sitemap":
                             all_entries.extend(entries)
-                    except Exception as exc:  # noqa: BLE001
+                    except Exception as exc:  # noqa: BLE001 - one broken sitemap must not stop the crawl
                         info["errors"].append(f"{candidate}: {type(exc).__name__}: {exc}"[:300])
 
                 if self.cancelled():

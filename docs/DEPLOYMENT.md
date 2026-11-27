@@ -133,6 +133,7 @@ On the canonical `/overview`, project 4 (`Backend deploy verification`) shows th
 The audit endpoints and case study are live. The steps below were used for the original publication; repeat them after backend changes or to regenerate the hosted evidence. For a backend-only change, push `main` and then deploy the latest commit in Render; Vercel auto-deploys the frontend from `main`.
 
 1. In Render, open `serpscope-api` → **Manual Deploy → Deploy latest commit**; wait for the health check to pass. If `render.yaml` changed, also open the `serpscope` Blueprint → **Manual sync** and approve the plan.
+   `POST /api/v1/auth/logout` revokes only the presented token until its original expiry, using an in-memory denylist of token digests. It is per web process and clears on restart; a shared denylist or short-lived tokens are needed before relying on logout for global invalidation across multiple instances.
 2. Log in with `demo@serpscope.local` / `demo1234` and obtain a bearer token:
    ```bash
    curl -s -X POST https://serpscope-api.onrender.com/api/v1/auth/login \

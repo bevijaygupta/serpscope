@@ -114,6 +114,81 @@ def test_sitemap_discovery_releases_write_lock_before_progress(monkeypatch, db, 
         fresh.close()
 
 
+class NestedSitemapFakeClient:
+    calls: list[str] = []
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    @staticmethod
+    def _index(*locations: str) -> FakeResponse:
+        items = "".join(f"<sitemap><loc>{loc}</loc></sitemap>" for loc in locations)
+        return FakeResponse(200, (
+            '<?xml version="1.0"?>'
+            '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+            f"{items}</sitemapindex>"
+        ), {"content-type": "application/xml"})
+
+    def get(self, url: str, **kwargs):
+        type(self).calls.append(url)
+        base = "https://demo.example.com"
+        if url.endswith("/robots.txt"):
+            return FakeResponse(200, (
+                f"User-agent: *\nAllow: /\nSitemap: {base}/root-index.xml\n"
+            ))
+        if url.endswith("/root-index.xml"):
+            return self._index(f"{base}/level1-index.xml")
+        if url.endswith("/level1-index.xml"):
+            return self._index(f"{base}/level2-index.xml")
+        if url.endswith("/level2-index.xml"):
+            return self._index(f"{base}/level3-index.xml", f"{base}/leaf.xml", f"{base}/level1-index.xml")
+        if url.endswith("/level3-index.xml"):
+            return self._index(f"{base}/never-fetched.xml")
+        if url.endswith("/leaf.xml"):
+            return FakeResponse(200, (
+                '<?xml version="1.0"?>'
+                '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+                '<url><loc>https://demo.example.com/from-nested-sitemap/</loc></url>'
+                '</urlset>'
+            ), {"content-type": "application/xml"})
+        return FakeResponse(200, "<html><body>Page</body></html>",
+                            {"content-type": "text/html"})
+
+
+def test_nested_sitemap_indexes_are_bounded_and_cycles_are_visited_once(
+    monkeypatch, db, demo_project
+):
+    NestedSitemapFakeClient.calls = []
+    monkeypatch.setattr("app.services.crawler.httpx.Client", NestedSitemapFakeClient)
+    job = Job(name="Nested sitemap test", job_type="test", status="running")
+    db.add(job)
+    db.flush()
+    crawl = Crawl(project_id=demo_project["project_id"], job_id=job.id, name="Nested sitemap test")
+    db.add(crawl)
+    db.commit()
+    config = CrawlConfig.from_dict({
+        "start_url": "https://demo.example.com/",
+        "max_urls": 10, "max_depth": 0, "concurrency": 1, "crawl_delay": 0,
+        "respect_robots": True, "sitemap_discovery": True,
+    })
+    stats = CrawlEngine(db, demo_project["project_id"], crawl.id, job.id, config).run()
+    sitemap = stats["sitemap"]
+
+    assert sitemap["sitemap_index_depth_limit"] == 3
+    assert any("leaf.xml" in entry["url"] for entry in sitemap["sitemap_files"])
+    assert sitemap["sitemap_urls"] >= 1
+    assert any("depth limit" in error for error in sitemap["errors"])
+    calls = NestedSitemapFakeClient.calls
+    assert calls.count("https://demo.example.com/level1-index.xml") == 1
+    assert "https://demo.example.com/never-fetched.xml" not in calls
+
+
 def test_cancellation_stops_before_any_request(monkeypatch, db):
     FakeClient.calls = []
     monkeypatch.setattr("app.services.crawler.httpx.Client", FakeClient)

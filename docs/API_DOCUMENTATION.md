@@ -33,13 +33,14 @@ curl http://127.0.0.1:8000/api/v1/auth/me \
 
 Flow details:
 
-1. `POST /auth/login` lowercases/trims the email, verifies the password, rejects inactive users (`403`) and returns `{ "access_token": str, "token_type": "bearer" }`.
+1. `POST /auth/login` lowercases/trims the email, verifies the password, rejects inactive users (`403`) and returns `{ "access_token": str, "token_type": "bearer" }`. Each token carries a unique `jti` claim as well as `sub`, `iat`, `exp` and `role`.
 2. The browser stores the token in `localStorage` (`serpscope-token`) and Axios adds `Authorization: Bearer <token>` to every request (`frontend/src/lib/api.ts`).
-3. `current_user` returns `401` for a missing, malformed, expired or invalid token, and for inactive users. A `401` response in the frontend clears the token and redirects to `/login`.
+3. `current_user` returns `401` for a missing, malformed, expired, revoked or invalid token, and for inactive users. A `401` response in the frontend clears the token and redirects to `/login`.
 4. Project-scoped endpoints use `ProjectDep` (`get_project`): owners/admins may access any project; other roles require an `Organization` membership matching the project. Non-owners get `403` otherwise.
 5. Write endpoints call `check_write`: global role must be `owner`, `admin` or `editor`. `viewer` is read-only.
 6. `POST /auth/register` is an optional local-development account route: it validates the email and a 12+ character password, creates a `viewer` with no organisation membership, and returns `403` by default in production unless `ALLOW_SELF_REGISTRATION=true` is explicitly set. It is not an invitation/SSO flow.
-7. Token lifetime defaults to 1,440 minutes (`ACCESS_TOKEN_EXPIRE_MINUTES`). There is no refresh-token endpoint; log in again after expiry.
+7. `POST /auth/logout` (bearer required) revokes only the presented token until its original `exp` and returns `{ "detail": "Token revoked", "token_type": "bearer" }`. Subsequent protected calls with that token return `401` with detail `Token has been revoked`; a fresh login works. The denylist holds HMAC digests in process memory only, so it clears on restart and is not shared across multiple API instances.
+8. Token lifetime defaults to 1,440 minutes (`ACCESS_TOKEN_EXPIRE_MINUTES`). There is no refresh-token endpoint; log in again after expiry.
 
 **Public endpoints:** `POST /auth/login`, `POST /auth/register` (dev/local only; forbidden by default in production), all `/meta/*` endpoints, `GET /api/health`, `POST /presence/ping`, `GET /presence/count`, the docs/OpenAPI routes and `GET /public/case-studies/{project_id}` (only when the project has `settings.public_audit=true`). There is no public static export mount; files are streamed only by authenticated export endpoints. Everything else expects a bearer token. The progress WebSocket `/api/v1/jobs/ws/{job_id}` also requires authentication via a `Bearer` header or a `token` query parameter, and applies the same project-scope check as REST job endpoints (close codes `4401`/`4403`/`4404` for unauthenticated, forbidden and missing jobs).
 
@@ -114,6 +115,7 @@ This is an in-process, single-instance **on-site presence counter**, not GA4 Rea
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
 | POST | `/api/v1/auth/login` | Public | Email + password → bearer token. |
+| POST | `/api/v1/auth/logout` | Bearer | Revoke the presented token until its original expiry (process-local digest denylist). |
 | GET | `/api/v1/auth/me` | Bearer | Current user profile. |
 | POST | `/api/v1/auth/register` | Public (dev/local; `403` in production by default) | Validated account creation (role `viewer`, no membership). |
 | GET | `/api/v1/auth/users` | Bearer | List users (up to 1,000). |

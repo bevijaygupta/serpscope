@@ -18,7 +18,7 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 | Area | Status | Evidence in the current build |
 |---|---|---|
 | FastAPI application shell | Implemented | `backend/app/main.py` wires all `/api/v1` routers, health check, no public static mount, OpenAPI docs, and an inline worker tick. |
-| Local authentication and RBAC | Implemented | Demo login, JWT access tokens, password hashing, role checks, and project-scoped data access are present. |
+| Local authentication and RBAC | Implemented | Demo login, JWT access tokens with unique `jti`, process-local logout revocation, password hashing, role checks, and project-scoped data access are present; distributed revocation and SSO are still absent. |
 | Project, domain, and crawl management | Implemented | CRUD APIs and database-backed projects, domains, and crawl definitions are present. |
 | Deterministic synthetic demo data | Implemented | `backend/app/services/demo.py` generates a labelled, repeatable dataset with planted issue classes. |
 | Scenario catalogue | Implemented | `backend/app/services/scenarios.py` defines twelve curated scenarios, including a full audit preset. |
@@ -42,7 +42,7 @@ For verified setup steps, read [Installation](./INSTALLATION.md). For the curren
 |---|---|---|---|
 | Container deployment | Partial | All Compose assets are present, but the stack has not been built in this environment; local source setup is the verified path. | Medium |
 | Integration providers | Partial | Provider registry, encrypted credential records and dormant GSC/GA4/LLM adapters exist, but all live calls are gated off and no provider credentials/accounts are configured in this deployment. | Medium |
-| Crawler depth | Partial | `canonical_handling` and `schedule` config keys are stored but unused; JS rendering/Playwright is not implemented; DNS validation and redirect-hop checks exist but egress firewall/connection-time enforcement is still absent; sitemap indexes expand only one level. | High |
+| Crawler depth | Partial | `canonical_handling` and `schedule` config keys are stored but unused; JS rendering/Playwright is not implemented; DNS validation and redirect-hop checks exist but egress firewall/connection-time enforcement is still absent; sitemap indexes expand up to three bounded levels with cycle prevention. | High |
 | Public-audit coverage | Partial | Local verification used a deliberately narrow 60-URL sample; the hosted run fetched 219 URLs under the 250-URL default. Neither is exhaustive. Robots rules for named AI agents are evidence of declared policy only; no GSC/GA4, rank or AI-answer visibility data is used. The hosted sitemap discovery timed out and is reported as 0 entries. | Medium |
 | Issue rule coverage | Partial | Some declared rules (`excessive_depth`, `broken_external_link`) have no detector. | Medium |
 | Production RBAC | Partial | Writes are gated by global role; per-project write roles and a role-management UI are not implemented. | Medium |

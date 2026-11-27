@@ -17,7 +17,7 @@ All commands run from the `backend/` directory:
 ```bash
 cd backend
 
-# Fast suite (86 tests; the full suite has 87 including the slow 100k test)
+# Fast suite (88 tests; the full suite has 89 including the slow 100k test)
 pytest -q -m "not slow"
 
 # Full suite, including the large-dataset acceptance test
@@ -84,7 +84,8 @@ The first column is the `pytest --durations=3` call time for `tests/test_scale_1
 | `test_supplied_metrics.py` | User-supplied GSC rows change only declared signal status; audits without supplied data keep every vendor gap explicit |
 | `test_public_evidence_derivation.py` | Derived result keys, external-link evidence when not followed, public-evidence keywords/competitors/gaps |
 | `test_presence.py` | Anonymous visitor token requirement and distinct-session counting without identity storage |
-| `test_crawler_safety.py` | Robots permission checked before each request and redirect hop, fail-closed robots fetch errors, disallowed URLs excluded, cancellation before sitemap discovery or page requests, private-target and private-redirect rejection, fail-closed DNS checks and stripping of caller `allow_private`/`auth_headers` overrides |
+| `test_crawler_safety.py` | Robots permission checked before each request and redirect hop, fail-closed robots fetch errors, disallowed URLs excluded, cancellation before sitemap discovery or page requests, private-target and private-redirect rejection, fail-closed DNS checks, stripping of caller `allow_private`/`auth_headers` overrides, and bounded nested sitemap indexes with cycle prevention and depth-limit errors |
+| `test_token_revocation.py` | Logout stores only a token digest, revokes only the presented token, returns `401` on subsequent protected calls, and a fresh login still succeeds |
 | `test_tenant_and_rate_limits.py` | Cross-tenant rejection for projects/clients/jobs/integrations/users and child writes, plus generic 429 throttling |
 | `test_scale_100k.py` | `@pytest.mark.slow` acceptance test: 100k Core-batched URL import speed (under 90s), count, bounded paginated API response and `has_more`/`page` correctness; rerun at 1k/10k/100k for the benchmark table above |
 
@@ -112,5 +113,5 @@ Manual smoke path for the UI:
 - The test database is deleted at **import** time and cleaned before every test; the suite is designed for serial execution. Running tests in parallel with xdist would contend for the same SQLite file and the module-level cleanup.
 - One test temporarily mutates the global `HANDLERS` registry (`test_cancellable`) and removes it afterwards; a failure before cleanup can pollute later tests in the same process.
 - CI (`.github/workflows/ci.yml`) runs the backend suite, frontend typecheck/build, required-file checks and an invariant check that fails if the counts change from **23 modules / 17 docs / 24 screenshots / 12 interview scenarios**.
-- Tests do not cover SSO, rate limiting, token revocation, PostgreSQL-specific behaviour, real outbound crawling, Alembic revision upgrades, or the container/edge setup described in [DEPLOYMENT.md](DEPLOYMENT.md). Crawler compliance is tested against local mock servers/parser behaviour rather than public websites.
+- Tests do not cover SSO, distributed rate limiting, PostgreSQL-specific behaviour, real outbound crawling, Alembic revision upgrades, or the container/edge setup described in [DEPLOYMENT.md](DEPLOYMENT.md). Token revocation is covered only as a process-local denylist; distributed revocation is not tested. Crawler compliance is tested against local mock servers/parser behaviour rather than public websites.
 - Security properties are tested at the unit level (SSRF inputs, CSV injection, 401/403 enforcement) rather than through a full penetration test; see the limitations in [SECURITY.md](SECURITY.md).

@@ -248,15 +248,15 @@ These are usable but intentionally incomplete. They must be described honestly i
 | Area | Current limitation | Priority |
 | --- | --- | --- |
 | Container deployment | All Compose assets exist, but the stack was not built or run in this environment. Local source setup is the verified path. | Medium |
-| Live integrations | Provider registry and encrypted credential records exist; no OAuth handshake, token refresh or vendor API calls are implemented for GSC, GA4, Semrush, Ahrefs, GBP, Merchant Center, Shopify, WordPress or LLM providers. | Medium |
+| Live integrations | Provider registry, encrypted credential records and dormant GSC/GA4/LLM adapters exist behind explicit environment and account gates; no provider request is active and no credentials/accounts are configured here. Semrush, Ahrefs, GBP, Merchant Center, Shopify and WordPress have no adapters. | Medium |
 | Crawler JS rendering | `javascript_rendering` is stored and changes the record note when no HTML is extracted; no Playwright/browser renderer is active. | High |
 | Crawler option coverage | `canonical_handling` and `schedule` are stored but unused by the engine. `mode` only changes `data_kind` between `live_crawl` and `simulated`; it does not change fetch mechanics. | Medium |
 | SSRF enforcement | `validate_target_url()` is DNS-aware and rejects private DNS answers, numeric IP spellings and unsafe redirect hops. There is still no egress firewall, IP allowlist or rebinding-proof connection layer. | High |
-| Sitemap discovery | `/robots.txt`, `/sitemap.xml` and `/sitemap_index.xml` are fetched and indexes expand one level; deeper nesting, more than 25 candidate/child documents and robots rules for named AI agents on sitemap URLs are not handled. | Low |
+| Sitemap discovery | `/robots.txt`, `/sitemap.xml` and `/sitemap_index.xml` are fetched; nested indexes expand breadth-first up to depth 3 with cycle prevention and a 25-document cap. More than 25 documents and robots rules for named AI agents on sitemap URLs are not handled. | Low |
 | Public audit coverage | The local verification used a narrow 60-URL sample; the hosted run fetched 219 URLs under the in-app 250-URL default. Neither is exhaustive. No JS-rendered DOM, private pages or vendor metrics are included, and AI visibility is readiness evidence only. The hosted sitemap discovery timed out and is reported as 0 entries. | Medium |
 | Issue rule coverage | Some declared rules (`excessive_depth`, `broken_external_link`) have no detector. | Medium |
 | RBAC | Writes are gated by global role only. Membership roles grant read access through `get_project`, not write access; `project_members` is stored but not consulted. No role-management UI. | Medium |
-| Token security | `decode_access_token()` pins `alg=HS256` and `typ=JWT` before signature verification. Tokens are still stateless and cannot be revoked before `exp`, and `SECRET_KEY` is shared by token signing and Fernet credential encryption. | High |
+| Token security | `decode_access_token()` pins `alg=HS256` and `typ=JWT` before signature verification; each token has a unique `jti`, and `POST /auth/logout` revokes a token digest in a process-local denylist until `exp` (clears on restart, not shared across workers). `SECRET_KEY` is still shared by token signing and Fernet credential encryption. | Medium |
 | Queue topology | A single `jobs` table with conditional-update claiming is not a distributed broker; there is no visibility timeout, orphaned-job recovery or automatic retry of long-lived `claimed` jobs. | Medium |
 | Pagination consistency | Responses use `items,total,page,page_size,has_more`, while most requests use `offset`/`limit`. | Low |
 | Observability | Basic logging exists; no structured metrics, tracing, alerting or correlation IDs. | Medium |
@@ -290,12 +290,12 @@ These are usable but intentionally incomplete. They must be described honestly i
 4. Implement `canonical_handling` semantics and crawler scheduling, or remove the unused keys.
 5. Add detectors for `excessive_depth` and `broken_external_link`.
 6. Add per-project write roles, role-management UI and role gating in the SPA.
-7. **Done:** `alg == "HS256"` and `typ == "JWT"` are now pinned before signature verification. Still open: separate token-signing and credential-encryption keys, token revocation/refresh and short-lived tokens.
+7. **Done:** `alg == "HS256"` and `typ == "JWT"` are pinned before signature verification; tokens carry a unique `jti`, and `POST /auth/logout` supports process-local revocation. Still open: separate token-signing and credential-encryption keys, shared/distributed revocation, refresh and short-lived tokens.
 8. Replace the single-table queue with a durable broker or add visibility timeout, orphan recovery and retry policy.
 9. **Partly done:** `/api/health` now probes the database and reports `503 degraded` without credentials. Still open: structured request logging, correlation IDs and job metrics.
 10. Add frontend unit/component tests and end-to-end coverage for the 12 scenarios.
-11. Add real provider adapters with capability flags and read-only validation calls.
-12. Add incremental recrawl scheduling and deeper sitemap-index expansion beyond the current one level.
+11. **Partly done:** dormant GSC/GA4/LLM adapters exist behind explicit environment/account/action gates; no credentials or provider accounts are configured here. Still open: capability flags, read-only validation calls and Semrush/Ahrefs/GBP/Merchant adapters.
+12. **Partly done:** nested sitemap indexes expand breadth-first up to depth 3 with cycle prevention; incremental recrawl scheduling is still open.
 13. Add redirect deployment as a gated, reviewable workflow rather than an automatic action.
 14. Exercise incremental Alembic revisions against production-like data and add a backup/restore runbook.
 15. Remove or guard the automatic demo-account bootstrap and open self-registration before any public deployment.
@@ -370,7 +370,7 @@ Suggested talking points are expanded in `docs/INTERVIEW_DEMONSTRATIONS.md` and 
 | Classification | Count / scope |
 | --- | --- |
 | Completed | Application shell, 23 module screens, API, database, Alembic baseline, jobs, crawler safety, sitemap/robots evidence, source-tracked public audit with PPTX/PDF/CSV/XLSX/JSON exports and case study, analysis services, demo generator, 12 scenarios, docs, tests, screenshots, GitHub publication, Vercel UI and Render API/database hosting |
-| Partial | Containers (not built), live integrations, JS rendering, one-level sitemap-index expansion, crawler option coverage, egress enforcement, some issue detectors, global-role RBAC, token revocation, queue topology, pagination consistency, observability, frontend tests, incremental migrations, AI-search/forecasting depth |
-| Pending | Egress enforcement, production hardening, real vendor adapters, per-project RBAC, distributed queue, full Alembic evolution/backup runbook, long-lived free-tier database (expires after 30 days), and explicit approval before any further deploy or publish |
+| Partial | Containers (not built), dormant live integrations, JS rendering, three-level sitemap-index expansion, crawler option coverage, egress enforcement, some issue detectors, global-role RBAC, process-local token revocation, queue topology, pagination consistency, observability, frontend tests, incremental migrations, AI-search/forecasting depth |
+| Pending | Egress enforcement, production hardening, real vendor accounts/credentials, per-project RBAC, distributed queue, full Alembic evolution/backup runbook, long-lived free-tier database (expires after 30 days) |
 
 The deliverable is ready for source-run demonstrations, interviews, the hosted synthetic-data demo at `https://serpscopelive.vercel.app`, and a real public-evidence audit with a stated sample size and missing-data list. It is not ready to be marketed as a production multi-tenant SaaS without the pending hardening work, but hosted audit verification is complete and the full evidence pack is available in `evidence/techmagnate_public_audit_hosted_2026-11-23/`.
